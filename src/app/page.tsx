@@ -10,6 +10,7 @@ import {
   MarketplaceFallback,
   MarketplaceSection,
 } from "@/components/sections/marketplace/marketplace-section";
+import { SearchFallback, SearchSection } from "@/components/sections/search/search-section";
 import { SugiereSection } from "@/components/sections/sugiere/sugiere-section";
 import { Topbar } from "@/components/sections/topbar/topbar";
 import { HomeMotion } from "@/components/shell/home-motion";
@@ -36,6 +37,9 @@ export default function Home() {
         <HomeMotion />
       </main>
       <Footer />
+      <Suspense fallback={<SearchFallback />}>
+        <SearchSection />
+      </Suspense>
     </>
   );
 }

@@ -299,7 +299,8 @@ html.lenis body {
   scroll-behavior: auto !important;
 }
 
-.lenis.lenis-stopped {
+.lenis.lenis-stopped,
+html[data-search-open] {
   overflow: hidden;
 }
 

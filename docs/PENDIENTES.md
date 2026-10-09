@@ -93,3 +93,7 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 ## Verificación con datos reales
 
 - [ ] Primera prueba contra el backend real en local (`EMER_API_URL=https://emerapp.onrender.com`): desde el entorno de desarrollo de Claude no se llega a Render, todo se probó con datos de ejemplo.
+
+## 09-buscar
+- Un único `Search` cliente que reciba las marcas sin remontarse (hoy fallback y datos montan instancias distintas; se mitiga conservando el opener, pero la consulta escrita se pierde si el remontaje ocurre con el buscador abierto).
+- Buscador sin pruebas contra backend real (solo fixtures).
