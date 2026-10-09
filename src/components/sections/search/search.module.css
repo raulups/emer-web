@@ -1,0 +1,260 @@
+/* 09-buscar («Índice»). El telón, el espacio superior, la raya y el eco los mueve GSAP
+   (transform / opacity); aquí layout, color y estados. */
+
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  color: var(--color-paper);
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.35);
+}
+
+/* Máscara fija: el panel entra por arriba y su contenido hace de contrapeso. */
+.mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 66.6vh;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.panel {
+  height: 100%;
+  background: rgb(0 0 0 / 0.84);
+  border-bottom: 1px solid #2a2a2a;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.top {
+  display: flex;
+  justify-content: flex-end;
+  flex: none;
+  padding: 28px clamp(16px, 3vw, 40px);
+}
+
+.close {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.3em;
+}
+
+.close:focus-visible,
+.suggest:focus-visible {
+  outline: 1px solid var(--color-paper);
+  outline-offset: 4px;
+}
+
+.kbd {
+  font: inherit;
+  color: var(--color-muted);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 clamp(16px, 3vw, 40px) 40px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* --- Campo y eco --- */
+
+.field {
+  position: relative;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* El input real es invisible y cubre el eco (16px: sin zoom al enfocar en iOS). */
+.input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  opacity: 0;
+  font-size: 16px;
+  appearance: none;
+  cursor: text;
+}
+
+.input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.echo {
+  display: inline-block;
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  color: var(--color-paper);
+  transform-origin: 50% 50%;
+  pointer-events: none;
+}
+
+.caret {
+  display: inline-block;
+  width: 3px;
+  height: 0.8em;
+  margin-left: 0.04em;
+  vertical-align: baseline;
+  background: var(--color-paper);
+  animation: caretBlink 1s steps(1) infinite;
+}
+
+@keyframes caretBlink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.rule {
+  display: block;
+  width: min(70vw, 720px);
+  height: 1px;
+  margin-top: 12px;
+  background: var(--color-paper);
+  transform-origin: 50% 50%;
+}
+
+.count {
+  margin-top: 14px;
+  min-height: 1em;
+  font-size: 8.5px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.28em;
+  color: var(--color-hint-dark);
+}
+
+/* --- Resultados --- */
+
+.results {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 14px;
+  row-gap: 12px;
+  max-width: 760px;
+  margin-top: clamp(36px, 4vw, 60px);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.28em;
+}
+
+.item {
+  display: flex;
+  gap: 14px;
+}
+
+.link {
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  color: var(--color-paper);
+  transition: border-color 0.3s;
+}
+
+.item[data-active] .link {
+  border-bottom-color: var(--color-paper);
+}
+
+.dim {
+  color: #7a7a7a;
+}
+
+.hit {
+  color: var(--color-paper);
+}
+
+.sep {
+  color: #5a5a5a;
+}
+
+.none {
+  margin-top: 40px;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--color-hint-dark);
+}
+
+.suggest {
+  font: inherit;
+  color: var(--color-paper);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* --- Preview fija a la derecha --- */
+
+.preview {
+  position: absolute;
+  top: 50%;
+  right: clamp(16px, 4vw, 64px);
+  width: clamp(150px, 12vw, 190px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-card-dark);
+  opacity: 0;
+  transform: translateY(calc(-50% + 16px));
+  transition:
+    opacity 0.4s var(--ease-standard),
+    transform 0.7s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.preview[data-on] {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.previewImg {
+  object-fit: cover;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+
+  .preview,
+  .preview[data-on] {
+    transform: translateY(-50%);
+    transition: opacity 0.2s var(--ease-standard);
+  }
+
+  .link {
+    transition: none;
+  }
+}
