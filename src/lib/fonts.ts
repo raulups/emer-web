@@ -6,6 +6,8 @@ export const anton = localFont({
   style: "normal",
   display: "swap",
   variable: "--font-anton",
+  fallback: ["Impact", "Arial Narrow", "sans-serif"],
+  adjustFontFallback: "Arial",
 });
 
 export const fraunces = localFont({
@@ -15,4 +17,6 @@ export const fraunces = localFont({
   ],
   display: "swap",
   variable: "--font-fraunces",
+  fallback: ["Georgia", "serif"],
+  adjustFontFallback: "Times New Roman",
 });
