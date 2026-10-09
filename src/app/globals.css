@@ -85,6 +85,31 @@ html.is-loading {
   }
 }
 
+/* 03-hero: estado inicial de la entrada hasta que hidrata (luego lo controla GSAP).
+   Si el JS falla, a los 6 s el contenido aparece igualmente. */
+html.is-loading [data-hero-name] {
+  transform: translateY(105%);
+  animation: emer-reveal 0s 6s forwards;
+}
+
+html.is-loading [data-hero-item] {
+  opacity: 0;
+  animation: emer-reveal 0s 6s forwards;
+}
+
+/* Un enlace que recibe foco durante su entrada se muestra al momento (foco nunca invisible). */
+[data-hero-item]:focus-visible,
+[data-hero-item]:focus-within {
+  opacity: 1 !important;
+}
+
+@keyframes emer-reveal {
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   html.has-cursor,
   html.has-cursor * {

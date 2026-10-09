@@ -25,7 +25,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body>
         <noscript>
-          <style>{"html.is-loading{overflow:auto;animation:none}"}</style>
+          <style>
+            {
+              "html.is-loading{overflow:auto;animation:none}html.is-loading [data-hero-name],html.is-loading [data-hero-item]{transform:none;opacity:1;animation:none}"
+            }
+          </style>
         </noscript>
         <a className="skip-link" href="#contenido">
           Saltar al contenido

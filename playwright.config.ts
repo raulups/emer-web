@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3000;
+/** Puerto propio: los tests nunca reutilizan un `pnpm dev` con el backend real. */
+const PORT = 3100;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -23,9 +24,14 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["Pixel 7"] } },
   ],
   webServer: {
-    command: "pnpm build && pnpm start",
+    command: `pnpm build && pnpm start -p ${PORT}`,
     url: `http://localhost:${PORT}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 180_000,
+    // Los tests usan los datos de ejemplo locales (src/lib/api/fixtures.ts), no el backend real.
+    env: { ...process.env, EMER_API_FIXTURES: process.env.EMER_API_FIXTURES ?? "1" } as Record<
+      string,
+      string
+    >,
   },
 });

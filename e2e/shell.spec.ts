@@ -5,6 +5,9 @@ const heroHeight = (page: Page) =>
 
 const scrollY = (page: Page) => page.evaluate(() => Math.round(window.scrollY));
 
+/** El hero hidrata aparte (Suspense): esperar a que esté registrado en el shell. */
+const heroReady = (page: Page) => expect(page.locator("#marcas[data-registered]")).toBeAttached();
+
 test.describe("00-shell", () => {
   test("quita is-loading y no deja el scroll bloqueado", async ({ page }) => {
     await page.goto("/");
@@ -16,6 +19,7 @@ test.describe("00-shell", () => {
     test.skip(isMobile, "La rueda solo aplica en escritorio");
     await page.goto("/");
     await expect(page.locator("html")).toHaveClass(/lenis/);
+    await heroReady(page);
     const h = await heroHeight(page);
 
     await page.mouse.move(700, 400);
@@ -33,6 +37,7 @@ test.describe("00-shell", () => {
   }) => {
     test.skip(isMobile, "La rueda solo aplica en escritorio");
     await page.goto("/");
+    await heroReady(page);
     const h = await heroHeight(page);
     await page.mouse.move(700, 400);
     // ~2 s de eventos con delta decreciente, como la inercia de un trackpad
@@ -48,6 +53,7 @@ test.describe("00-shell", () => {
     test.skip(isMobile, "Teclado de escritorio");
     await page.goto("/");
     await expect(page.locator("html")).toHaveClass(/lenis/); // hidratado
+    await heroReady(page);
     const h = await heroHeight(page);
     await page.keyboard.press("PageDown");
     await expect.poll(() => scrollY(page), { timeout: 3000 }).toBeGreaterThanOrEqual(h - 2);
@@ -61,7 +67,7 @@ test.describe("00-shell", () => {
     await page.goto("/no-existe");
     await page.getByRole("link", { name: /volver al inicio/i }).click();
     await expect(page).toHaveURL("/");
-    await expect(page.locator("#marcas")).toBeVisible();
+    await heroReady(page);
     const h = await heroHeight(page);
     await page.mouse.move(700, 400);
     await page.mouse.wheel(0, 120);
