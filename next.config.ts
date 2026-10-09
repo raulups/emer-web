@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.shopify.com" },
       { protocol: "https", hostname: "aidisezaeymiesrdfnza.supabase.co" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
   turbopack: {

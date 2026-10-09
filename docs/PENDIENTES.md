@@ -61,6 +61,8 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **06-marketplace nombres largos** se cortan con elipsis; marca (7,5 px) y categoría (8 px) muy pequeñas.
 - [ ] **Reintentar tras error** (catálogo y marketplace): el error se cachea con `cacheLife("seconds")` y el primer `router.refresh()` puede devolverlo aún. Valorar una server action con `updateTag`.
 
+- [ ] **Hosts de imágenes**: un host no declarado en `images.remotePatterns` rompe toda la página (error de `next/image`). Hay Shopify, Supabase y Cloudinary; al aparecer otro CDN en el backend hay que añadirlo en `next.config.ts` (o valorar un fallback `unoptimized` para hosts desconocidos).
+
 - [ ] **05-catálogo «sin imagen»**: el nombre grande va en trazo negro. El diseño lo pide blanco, pero sobre el fondo #f3f3f1 no se veía (1,1:1).
 - [ ] **05-catálogo móvil**: celdas de igual ancho (2 por fila, como dice el handoff). La referencia tenía anchos irregulares también en móvil.
 - [ ] **05-catálogo revelado**: incluye la cabecera, como dice el handoff (la referencia solo revelaba las marcas).
