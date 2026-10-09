@@ -61,6 +61,13 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **06-marketplace nombres largos** se cortan con elipsis; marca (7,5 px) y categoría (8 px) muy pequeñas.
 - [ ] **Reintentar tras error** (catálogo y marketplace): el error se cachea con `cacheLife("seconds")` y el primer `router.refresh()` puede devolverlo aún. Valorar una server action con `updateTag`.
 
+- [ ] **Backend `POST /suggestions`** (falta): mientras no exista, 07-sugiere muestra el error (no se simula éxito). Al crearlo, añadir **rate limit por IP** en el backend: el límite de 10 s de la web es solo de cliente.
+- [ ] **07-sugiere decorados** estáticos, como en el diseño (el handoff proponía activar el hover). Son `background-image` (no `next/image`): se descargan al cargar la página aunque la sección esté abajo. Valorar `next/image` lazy.
+- [ ] **07-sugiere Instagram/X**: los iconos solo aparecen cuando existan `LINKS.instagram` y `LINKS.x` (de momento solo el mail).
+- [ ] **07-sugiere Instagram**: se acepta «@handle» o URL de instagram.com y se envía el handle validado (`[a-z0-9._]{1,30}`); el campo admite 60 caracteres para poder pegar la URL (diseño: 40).
+- [ ] **09-buscar → 07-sugiere**: usar el evento `emer:suggest` (el `?sugiere=` solo se lee al cargar la página).
+- [ ] **`initSectionTracking`** ya no encuentra placeholders (todas las secciones son reales): quitarlo de `HomeMotion` y de la regla 12 de CLAUDE.md.
+
 - [ ] **05-catálogo «sin imagen»**: el nombre grande va en trazo negro. El diseño lo pide blanco, pero sobre el fondo #f3f3f1 no se veía (1,1:1).
 - [ ] **05-catálogo móvil**: celdas de igual ancho (2 por fila, como dice el handoff). La referencia tenía anchos irregulares también en móvil.
 - [ ] **05-catálogo revelado**: incluye la cabecera, como dice el handoff (la referencia solo revelaba las marcas).

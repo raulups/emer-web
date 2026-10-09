@@ -6,6 +6,8 @@ export type BusEvents = {
   "emer:search:close": undefined;
   "hero:step": { dir: 1 | -1 };
   "section:change": { id: SectionId; label: string };
+  /** 09-buscar → 07-sugiere: prellenar el nombre de la marca. */
+  "emer:suggest": { name: string };
 };
 
 type EventName = keyof BusEvents;

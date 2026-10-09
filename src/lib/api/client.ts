@@ -59,7 +59,7 @@ export async function settle<T>(
   }
 }
 
-function baseUrl(): string {
+export function baseUrl(): string {
   const url = process.env.EMER_API_URL;
   if (!url) throw new Error("EMER_API_URL no está definida (ver .env.example)");
   return url.replace(/\/$/, "");
