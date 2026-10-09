@@ -5,6 +5,14 @@ const catalog = (page: Page) => page.locator("#catalogo:not([aria-busy])");
 async function toCatalog(page: Page) {
   await page.goto("/");
   await expect(page.locator("#marcas[data-registered]")).toBeAttached();
+  // Emergentes fija su altura al hidratar y desplaza el catálogo: esperar a que se estabilice.
+  await expect
+    .poll(async () => {
+      const top = await catalog(page).evaluate((el) => (el as HTMLElement).offsetTop);
+      await page.waitForTimeout(250);
+      return top === (await catalog(page).evaluate((el) => (el as HTMLElement).offsetTop));
+    })
+    .toBe(true);
   await catalog(page).evaluate((el) => el.scrollIntoView());
   // Revelado: 1.1s + escalonado de 45ms por celda.
   await page.waitForTimeout(2000);

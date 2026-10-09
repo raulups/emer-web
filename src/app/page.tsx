@@ -1,5 +1,9 @@
 import { Suspense } from "react";
 import { CatalogFallback, CatalogSection } from "@/components/sections/catalog/catalog-section";
+import {
+  EmergentesFallback,
+  EmergentesSection,
+} from "@/components/sections/emergentes/emergentes-section";
 import { Footer } from "@/components/sections/footer/footer";
 import { HeroFallback, HeroSection } from "@/components/sections/hero/hero-section";
 import { Topbar } from "@/components/sections/topbar/topbar";
@@ -34,7 +38,9 @@ export default function Home() {
         <Suspense fallback={<HeroFallback />}>
           <HeroSection />
         </Suspense>
-        <Placeholder id="emergentes" />
+        <Suspense fallback={<EmergentesFallback />}>
+          <EmergentesSection />
+        </Suspense>
         <Suspense fallback={<CatalogFallback />}>
           <CatalogSection />
         </Suspense>

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("08-footer", () => {
   test("textos, año y destinos pendientes sin enlace", async ({ page }) => {
     await page.goto("/");
-    const footer = page.locator("footer");
+    const footer = page.getByRole("contentinfo");
     await expect(footer).toContainText("MARCAS PEQUEÑAS, UN SOLO SITIO");
     await expect(footer).toContainText(`© ${new Date().getFullYear()} EMER`);
     await expect(footer.getByRole("img", { name: "Emer" })).toBeVisible();

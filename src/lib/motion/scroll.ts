@@ -15,7 +15,7 @@ const expoOut = (t: number) => Math.min(1, 1.001 - 2 ** (-10 * t));
 const cubicInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 type ScrollTarget = number | string | HTMLElement;
-type ScrollOpts = { offset?: number; duration?: number };
+type ScrollOpts = { offset?: number; duration?: number; immediate?: boolean };
 
 // ---------- Estado del módulo ----------
 
@@ -229,6 +229,7 @@ export function scrollTo(target: ScrollTarget, opts?: ScrollOpts) {
     lenis.scrollTo(target, {
       offset: opts?.offset ?? 0,
       duration: opts?.duration ?? ANCHOR_DURATION,
+      immediate: opts?.immediate ?? false,
     });
     return;
   }
