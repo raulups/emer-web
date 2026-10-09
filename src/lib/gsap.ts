@@ -11,6 +11,7 @@ if (typeof window !== "undefined") {
   CustomEase.create("reveal", "0.2,0.7,0.2,1");
   CustomEase.create("back", "0.34,1.56,0.64,1");
   CustomEase.create("curtain", "0.76,0,0.24,1");
+  CustomEase.create("kenBurns", "0.2,0.6,0.2,1");
 }
 
 /** Nombres de easing del diseño, registrados con CustomEase. */
@@ -21,6 +22,7 @@ export const EASE = {
   reveal: "reveal",
   back: "back",
   curtain: "curtain",
+  kenBurns: "kenBurns",
 } as const;
 
 export { gsap, ScrollTrigger, useGSAP };

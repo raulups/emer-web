@@ -203,6 +203,16 @@ export function registerHero(el: HTMLElement): () => void {
   };
 }
 
+/** Scroll actual sin forzar layout (con Lenis, su valor interno). */
+export function getScrollY(): number {
+  return lenis ? lenis.scroll : window.scrollY;
+}
+
+/** Altura del hero registrado (cacheada en resize). */
+export function getHeroHeight(): number {
+  return heroHeight;
+}
+
 export function scrollTo(target: ScrollTarget, opts?: ScrollOpts) {
   if (lenis) {
     lenis.scrollTo(target, {

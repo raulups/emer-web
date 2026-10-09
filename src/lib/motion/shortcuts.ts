@@ -45,15 +45,20 @@ export function initHeroKeys(heroEl: HTMLElement): () => void {
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.isComposing) return;
     if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-    if (bus.isSearchOpen() || !isNeutralFocus(event.target)) return;
+    if (bus.isSearchOpen()) return;
+    const neutral = isNeutralFocus(event.target);
+    // Las flechas también funcionan con el foco en los segmentos del hero (navegación del carrusel).
+    const onSegments =
+      event.target instanceof Element && event.target.closest("[data-hero-segments]") !== null;
 
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    if ((event.key === "ArrowLeft" || event.key === "ArrowRight") && (neutral || onSegments)) {
       if (!heroInView()) return;
       event.preventDefault();
       bus.emit("hero:step", { dir: event.key === "ArrowRight" ? 1 : -1 });
       return;
     }
 
+    if (!neutral) return;
     if ((event.key === "PageDown" || event.key === " ") && handleSnapKey()) {
       event.preventDefault();
     }

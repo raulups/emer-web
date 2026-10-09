@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script src="emer-data.js"></script>
+<style>html,body{margin:0;background:#fff;color:#fff;font-family:Fraunces,serif;-webkit-font-smoothing:antialiased}a{color:#fff}a:hover{color:#d6d6d6}input{font:inherit;color:inherit}@keyframes emLine{0%{transform:scaleX(0);transform-origin:0 50%}50%{transform:scaleX(1);transform-origin:0 50%}50.01%{transform:scaleX(1);transform-origin:100% 50%}100%{transform:scaleX(0);transform-origin:100% 50%}}@keyframes emCaret{50%{opacity:0}}@keyframes emSwing{from{transform:rotate(-2.5deg)}to{transform:rotate(2.5deg)}}</style>
+</helmet>
+<div style="position:relative;min-height:{{ rootH }};overflow:hidden">
+  <sc-if value="{{ standalone }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;inset:0;background-image:{{ backBg }};background-size:cover;background-position:center"></div></sc-if>
+  <div onClick="{{ backClick }}" style="position:fixed;inset:0;z-index:0;background:rgba(0,0,0,{{ veil }});transition:background .6s"></div>
+  <div onClick="{{ focus }}" style="position:fixed;left:0;right:0;top:0;height:{{ panelH }};z-index:1;background:rgba(0,0,0,.84);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid #2a2a2a;display:flex;flex-direction:column;overflow-y:auto;clip-path:{{ panelClip }};transition:clip-path .75s cubic-bezier(.76,0,.24,1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:28px clamp(16px,3vw,40px)">
+      <div style="display:{{ swDisp }};gap:6px">
+        <sc-for list="{{ opts }}" as="o" hint-placeholder-count="3">
+          <span onClick="{{ o.go }}" style="height:28px;padding:0 12px;display:flex;align-items:center;font:400 8.5px Fraunces;letter-spacing:.24em;cursor:pointer;border:1px solid #fff;background:{{ o.bg }};color:{{ o.col }}">{{ o.label }}</span>
+        </sc-for>
+      </div>
+      <span onClick="{{ close }}" style="display:flex;align-items:center;gap:10px;font:400 9px Fraunces;letter-spacing:.3em;cursor:pointer;margin-left:auto">CERRAR<span style="color:#8a8a8a">ESC</span></span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:0 clamp(16px,3vw,40px) 60px">
+      <div style="position:relative;min-height:{{ topSpace }};transition:min-height .8s cubic-bezier(.16,1,.3,1);width:100%"></div>
+      <label style="position:relative;display:flex;justify-content:center;align-items:center;width:100%;cursor:text">
+        <input ref="{{ inRef }}" value="{{ q }}" onInput="{{ onQ }}" onKeyDown="{{ onKey }}" maxlength="22" spellcheck="false" autocomplete="off" style="position:absolute;inset:0;width:100%;opacity:0;border:0;outline:none"></input>
+        <div style="display:flex;align-items:center;justify-content:center;white-space:nowrap;font:400 {{ qFs }}/1.05 Anton;letter-spacing:.005em;transition:font-size .5s cubic-bezier(.16,1,.3,1);pointer-events:none">
+          <span>{{ qUp }}</span>
+          <span style="display:inline-block;width:3px;height:.8em;margin-left:.05em;background:#fff;animation:emCaret 1s steps(1) infinite"></span>
+        </div>
+      </label>
+      <div style="width:{{ lineW }};height:1px;background:#fff;margin-top:12px;transition:width .7s cubic-bezier(.16,1,.3,1)"></div>
+      <span style="margin-top:14px;font:400 8.5px Fraunces;letter-spacing:.28em;color:#bdbdbd;opacity:{{ cntOp }};transition:opacity .4s">{{ countLbl }}</span>
+
+      <sc-if value="{{ isA }}" hint-placeholder-val="{{ true }}">
+        <div ref="{{ resRef }}" onMouseLeave="{{ bLeave }}" style="margin-top:clamp(36px,4vw,60px);display:flex;flex-direction:column;align-items:center;gap:2px">
+          <sc-for list="{{ hits }}" as="h" hint-placeholder-count="0">
+            <a data-it="{{ h.id }}" href="{{ h.url }}" target="_blank" rel="noopener" onMouseEnter="{{ h.enter }}" style="display:flex;align-items:center;gap:16px;padding:6px 0;color:#fff;text-decoration:none;opacity:0">
+              <span style="width:{{ h.thW }};height:40px;overflow:hidden;transition:width .5s cubic-bezier(.16,1,.3,1)"><span style="display:block;width:30px;height:40px;background-image:{{ h.bg }};background-size:cover;background-position:center"></span></span>
+              <span style="font:400 clamp(22px,2.2vw,32px)/1.2 Anton;letter-spacing:.01em"><sc-for list="{{ h.parts }}" as="p" hint-placeholder-count="1"><span style="color:{{ p.fc }}">{{ p.t }}</span></sc-for></span>
+              <span style="width:{{ h.lnW }};height:1px;background:#fff;transition:width .5s cubic-bezier(.16,1,.3,1)"></span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isB }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ resRef }}" style="margin-top:clamp(36px,4vw,60px);display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(18px,2vw,30px);max-width:1000px">
+          <sc-for list="{{ hits }}" as="h" hint-placeholder-count="0">
+            <a data-it="{{ h.id }}" href="{{ h.url }}" target="_blank" rel="noopener" style="width:clamp(84px,7vw,110px);display:flex;flex-direction:column;gap:10px;color:#fff;text-decoration:none;opacity:0">
+              <div style="position:relative;aspect-ratio:1/1;border-radius:50%;overflow:hidden;background:#1a1a1a;border:1px solid #333;transition:transform .5s cubic-bezier(.16,1,.3,1)" style-hover="transform:scale(1.08)"><span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:400 22px Anton;color:#8a8a8a">{{ h.ini }}</span><div style="position:absolute;inset:0;background-image:{{ h.bg }};background-size:cover;background-position:center"></div></div>
+              <span style="font:400 8px Fraunces;letter-spacing:.22em;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><sc-for list="{{ h.parts }}" as="p" hint-placeholder-count="1"><span style="color:{{ p.fc }}">{{ p.t }}</span></sc-for></span>
+            </a>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isC }}" hint-placeholder-val="{{ false }}">
+        <div ref="{{ resRef }}" onMouseLeave="{{ bLeave }}" style="margin-top:clamp(36px,4vw,60px);max-width:760px;display:flex;flex-wrap:wrap;justify-content:center;column-gap:14px;row-gap:12px;font:400 10px Fraunces;letter-spacing:.28em;line-height:1.6">
+          <sc-for list="{{ hits }}" as="h" hint-placeholder-count="0">
+            <a data-it="{{ h.id }}" href="{{ h.url }}" target="_blank" rel="noopener" onMouseEnter="{{ h.enter }}" style="display:flex;gap:14px;color:#fff;text-decoration:none;opacity:0"><span style="border-bottom:1px solid {{ h.ul }};padding-bottom:2px;transition:border-color .3s"><sc-for list="{{ h.parts }}" as="p" hint-placeholder-count="1"><span style="color:{{ p.fc }}">{{ p.t }}</span></sc-for></span><span style="color:#5a5a5a">/</span></a>
+          </sc-for>
+        </div>
+        <div style="position:fixed;right:clamp(16px,4vw,64px);top:50%;width:clamp(150px,12vw,190px);aspect-ratio:3/4;transform:translateY(-50%) translateY({{ cImgY }});opacity:{{ bOp }};transition:opacity .4s,transform .7s cubic-bezier(.16,1,.3,1);background-image:{{ bBg }};background-size:cover;background-position:center;pointer-events:none"></div>
+      </sc-if>
+
+      <sc-if value="{{ none }}" hint-placeholder-val="{{ false }}">
+        <span style="margin-top:40px;font:300 italic 16px Fraunces;color:#bdbdbd">Ninguna marca con ese nombre. Sugiérela.</span>
+      </sc-if>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ready: !!window.EMER, q: '', v: this.props.embedded ? 'C' : 'A', hv: -1, cs: 0, open: false };
+  inRef = React.createRef(); resRef = React.createRef(); bad = new Set();
+  componentDidMount() {
+    const wait = () => { if (window.EMER) { this.setState({ ready: true }); EMER.BRANDS.forEach(b => { if (!b.img) return; const im = new Image(); im.onerror = () => { this.bad.add(b.img); this.forceUpdate(); }; im.src = b.img; }); } else this.wt = setTimeout(wait, 60); };
+    wait(); this.to = setTimeout(() => { this.setState({ open: true }); this.inRef.current && this.inRef.current.focus(); }, 30);
+    this.onEsc = e => { if (e.key === 'Escape' && !this.state.q) this.doClose(); }; addEventListener('keydown', this.onEsc);
+  }
+  componentWillUnmount() { clearTimeout(this.wt); clearTimeout(this.to); clearTimeout(this.tc); removeEventListener('keydown', this.onEsc); }
+  doClose() { this.setState({ open: false }); this.tc = setTimeout(() => this.props.onClose && this.props.onClose(), 700); }
+  componentDidUpdate() {
+    const r = this.resRef.current; if (!r) return; let k = 0;
+    r.querySelectorAll('[data-it]').forEach(el => { if (el._id === el.dataset.it) return; el._id = el.dataset.it; const d = k++ * 40;
+      el.style.transition = 'none'; el.style.opacity = 0; el.style.transform = 'translateY(8px)'; void el.offsetWidth;
+      el.style.transition = `opacity .6s ${d}ms, transform .8s cubic-bezier(.16,1,.3,1) ${d}ms`; el.style.opacity = 1; el.style.transform = 'none'; });
+  }
+  norm(t) { return (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(); }
+  renderVals() {
+    const s = this.state, url = u => u && !this.bad.has(u) ? `url("${u}")` : 'none', pad = x => String(x).padStart(2, '0');
+    const all = window.EMER ? EMER.BRANDS : [], q = this.norm(s.q.trim()), L = s.q.length;
+    const hits = q ? all.filter(b => this.norm(b.upper).includes(q)) : [];
+    const n = hits.length, num = x => window.EMER ? EMER.num(x) : x;
+    const hvB = hits.find(b => b.id === s.hv) || hits[0];
+    const fs = L ? `min(${Math.min(200, 70 + L * 14)}px, calc((100vw - 80px) / ${(L * 0.5 + 0.3).toFixed(2)}))` : '64px';
+    return {
+      inRef: this.inRef, resRef: this.resRef, q: s.q, qUp: s.q.toUpperCase(), qFs: fs,
+      backBg: url(all[0] && all[0].img), topSpace: q ? (this.props.embedded ? '1vh' : '6vh') : (this.props.embedded ? '14vh' : '30vh'),
+      standalone: !this.props.embedded, rootH: this.props.embedded ? '0px' : '100vh', panelH: this.props.embedded ? '66.6vh' : '100vh', panelClip: s.open ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)', veil: s.open && this.props.embedded ? 0.35 : 0, swDisp: this.props.embedded ? 'none' : 'flex',
+      close: e => { e.stopPropagation(); this.doClose(); }, backClick: () => this.doClose(), lineW: L ? 'min(70vw, 720px)' : '40px',
+      cntOp: q ? 1 : 0, countLbl: n === 1 ? '1 MARCA' : `${pad(n)} MARCAS`, none: !!q && n === 0,
+      isA: s.v === 'A', showA: s.v === 'A' && n > 0, isB: s.v === 'B', isC: s.v === 'C',
+      focus: () => this.inRef.current && this.inRef.current.focus(),
+      onQ: e => this.setState({ q: e.target.value, hv: -1, cs: 0 }),
+      onKey: e => { const cs = Math.min(s.cs, n - 1); if (s.v === 'C' && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); this.setState({ cs: Math.max(0, Math.min(n - 1, cs + (e.key === 'ArrowDown' ? 1 : -1))) }); } if (e.key === 'Enter' && hits[s.v === 'C' ? Math.max(0, cs) : 0]) window.open(hits[s.v === 'C' ? Math.max(0, cs) : 0].url, '_blank', 'noopener'); if (e.key === 'Escape') this.setState({ q: '' }); },
+      aJust: n * 290 < (typeof innerWidth !== 'undefined' ? innerWidth : 1200) ? 'center' : 'flex-start', cPos: n ? `${pad(Math.min(s.cs, n - 1) + 1)} / ${pad(n)}` : '',
+      cWheel: e => { const t = performance.now(); if (t - (this.lw || 0) < 260 || Math.abs(e.deltaY) < 8) return; this.lw = t; this.setState({ cs: Math.max(0, Math.min(n - 1, Math.min(s.cs, n - 1) + (e.deltaY > 0 ? 1 : -1))) }); },
+      opts: [['A', '3A · LISTA'], ['B', '3B · CÍRCULOS'], ['C', '3C · ÍNDICE']].map(([k, l]) => ({ label: l, bg: s.v === k ? '#fff' : 'transparent', col: s.v === k ? '#000' : '#fff', go: e => { e.stopPropagation(); this.setState({ v: k }); setTimeout(() => this.inRef.current && this.inRef.current.focus(), 30); } })),
+      bBg: url(hvB && hvB.img), bOp: s.hv && hits.some(b => b.id === s.hv) ? 1 : 0, cImgY: s.hv && hits.some(b => b.id === s.hv) ? '0px' : '16px', bSc: s.hv && hits.some(b => b.id === s.hv) ? 1 : 0.92, bLeave: () => this.setState({ hv: -1 }),
+      hits: hits.map((b, i) => { const qs = s.q.trim(), at = this.norm(b.upper).indexOf(q), up = b.upper; const parts = at >= 0 ? [{ t: up.slice(0, at), hl: 'transparent', px: '0' }, { t: up.slice(at, at + qs.length), hl: s.v === 'A' ? '#e3b04b' : s.v === 'B' ? '#000' : '#000', px: '.04em' }, { t: up.slice(at + qs.length), hl: 'transparent', px: '0' }] : [{ t: up, hl: 'transparent', px: '0' }]; const cs = Math.min(s.cs, n - 1), dd = i - cs, ad = Math.abs(dd); const pv = (b.preview || []).filter(p => p.img && !this.bad.has(p.img));
+        return { parts: parts.map(p => ({ t: p.t, fc: p.hl === 'transparent' ? '#7a7a7a' : '#fff' })), ini: up.split(/\s+/).map(w => w[0]).join('').slice(0, 2), thW: s.hv === b.id ? '30px' : '0px', lnW: s.hv === b.id ? '40px' : '0px', ul: s.hv === b.id ? '#fff' : 'transparent', frame: pad(i + 1) + (s.v === 'A' ? 'A' : ''), pbg: url(pv[0] ? pv[0].img : b.img), prods: pv.slice(0, 3).map(p => ({ bg: url(p.img) })), str: `${40 + (i * 37) % 70}px`, dur: `${2.6 + (i % 4) * 0.5}s`, del: `${-(i * 0.7)}s`,
+          cy: `${dd * 46}px`, cz: `${-ad * 90}px`, cr: `${dd * -14}deg`, cop: ad > 3 ? 0 : String(1 - ad * 0.22), z: String(50 - ad), cpe: ad > 3 ? 'none' : 'auto', pick: () => { if (ad) this.setState({ cs: i }); },
+          id: b.id, url: b.url, name: b.upper, bg: url(b.img), meta: b.total > 0 ? `${num(b.total)} PZS` : '', col: s.hv === b.id ? '#fff' : 'transparent',
+          enter: () => this.setState({ hv: b.id }) }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>

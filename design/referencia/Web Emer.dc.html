@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<script src="emer-data.js"></script>
+<style>html,body{margin:0;background:#fff;color:#000;font-family:Fraunces,serif;-webkit-font-smoothing:antialiased}@keyframes emLine{0%{transform:scaleX(0);transform-origin:0 50%}50%{transform:scaleX(1);transform-origin:0 50%}50.01%{transform:scaleX(1);transform-origin:100% 50%}100%{transform:scaleX(0);transform-origin:100% 50%}}a{color:#000}a:hover{color:#3f3f3f}::selection{background:#000;color:#fff}input{font-family:inherit}input::placeholder{color:#4a4a4a}@media (hover:hover) and (pointer:fine){*{cursor:none!important}}</style>
+</helmet>
+<div ref="{{ rootRef }}" style="position:relative;min-height:100vh;background:#fff;overflow-x:clip">
+  <div ref="{{ curRef }}" style="position:fixed;left:0;top:0;z-index:10000;pointer-events:none;opacity:0;display:{{ curDisp }};mix-blend-mode:difference;will-change:transform">
+    <div data-dot="" style="position:absolute;left:0;top:0;width:12px;height:12px;border-radius:50%;background:#fff;border:1px solid #fff;box-sizing:border-box;transform:translate(-50%,-50%);transition:width .4s cubic-bezier(.16,1,.3,1),height .4s cubic-bezier(.16,1,.3,1),background-color .25s,border-radius .3s,scale .2s"></div>
+    <span ref="{{ curLbl }}" style="position:absolute;left:0;top:0;transform:translate(-50%,-50%);font:400 8px Fraunces;letter-spacing:.24em;color:#000;white-space:nowrap;opacity:0;transition:opacity .2s"></span>
+  </div>
+  <sc-if value="{{ showLoader }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:500;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;opacity:{{ ldOp }};transition:opacity .35s cubic-bezier(.2,.7,.2,1);pointer-events:{{ ldPe }}">
+      <div style="position:relative;width:120px;height:120px">
+        <img src="assets/gato-1.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;opacity:{{ op0 }}"></img>
+        <img src="assets/gato-2.jpeg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;opacity:{{ op1 }}"></img>
+        <img src="assets/gato-3.jpeg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;opacity:{{ op2 }}"></img>
+        <img src="assets/gato-4.jpeg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;opacity:{{ op3 }}"></img>
+      </div>
+      <div style="display:flex;gap:3px;width:64px">
+        <sc-for list="{{ ldBars }}" as="b" hint-placeholder-count="4"><span style="flex:1;height:2px;background:{{ b.c }}"></span></sc-for>
+      </div>
+      <span style="font:400 9px Fraunces;letter-spacing:.24em">CARGANDO MARCAS</span>
+      <span style="font:400 8px Fraunces;letter-spacing:.22em;color:#8a8a8a">{{ ldCount }}</span>
+    </div>
+  </sc-if>
+
+  <div ref="{{ hintRef }}" style="position:fixed;top:0;left:0;right:0;z-index:99;height:26px;pointer-events:none;mix-blend-mode:difference;color:#fff;opacity:0;transition:opacity .45s cubic-bezier(.4,0,.2,1)">
+    <div style="position:absolute;left:0;right:0;top:0;height:2px;background:rgba(255,255,255,.22)"><div ref="{{ hintProg }}" style="height:100%;width:0;background:#fff"></div></div>
+    <div style="position:absolute;left:50%;top:10px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;font:400 8px Fraunces;letter-spacing:.3em;white-space:nowrap">
+      <span ref="{{ hintLbl }}"></span>
+      <span style="width:22px;height:1px;background:currentColor"></span>
+      <span>MENÚ ↑</span>
+    </div>
+  </div>
+
+  <header ref="{{ hdrRef }}" style="position:fixed;top:0;left:0;right:0;z-index:100;height:60px;transform:translateY(-101%);transition:transform .6s cubic-bezier(.16,1,.3,1);background:#fff;border-bottom:1px solid #000;display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:20px;padding:0 clamp(16px,3vw,40px);box-sizing:border-box">
+    <img src="assets/emer-logo-white.png" alt="Emer" onClick="{{ goTop }}" style="height:24px;width:auto;filter:brightness(0);cursor:pointer;justify-self:start"></img>
+    <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+      <nav style="display:flex;gap:clamp(20px,3vw,44px)">
+        <sc-for list="{{ navLinks }}" as="l" hint-placeholder-count="4">
+          <span onClick="{{ l.go }}" style="position:relative;display:flex;align-items:baseline;gap:7px;cursor:pointer;padding:6px 0;color:{{ l.col }};transition:color .35s" style-hover="color:#000">
+            <span style="font:400 7.5px Fraunces;letter-spacing:.1em">{{ l.n }}</span>
+            <span style="font:400 10px Fraunces;letter-spacing:.26em">{{ l.label }}</span>
+            <span style="position:absolute;left:0;right:0;bottom:0;height:1px;background:#000;transform-origin:0 50%;transform:scaleX({{ l.sx }});transition:transform .6s cubic-bezier(.16,1,.3,1)"></span>
+          </span>
+        </sc-for>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
+    <div onClick="{{ openSearch }}" style="justify-self:end;display:flex;align-items:center;gap:14px;cursor:pointer;padding:8px 0">
+      <span style="font:400 10px Fraunces;letter-spacing:.3em">BUSCAR</span>
+      <span style="position:relative;width:34px;height:1px;overflow:hidden"><span style="position:absolute;inset:0;background:#000;animation:emLine 1.8s cubic-bezier(.65,0,.35,1) infinite"></span></span>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span style="font:400 8.5px Fraunces;letter-spacing:.14em;color:#8a8a8a">⌘K</span></sc-if>
+    </div>
+  </header>
+
+  <section ref="{{ heroWrap }}" style="position:relative;height:100vh;min-height:560px;background:#0a0a0a;overflow:hidden">
+  <div ref="{{ heroRef }}" onPointerDown="{{ hDown }}" onPointerUp="{{ hUp }}" onMouseEnter="{{ hPause }}" onMouseLeave="{{ hPlay }}" style="position:relative;height:100%;overflow:hidden;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none">
+    <sc-for list="{{ heroLayers }}" as="L" hint-placeholder-count="0">
+      <div style="position:absolute;inset:0;z-index:{{ L.z }};opacity:{{ L.op }};transition:opacity 1.6s cubic-bezier(.4,0,.2,1)">
+        <div style="position:absolute;inset:0;background-color:{{ L.shade }};background-image:{{ L.bg }};background-size:cover;background-position:center;transform:scale({{ L.sc }});transition:transform {{ L.ts }}"></div>
+      </div>
+    </sc-for>
+    <div style="position:absolute;inset:0;z-index:5;background:linear-gradient(180deg,rgba(0,0,0,.28),transparent 18%,transparent 52%,rgba(0,0,0,.62));pointer-events:none"></div>
+
+    <div style="position:absolute;inset:0;z-index:6">
+      <div onClick="{{ openSearch }}" style="position:absolute;top:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;color:#fff;font:400 12px Fraunces;letter-spacing:.32em;cursor:pointer;padding:8px 0">
+        <span>BUSCAR</span><sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span style="opacity:.55">⌘K</span></sc-if>
+      </div>
+
+      <div style="position:absolute;left:clamp(20px,4vw,56px);right:clamp(20px,4vw,56px);bottom:64px;display:flex;justify-content:space-between;align-items:flex-end;gap:28px 48px;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:18px;min-width:0;max-width:100%">
+          <div style="overflow:hidden;padding-bottom:.03em">
+            <span data-nm="" style="display:block;font:400 clamp(54px,8vw,150px)/0.88 Anton;letter-spacing:.005em;white-space:nowrap;transform:translateY(105%)">{{ hName }}</span>
+          </div>
+          <div data-ha="420" style="display:flex;align-items:center;gap:14px">
+            <span style="width:36px;height:1px;background:#fff"></span>
+            <span style="font:400 10px Fraunces;letter-spacing:.3em;cursor:pointer;padding-bottom:3px;border-bottom:1px solid transparent;transition:border-color .3s" style-hover="border-color:#fff">IR A LA TIENDA ↗</span>
+          </div>
+        </div>
+        <div onMouseLeave="{{ popOff }}" style="position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;width:min(100%,clamp(300px,40vw,580px))">
+          <div style="position:absolute;left:{{ popL }};bottom:calc(100% + 18px);width:min(400px,86vw);transform:translateX(-{{ popL }}) translateY({{ popY }});opacity:{{ popOp }};transition:opacity .35s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:30;background:#fff;color:#000;border:1px solid #000;display:grid;grid-template-columns:44% minmax(0,1fr)">
+            <div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ popBg }};background-size:cover;background-position:center"></div>
+            <div style="padding:18px 16px 16px;display:flex;flex-direction:column;gap:10px;min-width:0;border-left:1px solid #000">
+              <span style="font:400 8px Fraunces;letter-spacing:.24em;color:#8a8a8a">{{ popBrand }}</span>
+              <span style="font:300 17px/1.25 Fraunces;text-wrap:pretty;overflow-wrap:anywhere">{{ popName }}</span>
+              <span style="font:400 13px Fraunces">{{ popPrice }}</span>
+              <span style="margin-top:auto;padding-top:10px;border-top:1px solid #000;font:400 8.5px Fraunces;letter-spacing:.26em">VER EN SU WEB ↗</span>
+            </div>
+          </div>
+          <sc-for list="{{ hTiles }}" as="t" hint-placeholder-count="0">
+            <div data-ha="{{ t.d }}" data-prod="" onMouseEnter="{{ t.enter }}" onClick="{{ t.enter }}" style="display:flex;flex-direction:column;gap:8px;cursor:pointer">
+              <div style="aspect-ratio:3/4;background-color:#1a1a1a;background-image:{{ t.bg }};background-size:cover;background-position:center;opacity:{{ t.op }};transition:opacity .4s"></div>
+              <span style="font:400 9.5px Fraunces;letter-spacing:.12em">{{ t.price }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ hHasTiles }}" hint-placeholder-val="{{ false }}">
+            <div data-ha="{{ hMoreD }}" style="display:flex;flex-direction:column;gap:8px;cursor:pointer">
+              <div style="aspect-ratio:3/4;border:1px solid rgba(255,255,255,.85);display:flex;align-items:flex-end;padding:10px;box-sizing:border-box;transition:background .3s,color .3s" style-hover="background:#fff;color:#000"><span style="font:400 8.5px Fraunces;letter-spacing:.24em;white-space:nowrap">VER TODO →</span></div>
+              <span style="font:400 9.5px Fraunces;letter-spacing:.12em;opacity:0">·</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ hEmpty }}" hint-placeholder-val="{{ false }}">
+            <div data-ha="460" style="grid-column:1 / -1;border-top:1px solid rgba(255,255,255,.85);padding-top:14px">
+              <span style="font:300 italic 15px/1.4 Fraunces;text-wrap:pretty">Sus prendas aún no están en Emer. Mientras tanto, están en su tienda.</span>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:clamp(20px,4vw,56px);right:clamp(20px,4vw,56px);bottom:26px;display:flex;gap:8px">
+        <sc-for list="{{ segs }}" as="s" hint-placeholder-count="0">
+          <div onClick="{{ s.go }}" style="flex:1;height:16px;display:flex;align-items:center;cursor:pointer"><div style="width:100%;height:1px;background:rgba(255,255,255,.35);position:relative;overflow:hidden"><div data-seg="{{ s.k }}" style="position:absolute;left:0;top:0;bottom:0;width:{{ s.w }};background:#fff"></div></div></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <div ref="{{ emRef }}" style="position:relative;border-bottom:1px solid #000">
+    <dc-import name="Web Emergentes" variant="Recorrido" embedded="{{ true }}" hint-size="100%,100vh"></dc-import>
+  </div>
+
+  <div ref="{{ catRef }}" style="position:relative;border-bottom:1px solid #000">
+    <dc-import name="Web Catalogo" hint-size="100%,100vh"></dc-import>
+  </div>
+
+  <div ref="{{ mkRef }}" style="position:relative">
+    <dc-import name="Web Marketplace" hint-size="100%,100vh"></dc-import>
+  </div>
+
+  <div style="position:relative;border-bottom:1px solid #000">
+    <dc-import name="Web Sugiere" hint-size="100%,100vh"></dc-import>
+  </div>
+
+  <footer style="background:#000;color:#fff;padding:clamp(36px,4vw,56px) clamp(16px,3vw,40px) 24px;display:flex;flex-direction:column;gap:36px">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:28px 40px;align-items:flex-start">
+      <img src="assets/emer-logo-white.png" alt="Emer" style="height:40px;width:auto"></img>
+      <div style="display:flex;gap:48px;flex-wrap:wrap;font:400 9px Fraunces;letter-spacing:.24em">
+        <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#6f6f6f">EXPLORAR</span><span>MARCAS</span><span>MARKETPLACE</span><span>TIENDAS</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#6f6f6f">EMER</span><span>PARA MARCAS</span><span>PRIVACIDAD</span><span>TÉRMINOS</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;font:400 9px Fraunces;letter-spacing:.24em">
+        <span style="color:#6f6f6f">TAMBIÉN EN EL MÓVIL</span>
+        <span style="display:flex;gap:8px"><span style="height:34px;padding:0 12px;border:1px solid #3a3a3a;display:flex;align-items:center">APP STORE ↗</span><span style="height:34px;padding:0 12px;border:1px solid #3a3a3a;display:flex;align-items:center">GOOGLE PLAY ↗</span></span>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid #262626;padding-top:14px;font:400 8px Fraunces;letter-spacing:.22em;color:#6f6f6f"><span>MARCAS PEQUEÑAS, UN SOLO SITIO</span><span>© 2026 EMER</span></div>
+  </footer>
+
+  <sc-if value="{{ srMounted }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;z-index:300;pointer-events:none"><div style="pointer-events:auto"><dc-import name="Web Buscar" embedded="{{ true }}" on-close="{{ closeSearch }}" hint-size="100%,0px"></dc-import></div></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { w: 1200, ready: !!window.EMER, frame: 0, phase: 'load', ldN: 0, idx: 0, prev: -1, dir: 1, pop: -1, popLast: 0, fine: false, em: 0, tk: -1, mkF: 'TODAS', saved: [], savedP: [], q: '', sent: false, sr: false, srVis: false, sq: '' };
+  heroWrap = React.createRef(); clipRef = React.createRef(); zoomRef = React.createRef(); uiRef = React.createRef(); uiBottom = React.createRef(); nameRef = React.createRef(); hdrRef = React.createRef(); tkLcd = React.createRef(); tkLed = React.createRef(); curRef = React.createRef(); curLbl = React.createRef();
+  hintRef = React.createRef(); hintProg = React.createRef(); hintLbl = React.createRef(); hdrOpen = false;
+  rootRef = React.createRef(); heroRef = React.createRef(); fillRef = React.createRef(); emRef = React.createRef(); catRef = React.createRef(); mkRef = React.createRef();
+  tkBox = React.createRef(); tkInner = React.createRef(); mq1 = React.createRef(); mq2 = React.createRef(); srInput = React.createRef();
+  bad = new Set(); mq = 0; sv = 0; lastSY = 0; typeUntil = 0; slideT0 = 0; paused = false; fillT0 = 0; tkOpen = false; tkT0 = 0;
+
+  brands() { return window.EMER ? EMER.BRANDS.filter(b => b.img && !this.bad.has(b.img)) : []; }
+  products() { return window.EMER ? EMER.PRODUCTS.filter(p => p.img && p.price > 0 && !this.bad.has(p.img)) : []; }
+
+  componentDidMount() {
+    this.t0 = performance.now();
+    this.fi = setInterval(() => { if (this.state.phase !== 'done') this.setState(s => ({ frame: (s.frame + 1) % 4 })); this.checkLoad(performance.now()); }, 420);
+    const wait = () => { if (window.EMER) { this.setState({ ready: true }); this.preload(); } else this.wt = setTimeout(wait, 60); };
+    wait();
+    this.onResize = () => { const w = document.documentElement.clientWidth || innerWidth; if (w !== this.state.w) this.setState({ w }); };
+    this.onResize(); addEventListener('resize', this.onResize);
+    this.onKey = e => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.openSearch(); return; }
+      if (this.state.sr) return;
+      if (e.target && e.target.tagName === 'INPUT') return;
+      if (e.key === '/') { e.preventDefault(); this.openSearch(); }
+      if (e.key === 'ArrowRight') this.go(this.state.idx + 1);
+      if (e.key === 'ArrowLeft') this.go(this.state.idx - 1);
+    };
+    addEventListener('keydown', this.onKey);
+    this.setState({ fine: matchMedia('(hover:hover) and (pointer:fine)').matches });
+    this.onPM = e => { this.mx = e.clientX; this.my = e.clientY; this.curT = e.target; this.cIn = true; };
+    this.onPD = () => { this.down = true; }; this.onPU = () => { this.down = false; };
+    this.onPO = e => { if (!e.relatedTarget) this.cIn = false; };
+    addEventListener('pointermove', this.onPM); addEventListener('pointerdown', this.onPD); addEventListener('pointerup', this.onPU); document.addEventListener('pointerout', this.onPO);
+    this.onWheel = e => this.wheel(e); addEventListener('wheel', this.onWheel, { passive: false });
+    this.onSr = () => this.openSearch(); addEventListener('emer:search', this.onSr);
+    document.documentElement.style.overflow = 'hidden';
+    const loop = now => { this.tick(now); this.raf = requestAnimationFrame(loop); };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this.raf); clearInterval(this.fi); clearTimeout(this.wt); clearTimeout(this.ct);
+    removeEventListener('resize', this.onResize); removeEventListener('keydown', this.onKey); removeEventListener('wheel', this.onWheel); removeEventListener('emer:search', this.onSr); removeEventListener('pointermove', this.onPM); removeEventListener('pointerdown', this.onPD); removeEventListener('pointerup', this.onPU); document.removeEventListener('pointerout', this.onPO); cancelAnimationFrame(this.sc); cancelAnimationFrame(this.qa); clearTimeout(this.settle);
+    document.documentElement.style.overflow = '';
+  }
+  preload() {
+    const all = [...EMER.BRANDS.map(b => b.img), ...EMER.PRODUCTS.map(p => p.img)].filter(Boolean);
+    this.ldTotal = EMER.BRANDS.filter(b => b.img).length; let done = 0;
+    all.forEach((src, i) => { const im = new Image(); const fin = ok => { if (!ok) this.bad.add(src); if (i < this.ldTotal) { done++; this.setState({ ldN: done }); } }; im.onload = () => fin(true); im.onerror = () => fin(false); im.src = src; });
+  }
+  go(i, d) {
+    const n = Math.min(6, this.brands().length); if (!n) return;
+    const idx = (i + n) % n; if (idx === this.state.idx) return;
+    this.slideT0 = performance.now();
+    this.setState(st => ({ prev: st.idx, idx, pop: -1, dir: d ?? (i > st.idx ? 1 : -1) }), () => this.queueAnim());
+  }
+  queueAnim() {
+    const r = this.heroRef.current; if (!r) return; this.animatedOnce = true;
+    const nm = r.querySelectorAll('[data-nm]'), it = r.querySelectorAll('[data-ha]');
+    nm.forEach(el => { el.style.transition = 'none'; el.style.transform = 'translateY(105%)'; });
+    it.forEach(el => { el.style.transition = 'none'; el.style.opacity = 0; el.style.transform = 'translateY(12px)'; });
+    clearTimeout(this.qa);
+    this.qa = setTimeout(() => { void r.offsetWidth; {
+      this.qa = 0;
+      nm.forEach(el => { el.style.transition = 'transform 1.3s cubic-bezier(.16,1,.3,1) 280ms'; el.style.transform = 'translateY(0)'; });
+      it.forEach(el => { const d = (+el.getAttribute('data-ha') || 0) + 200; el.style.transition = `opacity 1s cubic-bezier(.4,0,.2,1) ${d}ms, transform 1.2s cubic-bezier(.16,1,.3,1) ${d}ms`; el.style.opacity = 1; el.style.transform = 'translateY(0)'; });
+    } }, 30);
+  }
+  cursorTick(now) {
+    const cur = this.curRef.current; if (!cur || !this.state.fine || this.mx == null) return;
+    if (this.cx == null) { this.cx = this.mx; this.cy = this.my; }
+    this.cx += (this.mx - this.cx) * 0.22; this.cy += (this.my - this.cy) * 0.22;
+    const t = this.curT, hero = this.heroRef.current; let k = 'default';
+    if (t && t.closest) {
+      const inHero = hero && hero.contains(t);
+      if (t.closest('input')) k = 'type';
+      else if (t.closest('[data-prod]')) k = 'prod';
+      else if (this.hx != null && inHero && Math.abs(this.mx - this.hx) > 10) k = 'drag';
+      else if (t.closest('[style*="cursor: pointer"],a,label')) k = 'link';
+      else if (inHero) k = 'hero';
+    }
+    const S = { default: [12, 12, '#fff', '50%', ''], link: [48, 48, 'transparent', '50%', ''], prod: [86, 86, '#fff', '50%', 'VER'], drag: [64, 64, '#fff', '50%', '← →'], hero: [64, 64, 'transparent', '50%', 'ARRASTRA'], type: [2, 26, '#fff', '0', ''] }[k];
+    if (k !== this.ck) {
+      this.ck = k; const d = cur.querySelector('[data-dot]');
+      if (d) { d.style.width = S[0] + 'px'; d.style.height = S[1] + 'px'; d.style.backgroundColor = S[2]; d.style.borderRadius = S[3]; }
+      const L = this.curLbl.current; if (L) { L.textContent = S[4]; L.style.opacity = S[4] ? 1 : 0; L.style.color = S[2] === 'transparent' ? '#fff' : '#000'; }
+    }
+    const d = cur.querySelector('[data-dot]'); if (d) d.style.scale = this.down ? '0.75' : '1';
+    cur.style.opacity = this.cIn ? 1 : 0;
+    cur.style.transform = `translate(${this.cx}px,${this.cy}px)`;
+  }
+  snapTo(y) {
+    this.snapping = true; const y0 = scrollY, t0 = performance.now(), D = 950;
+    const ease = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const step = now => { const q = Math.min(1, (now - t0) / D); window.scrollTo(0, y0 + (y - y0) * ease(q)); if (q < 1) requestAnimationFrame(step); else setTimeout(() => { this.snapping = false; }, 520); };
+    requestAnimationFrame(step);
+  }
+  wheel(e) {
+    const s = this.state; if (s.sr || s.phase !== 'done') return;
+    const hw = this.heroWrap.current; if (!hw) return;
+    const H = hw.offsetHeight, y = scrollY;
+    if (y > H + 4) return;
+    if (this.snapping) { e.preventDefault(); return; }
+    const ax = Math.abs(e.deltaX), ay = Math.abs(e.deltaY);
+    if (ax > ay && y < 4) { e.preventDefault(); const t = performance.now(); if (ax > 12 && t - (this.lastHW || 0) > 700) { this.lastHW = t; this.go(s.idx + (e.deltaX > 0 ? 1 : -1), e.deltaX > 0 ? 1 : -1); } return; }
+    if (ay < 4) return;
+    if (e.deltaY > 0 && y < H - 4) { e.preventDefault(); this.snapTo(H); }
+    else if (e.deltaY < 0 && y > 4 && y <= H + 4) { e.preventDefault(); this.snapTo(0); }
+  }
+  openSearch() { clearTimeout(this.ct); this.setState({ sr: true, srVis: true, sq: '' }); setTimeout(() => {}, 20); document.documentElement.style.overflow = 'hidden'; }
+  closeSearch() { this.setState({ srVis: false, sr: false }); if (this.state.phase === 'done') document.documentElement.style.overflow = ''; }
+  scrollTo(ref) { const el = ref.current; if (!el) return; const y = el.getBoundingClientRect().top + scrollY - 64; window.scrollTo({ top: y, behavior: 'smooth' }); }
+
+  checkLoad(now) {
+    const s = this.state;
+    if (s.phase === 'load' && !this.exiting) {
+      const loaded = this.ldTotal ? s.ldN >= this.ldTotal : false;
+      if (now - this.t0 > 1700 && (loaded || now - this.t0 > 5000) && s.ready) {
+        this.exiting = true; this.setState({ phase: 'exit' });
+        setTimeout(() => { this.setState({ phase: 'done' }, () => this.queueAnim()); if (!this.state.sr) document.documentElement.style.overflow = ''; this.slideT0 = performance.now(); this.fillT0 = performance.now(); }, 380);
+      }
+    }
+  }
+  tick(now) {
+    const s = this.state, ease = t => 1 - Math.pow(1 - t, 3);
+    this.checkLoad(now);
+    const n = this.brands().length;
+    let hp = 0;
+    const wrap = this.heroWrap.current, stk = this.heroRef.current;
+    if (wrap && stk) {
+      const r = wrap.getBoundingClientRect();
+      hp = Math.max(0, Math.min(1, -r.top / Math.max(1, stk.clientHeight)));
+      const hd = this.hdrRef.current;
+      const past = r.bottom <= 64, vh0 = innerHeight;
+      if (this.my != null) { if (this.my < 56) this.hdrOpen = true; else if (this.my > 96) this.hdrOpen = false; }
+      if (!s.fine) { if (this.sv < -4) this.hdrOpen = true; else if (this.sv > 4) this.hdrOpen = false; }
+      const show = (past && this.hdrOpen) || s.sr;
+      if (hd && show !== this._hdr) { this._hdr = show; hd.style.transform = show ? 'translateY(0)' : 'translateY(-101%)'; }
+      const hi = this.hintRef.current; if (hi) { const hv = past && !show ? '1' : '0'; if (hi.style.opacity !== hv) hi.style.opacity = hv; }
+      const docH = document.documentElement.scrollHeight - vh0; if (this.hintProg.current) this.hintProg.current.style.width = (Math.max(0, Math.min(1, scrollY / Math.max(1, docH))) * 100) + '%';
+      const secs = [this.heroWrap, this.emRef, this.catRef, this.mkRef]; let sec = 0; secs.forEach((rf, i) => { const el = rf.current; if (el && el.getBoundingClientRect().top < vh0 * 0.45) sec = i; });
+      if (sec !== s.sec) this.setState({ sec });
+      const lb = this.hintLbl.current, lt = ['MARCAS', 'EMERGENTES', 'CATÁLOGO', 'MARKETPLACE'][sec]; if (lb && lb.textContent !== lt) lb.textContent = lt;
+    }
+    if (s.phase === 'done' && n && !this.animatedOnce) this.queueAnim();
+    this.cursorTick(now);
+    if (s.phase === 'done' && n) {
+      const D = 7000;
+      if (this.paused || s.sr || hp > 0.02) this.slideT0 += 16.7;
+      const p = Math.min(1, (now - this.slideT0) / D);
+      const seg = this.heroRef.current && this.heroRef.current.querySelector('[data-seg="on"]');
+      if (seg) seg.style.width = `${p * 100}%`;
+      if (p >= 1) this.go(s.idx + 1, 1);
+      const f = this.fillRef.current;
+      if (f) { const q = ease(Math.min(1, Math.max(0, (now - this.fillT0 - 250) / 1100))); f.style.clipPath = `inset(0 ${100 - q * 100}% 0 0)`; }
+      const vh = innerHeight;
+      document.querySelectorAll('[data-rv]').forEach(el => {
+        if (el._on) return; const r = el.getBoundingClientRect();
+        if (r.top < vh * 0.92 && r.bottom > 0) { el._on = true; const dl = +el.getAttribute('data-d') || 0; el.style.transition = `opacity .7s cubic-bezier(.2,.7,.2,1) ${dl}ms, translate .7s cubic-bezier(.2,.7,.2,1) ${dl}ms`; el.style.opacity = 1; el.style.translate = '0 0'; }
+      });
+      const box = this.tkBox.current, inner = this.tkInner.current;
+      if (box && inner) {
+        const r = box.parentElement.getBoundingClientRect();
+        if (!this.tkOpen && r.bottom < vh * 1.05 && r.bottom > 0) { this.tkOpen = true; this.tkT0 = now + 500; }
+        const full = box.offsetHeight, D = 3200;
+        const q = this.tkOpen ? Math.max(0, Math.min(1, (now - this.tkT0) / D)) : 0;
+        const printing = this.tkOpen && q < 1;
+        const lines = Math.round(q * full / 13) * 13;
+        box.style.transform = q >= 1 ? 'none' : `translateY(${Math.max(0, full - lines) + (q === 0 ? 2 : 0)}px) translateX(${printing && q > 0 ? (Math.random() - 0.5) * 0.8 : 0}px)`;
+        const lcd = this.tkLcd.current;
+        if (lcd) { const t = !this.tkOpen ? 'EN ESPERA · BAJA' : now < this.tkT0 ? 'CONECTANDO…' : printing ? `IMPRIMIENDO ${String(Math.round(q * 100)).padStart(3, '0')}%` : 'LISTO · GRACIAS'; if (lcd.textContent !== t) lcd.textContent = t; }
+        const led = this.tkLed.current;
+        if (led) { const on = printing ? Math.floor(now / 140) % 2 === 0 : q >= 1; led.style.background = on ? '#fff' : '#333'; led.style.boxShadow = on ? '0 0 8px 2px rgba(255,255,255,.7)' : 'none'; }
+      }
+    }
+    this.sv += ((scrollY - this.lastSY) - this.sv) * 0.2; this.lastSY = scrollY;
+    const a = this.mq1.current, b = this.mq2.current;
+    if (a && b) {
+      this.mq += 0.7 + Math.min(12, Math.abs(this.sv) * 0.45);
+      const ha = a.scrollWidth / 2 || 1, hb = b.scrollWidth / 2 || 1;
+      a.style.transform = `translateX(${-(this.mq % ha)}px)`;
+      b.style.transform = `translateX(${-hb + (this.mq % hb)}px)`;
+    }
+    const sing = Math.floor(now / 170) % 2 === 0;
+    document.querySelectorAll('[data-cat]').forEach(el => {
+      const open = now < this.typeUntil || (s.sent && now < this.sentUntil && sing);
+      const o = el.querySelector('[data-open]'), c = el.querySelector('[data-closed]');
+      if (o) o.style.opacity = open ? 1 : 0; if (c) c.style.opacity = open ? 0 : 1;
+    });
+  }
+
+  renderVals() {
+    const s = this.state, list = this.brands(), n = list.length;
+    const pad = x => String(x).padStart(2, '0');
+    const num = x => window.EMER ? EMER.num(x) : x;
+    const url = u => u ? `url("${u}")` : 'none';
+    const pcs = b => b.total == null ? 'CATÁLOGO PRONTO' : b.total > 0 ? `${num(b.total)} PIEZAS` : 'AÚN SIN PRODUCTOS';
+    const totalPcs = list.reduce((a, b) => a + (b.total || 0), 0);
+    const HL = list.slice(0, 6); const hb = HL[s.idx] || {};
+    const prev = (hb.preview || []).filter(p => p.img && !this.bad.has(p.img)).slice(0, 3);
+    const heroSaved = hb.id && s.saved.includes(hb.id);
+    const em = [...list].sort((x, y) => (y.createdAt || '').localeCompare(x.createdAt || '')).slice(0, 7);
+    const fdate = d => d ? `LLEGÓ EL ${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(2, 4)}` : '';
+    const tkB = list[s.tk] || hb;
+    const prods = this.products();
+    const filt = ['TODAS', 'ROPA', 'CALZADO', 'ACCESORIOS'];
+    const mk = prods.filter(p => s.mkF === 'TODAS' || p.top === s.mkF);
+    const qOk = s.q.trim().length >= 2;
+    const norm = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const sq = s.sq.trim(), typing = sq.length > 0;
+    const hits = typing ? list.filter(b => norm(b.name).includes(norm(sq))) : [];
+    const fs = sq.length <= 8 ? 46 : sq.length <= 12 ? 38 : sq.length <= 16 ? 30 : 24;
+    const big = s.w >= 820 ? 1.6 : 1;
+    const toggleP = id => this.setState(st => ({ savedP: st.savedP.includes(id) ? st.savedP.filter(x => x !== id) : [...st.savedP, id] }));
+    const savedN = s.saved.length + s.savedP.length;
+    const now = new Date();
+    return {
+      heroWrap: this.heroWrap, clipRef: this.clipRef, zoomRef: this.zoomRef, uiRef: this.uiRef, uiBottom: this.uiBottom, nameRef: this.nameRef, hdrRef: this.hdrRef, hintRef: this.hintRef, hintProg: this.hintProg, hintLbl: this.hintLbl, narrow: s.w < 860, tkLcd: this.tkLcd, tkLed: this.tkLed, reprint: () => { this.tkOpen = true; this.tkT0 = performance.now(); },
+      hDomain: hb.domain || '',
+      rootRef: this.rootRef, heroRef: this.heroRef, fillRef: this.fillRef, emRef: this.emRef, catRef: this.catRef, mkRef: this.mkRef, tkBox: this.tkBox, tkInner: this.tkInner, mq1: this.mq1, mq2: this.mq2, srInput: this.srInput,
+      showLoader: s.phase !== 'done', ldOp: s.phase === 'load' ? 1 : 0, ldPe: s.phase === 'load' ? 'auto' : 'none',
+      op0: s.frame === 0 ? 1 : 0, op1: s.frame === 1 ? 1 : 0, op2: s.frame === 2 ? 1 : 0, op3: s.frame === 3 ? 1 : 0,
+      ldBars: [0, 1, 2, 3].map(i => ({ c: i <= s.frame ? '#000' : '#d6d6d6' })),
+      ldCount: this.ldTotal ? `${pad(s.ldN)} / ${pad(this.ldTotal)}` : '— / —',
+      wide: s.w >= 860,
+      navLinks: [['MARCAS', this.heroWrap], ['EMERGENTES', this.emRef], ['CATÁLOGO', this.catRef], ['MARKETPLACE', this.mkRef]].map(([label, ref], i) => { const on = (s.sec || 0) === i; return { label, n: pad(i + 1), col: on ? '#000' : '#8a8a8a', sx: on ? 1 : 0, go: () => this.scrollTo(ref) }; }),
+      goTop: () => window.scrollTo({ top: 0, behavior: 'smooth' }),
+      openSearch: () => this.openSearch(), closeSearch: () => this.closeSearch(),
+      savedLbl: pad(savedN), savedBg: savedN ? '#000' : '#fff', savedFg: savedN ? '#fff' : '#000',
+      total: pad(n), pcsLbl: num(totalPcs),
+      heroLayers: HL.map((b, i) => { const on = i === s.idx; return { shade: b.shade, bg: url(b.img), z: on ? 2 : 1, op: on ? 1 : 0, sc: on ? 1 : 1.06, ts: on ? '10s cubic-bezier(.2,.6,.2,1)' : '0s linear 1.6s' }; }),
+      hChars: (hb.upper || '').split('').map(c => ({ c: c === ' ' ? '\u00a0' : c })),
+      hMoreD: String(420 + prev.length * 90),
+      curRef: this.curRef, curLbl: this.curLbl, curDisp: s.fine ? 'block' : 'none',
+      uShade: (list[s.prev] || {}).shade || '#000', uBg: url((list[s.prev] || {}).img),
+      aShade: hb.shade || '#000', aBg: url(hb.img),
+      slats: Array.from({ length: 6 }, (_, i) => ({ l: `calc(${i} * 100cqw / 6)`, w: 'calc(100cqw / 6 + 1px)', il: `calc(${-i} * 100cqw / 6)` })),
+      popL: `${((Math.max(0, s.popLast) + 0.5) / 4) * 100}%`, popOp: s.pop >= 0 ? 1 : 0, popY: s.pop >= 0 ? '0px' : '14px', popS: s.pop >= 0 ? 1 : 0.94,
+      popBg: url((prev[s.popLast] || {}).img), popBrand: hb.upper || '', popTop: (prev[s.popLast] || {}).top || '', popName: (prev[s.popLast] || {}).name || '', popPrice: (prev[s.popLast] || {}).priceLbl || '',
+      popOff: () => this.setState({ pop: -1 }),
+      snapDown: () => { const hw = this.heroWrap.current; if (hw) this.snapTo(hw.offsetHeight); },
+      hIdx: pad(s.idx + 1), hName: hb.upper || '', hLogo: !!hb.logo, hNoLogo: !hb.logo, hLogoBg: url(hb.logo),
+      hMeta: hb.id ? `${pcs(hb)}${hb.onSale ? ` · ${hb.onSale} EN OFERTA` : ''} · ${hb.domain.toUpperCase()}` : '',
+      hTiles: prev.map((p, i) => ({ bg: url(p.img), price: p.priceLbl, d: String(420 + i * 90), bd: s.pop === i ? '#fff' : 'rgba(255,255,255,.9)', ol: s.pop === i ? '1px solid #fff' : '1px solid transparent', ty: s.pop === i ? '-8px' : '0px', op: s.pop >= 0 && s.pop !== i ? 0.45 : 1, enter: () => { if (this.state.pop !== i) this.setState({ pop: i, popLast: i }); } })), hHasTiles: prev.length > 0, hEmpty: prev.length === 0, hMore: Math.max(0, (hb.total || 0) - prev.length), hPieces: pcs(hb),
+      hSaveLbl: heroSaved ? 'GUARDADA ✓' : 'GUARDAR +', hSaveBg: heroSaved ? '#fff' : 'transparent', hSaveFg: heroSaved ? '#000' : '#fff',
+      toggleHeroSave: () => hb.id && this.setState(st => ({ saved: st.saved.includes(hb.id) ? st.saved.filter(x => x !== hb.id) : [...st.saved, hb.id] })),
+      segs: HL.map((b, i) => ({ k: i === s.idx ? 'on' : 'off', w: i < s.idx ? '100%' : '0%', go: () => this.go(i) })),
+      prev: () => this.go(s.idx - 1, -1), next: () => this.go(s.idx + 1, 1),
+      hDown: e => { this.hx = e.clientX; this.hy = e.clientY; }, hUp: e => { if (this.hx == null) return; const dx = e.clientX - this.hx, dy = e.clientY - this.hy; this.hx = null; if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 50) this.go(s.idx + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); } else if (dy < -50) { const hw = this.heroWrap.current; if (hw) this.snapTo(hw.offsetHeight); } },
+      hPause: () => { this.paused = true; }, hPlay: () => { this.paused = false; },
+      emerging: em.map((b, i) => { const on = i === s.em; return { n: pad(i + 1), name: b.upper, shade: b.shade, bg: url(b.img), flex: on ? '7 1 0px' : '0 0 44px', fill: on ? '#fff' : 'transparent', op: on ? 1 : 0, dy: on ? '0px' : '14px', pe: on ? 'auto' : 'none', date: fdate(b.createdAt), note: b.total > 0 ? `${pcs(b)}${b.onSale ? ` · ${b.onSale} en oferta` : ''}.` : 'Su catálogo está en camino. Mientras, visita su web.', select: () => { if (this.state.em !== i) this.setState({ em: i }); } }; }),
+      tkBg: url(tkB.img), tkName: tkB.upper || '', tkStamp: `Nº 00${pad(n)} — ${pad(now.getDate())}.${pad(now.getMonth() + 1)}.${now.getFullYear()}`,
+      rows: list.map((b, i) => ({ n: pad(i + 1), upper: b.upper, c: b.total == null ? '—' : b.total, bg: i === s.tk ? '#f4f4f4' : 'transparent', hover: () => { if (this.state.tk !== i) this.setState({ tk: i }); }, go: () => { if (i < 6) { this.go(i); window.scrollTo({ top: 0, behavior: 'smooth' }); } } })),
+      mkFilters: filt.map(f => ({ label: f, n: f === 'TODAS' ? prods.length : prods.filter(p => p.top === f).length, bg: s.mkF === f ? '#fff' : '#000', fg: s.mkF === f ? '#000' : '#fff', pick: () => this.setState({ mkF: f }) })),
+      mkCount: pad(mk.length),
+      mkProds: mk.slice(0, 12).map((p, i) => { const on = s.savedP.includes(p.id); return { bg: url(p.img), name: p.name, priceLbl: p.priceLbl, brandUp: p.brand.upper, d: String((i % 6) * 60), sIcon: on ? '✓' : '+', sBg: on ? '#fff' : 'rgba(0,0,0,.35)', sFg: on ? '#000' : '#fff', save: e => { e.stopPropagation(); toggleP(p.id); } }; }),
+      q: s.q, qUp: s.q.trim().replace(/^@/, '').toUpperCase(),
+      onQ: e => { this.typeUntil = performance.now() + 140; this.setState({ q: e.target.value }); },
+      onSend: () => { if (qOk) { this.sentUntil = performance.now() + 1600; this.setState({ sent: true }); } },
+      notSent: !s.sent, sent: s.sent,
+      sBg: qOk ? '#000' : '#fff', sFg: qOk ? '#fff' : '#8a8a8a', sBorder: qOk ? '#000' : '#c8c8c8', sCur: qOk ? 'pointer' : 'default',
+      srMounted: s.sr, srOp: s.srVis ? 1 : 0,
+      sq: s.sq, sqUp: sq.toUpperCase(), onSq: e => this.setState({ sq: e.target.value }), onSqKey: e => { if (e.key === 'Enter' && hits[0]) { if (list.indexOf(hits[0]) < 6) this.go(list.indexOf(hits[0])); this.closeSearch(); window.scrollTo({ top: 0, behavior: 'smooth' }); } },
+      srCount: typing ? `${pad(hits.length)} / ${pad(n)}` : `${pad(n)} MARCAS`,
+      inTop: typing ? '150px' : '46%', inLine: typing ? '#fff' : '#3a3a3a', inFs: `${Math.round(fs * big)}px`, srIdle: !typing,
+      catOp: typing ? 0.18 : 1, resOp: typing ? 1 : 0,
+      hits: hits.map((b, i) => { const k = norm(b.name).indexOf(norm(sq)); const up = b.upper; return { n: pad(i + 1), meta: `${pcs(b)} · ${b.domain.toUpperCase()}`, sale: b.onSale > 0, saleLbl: `${b.onSale} EN OFERTA`, a: up.slice(0, k + sq.length), b: up.slice(k + sq.length), th: (b.preview || []).filter(p => p.img && !this.bad.has(p.img)).slice(0, 3).map(p => ({ bg: url(p.img) })) }; }),
+      noHits: typing && hits.length === 0,
+      goSuggest: () => { this.closeSearch(); this.setState({ q: sq }); setTimeout(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' }), 360); },
+    };
+  }
+}
+</script>
+</body>
+</html>

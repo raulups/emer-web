@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script src="emer-data.js"></script>
+<style>html,body{margin:0;background:#000;color:#fff;font-family:Fraunces,serif;-webkit-font-smoothing:antialiased}a{color:#fff}a:hover{color:#d6d6d6}@keyframes emLine{0%{transform:scaleX(0);transform-origin:0 50%}50%{transform:scaleX(1);transform-origin:0 50%}50.01%{transform:scaleX(1);transform-origin:100% 50%}100%{transform:scaleX(0);transform-origin:100% 50%}}</style>
+</helmet>
+<section ref="{{ root }}" style="position:relative;isolation:isolate;background:#000;color:#fff;overflow:hidden;padding:clamp(80px,10vw,150px) 0 clamp(64px,8vw,120px)">
+  <div style="position:absolute;inset:0;z-index:-1;pointer-events:none;background:#000">
+    <img src="assets/deco-negro/paloma.png" alt="" style="position:absolute;left:50%;top:44%;width:clamp(240px,24vw,400px);transform:translate(-50%,-30%);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/dientes.png" alt="" style="position:absolute;right:3vw;top:1%;width:clamp(170px,16vw,270px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/asterisco.png" alt="" style="position:absolute;left:52vw;top:3%;width:clamp(60px,5vw,96px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/cara-doble.png" alt="" style="position:absolute;left:1vw;top:30%;width:clamp(170px,16vw,270px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/hate.png" alt="" style="position:absolute;left:24vw;top:36%;width:clamp(100px,8vw,140px);transform:rotate(-8deg);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/pasamontanas.png" alt="" style="position:absolute;right:23vw;top:31%;width:clamp(100px,8vw,150px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/ojo-cementerio.png" alt="" style="position:absolute;right:1vw;top:42%;width:clamp(170px,16vw,260px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/corazon-ojo.png" alt="" style="position:absolute;left:9vw;top:62%;width:clamp(120px,10vw,170px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/billete.png" alt="" style="position:absolute;left:28vw;top:66%;width:clamp(90px,7vw,130px);transform:rotate(10deg);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/cara-luna.png" alt="" style="position:absolute;right:28vw;top:62%;width:clamp(120px,11vw,190px);opacity:.75;mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/carrito.png" alt="" style="position:absolute;right:3vw;bottom:1%;width:clamp(160px,15vw,250px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+    <img src="assets/deco-negro/caballo-tumbado.png" alt="" style="position:absolute;left:2vw;bottom:1%;width:clamp(180px,17vw,280px);mix-blend-mode:screen;clip-path:inset(2%);filter:contrast(1.25) brightness(.95);"></img>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;padding:0 clamp(16px,3vw,40px);margin-bottom:clamp(24px,3vw,44px)">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:300 9px Fraunces;letter-spacing:.3em;color:#8a8a8a">MARKETPLACE</span>
+      <span style="font:400 clamp(60px,9vw,150px)/0.86 Anton;letter-spacing:.005em;display:flex;flex-direction:column"><span>TODAS LAS</span><span>PRENDAS</span></span>
+    </div>
+    <span style="font:300 italic 15px/1.5 Fraunces;color:#bdbdbd;max-width:300px;text-wrap:pretty">Pon el cursor encima y haz scroll para girarlo.</span>
+  </div>
+  <div ref="{{ stage }}" onMouseLeave="{{ stageLeave }}" style="position:relative;height:{{ stageH }};perspective:{{ persp }};perspective-origin:50% 46%">
+    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="2">
+      <div data-ring="{{ r.i }}" style="position:absolute;left:50%;top:{{ r.top }};width:0;height:0;transform-style:preserve-3d;will-change:transform">
+        <sc-for list="{{ r.cards }}" as="t" hint-placeholder-count="0">
+          <a data-cd="{{ t.k }}" data-prod="" href="{{ t.url }}" target="_blank" rel="noopener" draggable="false" onMouseEnter="{{ t.enter }}" onMouseLeave="{{ t.leave }}" style="position:absolute;left:{{ ml }};top:0;width:{{ cw }};color:#fff;text-decoration:none;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform:{{ t.tf }}">
+            <div style="display:flex;flex-direction:column;gap:9px;transform:scale({{ t.sc }}) translateZ({{ t.tz }});transform-origin:50% 40%;transition:transform .7s cubic-bezier(.16,1,.3,1)">
+              <div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:#151515;outline:1px solid {{ t.ol }};outline-offset:5px;transition:outline-color .4s">
+                <div style="position:absolute;inset:0;background-image:{{ t.bg }};background-size:cover;background-position:center;transform:scale({{ t.zoom }});transition:transform 1.2s cubic-bezier(.16,1,.3,1)"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;min-width:0">
+                <span style="font:300 12px/1.25 Fraunces;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ t.name }}</span>
+                <span style="flex:none;font:400 11px Fraunces">{{ t.price }}</span>
+              </div>
+              <span style="font:400 7.5px Fraunces;letter-spacing:.26em;color:#8a8a8a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:-4px">{{ t.brand }}</span>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </sc-for>
+    <div ref="{{ popLn }}" style="position:absolute;left:0;top:0;z-index:49;height:1px;width:0;pointer-events:none">
+      <div style="position:absolute;inset:0;background:#fff;transform-origin:{{ lnOrigin }};transform:scaleX({{ lnSx }});transition:transform .4s cubic-bezier(.16,1,.3,1) {{ lnDelay }}"></div>
+      <div style="position:absolute;top:-5px;left:{{ dotL }};width:11px;height:11px;margin-left:-5px;border-radius:50%;background:#fff;transform:scale({{ lnSx }});transition:transform .3s cubic-bezier(.16,1,.3,1)"></div>
+    </div>
+    <div ref="{{ pop }}" onMouseEnter="{{ popEnter }}" onMouseLeave="{{ popLeave }}" style="position:absolute;left:0;top:0;z-index:50;width:clamp(260px,22vw,330px);background:#fff;color:#000;display:flex;flex-direction:column;clip-path:{{ popClip }};transition:clip-path .65s cubic-bezier(.16,1,.3,1) {{ popDelay }};pointer-events:{{ popPe }}">
+      <div style="padding:16px 16px 14px;display:flex;flex-direction:column;gap:10px">
+        <span style="font:400 clamp(34px,3vw,48px)/0.9 Anton;letter-spacing:.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ popBrand }}</span>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding-top:10px;border-top:1px solid #000">
+          <span style="font:300 13px/1.3 Fraunces;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ popName }}</span>
+          <span style="flex:none;font:400 12px Fraunces">{{ popPrice }}</span>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:end">
+        <div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ popBg }};background-size:cover;background-position:center"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:2px">
+          <span style="font:400 8px Fraunces;letter-spacing:.26em;color:#666">{{ popSub }}</span>
+          <span style="font:400 30px/0.95 Anton">{{ popPrice }}</span>
+        </div>
+      </div>
+      <a href="{{ popUrl }}" target="_blank" rel="noopener" style="height:54px;border-top:1px solid #000;display:flex;align-items:center;justify-content:space-between;padding:0 16px;color:#000;text-decoration:none;font:400 9.5px Fraunces;letter-spacing:.3em;transition:background .3s,color .3s" style-hover="background:#000;color:#fff">IR A LA TIENDA<span style="position:relative;width:44px;height:1px;overflow:hidden"><span style="position:absolute;inset:0;background:currentColor;animation:emLine 1.8s cubic-bezier(.65,0,.35,1) infinite"></span></span></a>
+    </div>
+  </div>
+  <div style="display:flex;justify-content:center;padding:clamp(28px,3vw,44px) clamp(16px,3vw,40px) 0">
+    <a href="#marketplace" style="height:58px;padding:0 30px;border:1px solid #fff;display:flex;align-items:center;gap:18px;color:#fff;text-decoration:none;font:400 10px Fraunces;letter-spacing:.32em;transition:background .35s,color .35s" style-hover="background:#fff;color:#000">IR AL MARKETPLACE<span style="position:relative;width:44px;height:1px;overflow:hidden"><span style="position:absolute;inset:0;background:currentColor;animation:emLine 1.8s cubic-bezier(.65,0,.35,1) infinite"></span></span></a>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { w: 1200, ready: !!window.EMER, hv: '', slots: null };
+  root = React.createRef(); stage = React.createRef(); pop = React.createRef(); popLn = React.createRef(); side = 1; bad = new Set();
+  a = 0; v = 0; N = 18; swapped = {};
+
+  pool() { return window.EMER ? EMER.PRODUCTS.filter(p => p.img && !this.bad.has(p.img)) : []; }
+  seed() { const P = this.pool(); if (!P.length) return; const idx = P.map((_, i) => i).sort(() => Math.random() - 0.5); const slots = Array.from({ length: this.N * 2 }, (_, j) => P[idx[j % idx.length]].id); this.setState({ slots }); }
+
+  componentDidMount() {
+    const wait = () => { if (window.EMER) { this.seed(); EMER.PRODUCTS.forEach(p => { if (!p.img) return; const im = new Image(); im.onerror = () => { this.bad.add(p.img); this.forceUpdate(); }; im.src = p.img; }); } else this.wt = setTimeout(wait, 60); };
+    wait();
+    this.onResize = () => { const w = document.documentElement.clientWidth || innerWidth; if (w !== this.state.w) this.setState({ w }); };
+    this.onResize(); addEventListener('resize', this.onResize);
+    this.onWheel = e => { e.preventDefault(); const d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX; this.v = Math.max(-6, Math.min(6, this.v + d * 0.012)); };
+    const tryWheel = () => { if (this.stage.current) this.stage.current.addEventListener('wheel', this.onWheel, { passive: false }); else this.ww = setTimeout(tryWheel, 100); };
+    tryWheel();
+    const loop = () => { this.tick(); this.raf = requestAnimationFrame(loop); };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearTimeout(this.wt); clearTimeout(this.ww); removeEventListener('resize', this.onResize); if (this.stage.current) this.stage.current.removeEventListener('wheel', this.onWheel); }
+
+  swap(j) {
+    const P = this.pool(), sl = this.state.slots; if (!P.length || !sl) return;
+    const used = new Set(sl); const free = P.filter(p => !used.has(p.id)); const pick = (free.length ? free : P)[Math.floor(Math.random() * (free.length || P.length))];
+    this.setState(st => { const n = st.slots.slice(); n[j] = pick.id; return { slots: n }; });
+  }
+
+  tick() {
+    const st = this.stage.current, L = this.L; if (!st || !L) return;
+    const rr = st.getBoundingClientRect(); if (rr.bottom < 0 || rr.top > innerHeight) return;
+    const idle = this.state.hv ? 0 : 0.06;
+    const pop = this.pop.current, key = this.state.hv || this.state.last;
+    if (pop && key) { const el = st.querySelector('[data-cd="' + key + '"]'); if (el) { const r = el.getBoundingClientRect(), pw = pop.offsetWidth, G = 64; let side = 1, x = r.right - rr.left + G; if (x + pw > rr.width - 12) { side = -1; x = r.left - rr.left - pw - G; } if (side !== this.side) { this.side = side; this.forceUpdate(); } const y = Math.max(0, Math.min(rr.height - pop.offsetHeight, r.top - rr.top + r.height * 0.1)); pop.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)'; const ln = this.popLn.current; if (ln) { const ly = y + 34, lx0 = side > 0 ? r.right - rr.left : x + pw, lx1 = side > 0 ? x : r.left - rr.left; ln.style.transform = 'translate3d(' + lx0 + 'px,' + ly + 'px,0)'; ln.style.width = Math.max(0, lx1 - lx0) + 'px'; } } }
+    this.v += (idle - this.v) * 0.035; this.a += this.v;
+    st.querySelectorAll('[data-ring]').forEach(ring => {
+      const ri = +ring.dataset.ring, dir = ri ? -1 : 1, off = ri ? L.step / 2 : 0, ang = this.a * dir + off;
+      ring.style.transform = `translateZ(${-L.R}px) rotateX(-4deg) rotateY(${ang}deg)`;
+      ring.querySelectorAll('[data-cd]').forEach(el => {
+        const k = el.dataset.cd, j = +k.split('-')[1], th = (j * L.step + ang) * Math.PI / 180, c = Math.cos(th);
+        const o = c > 0 ? '1' : '0'; if (el.style.opacity !== o) el.style.opacity = o;
+        el.style.pointerEvents = c > 0.35 ? 'auto' : 'none';
+        const slot = ri * this.N + j;
+        if (c < -0.9 && !this.swapped[slot]) { this.swapped[slot] = true; this.swap(slot); }
+        if (c > 0) this.swapped[slot] = false;
+      });
+    });
+  }
+
+  renderVals() {
+    const s = this.state, url = u => u ? `url("${u}")` : 'none', N = this.N;
+    const cw = Math.round(Math.max(140, Math.min(270, s.w * 0.16))), gap = Math.round(cw * 0.22), step = 360 / N;
+    const R = Math.round(Math.max((cw + gap) * N / (2 * Math.PI), s.w * 0.52));
+    const cardH = Math.round(cw * 4 / 3 + 44), rowGap = Math.round(cw * 0.32);
+    this.L = { R, step };
+    const byId = window.EMER ? EMER.BY && Object.fromEntries(EMER.PRODUCTS.map(p => [p.id, p])) : {};
+    const rows = s.slots ? [0, 1].map(ri => ({ i: String(ri), top: ri ? (cardH + rowGap + 20) + 'px' : '20px',
+      cards: Array.from({ length: N }, (_, j) => { const p = byId[s.slots[ri * N + j]] || {}, k = `${ri}-${j}`, on = s.hv === k;
+        return { k, tf: `rotateY(${j * step}deg) translateZ(${R}px)`, url: (p.brand && p.brand.url) || '#', bg: url(p.img), name: p.name || '', price: p.priceLbl || '', brand: p.brand ? p.brand.upper : '',
+          sc: on ? 1.14 : 1, tz: on ? '30px' : '0px', ov: on ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)', zoom: on ? 1.06 : 1, ol: on ? '#fff' : 'transparent',
+          enter: () => { clearTimeout(this.lt); if (this.state.hv !== k) this.setState({ hv: k, last: k }); }, leave: () => { clearTimeout(this.lt); this.lt = setTimeout(() => { if (this.state.hv === k) this.setState({ hv: '' }); }, 220); } }; }) })) : [];
+    return {
+      root: this.root, stage: this.stage, rows, persp: (R * 4) + 'px', cw: cw + 'px', ml: -(cw / 2) + 'px',
+      stageH: (2 * cardH + rowGap + 60) + 'px',
+      stageLeave: () => { clearTimeout(this.lt); if (this.state.hv) this.setState({ hv: '' }); },
+      pop: this.pop, ...(() => { const key = s.hv || s.last || '', [ri, j] = key.split('-').map(Number), p = (s.slots && key) ? byId[s.slots[ri * N + j]] || {} : {};
+        return { popUrl: (p.brand && p.brand.url) || '#', popBrand: p.brand ? p.brand.upper : '', popName: p.name || '', popPrice: p.priceLbl || '', popClip: s.hv ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)', popPe: s.hv ? 'auto' : 'none', popDelay: s.hv ? '.28s' : '0s', lnSx: s.hv ? 1 : 0, lnDelay: s.hv ? '.05s' : '.2s', lnOrigin: this.side > 0 ? '0 50%' : '100% 50%', dotL: this.side > 0 ? '0%' : '100%', popLn: this.popLn,
+          popBg: url(p.img), popSub: (p.subName || '').toUpperCase(), popMore: p.brand ? (p.brand.preview || []).filter(q => q.img && q.id !== p.id && !this.bad.has(q.img)).slice(0, 3).map(q => ({ bg: url(q.img), price: q.priceLbl })) : [], popHasMore: !!(p.brand && (p.brand.preview || []).filter(q => q.img && q.id !== p.id).length),
+          popEnter: () => clearTimeout(this.lt), popLeave: () => { clearTimeout(this.lt); this.lt = setTimeout(() => this.setState({ hv: '' }), 160); } }; })(),
+    };
+  }
+}
+</script>
+</body>
+</html>

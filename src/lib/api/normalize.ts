@@ -16,6 +16,17 @@ import type {
   StoreLocation,
 } from "./types";
 
+/** Solo URLs http(s) llegan a un `href`; cualquier otra cosa se descarta. */
+function safeUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function storeLocation(raw: RawStoreLocation): StoreLocation {
   return {
     id: raw.id,
@@ -41,7 +52,7 @@ export function brand(raw: RawBrand): Brand {
   return {
     id: raw.id,
     name: raw.name,
-    url: raw.url ?? null,
+    url: safeUrl(raw.url),
     img: raw.img ?? null,
     logo: raw.logo ?? null,
     color: raw.color ?? null,
@@ -66,7 +77,7 @@ export function product(raw: RawProduct): Product {
     handle: raw.handle ?? null,
     name: raw.name,
     description: raw.description ?? null,
-    productUrl: raw.product_url,
+    productUrl: safeUrl(raw.product_url) ?? "",
     currency: raw.currency,
     price: raw.current_price ?? null,
     originalPrice: raw.original_price ?? null,

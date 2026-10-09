@@ -17,6 +17,7 @@ Web de marketing/descubrimiento de **Emer** (marketplace de marcas de streetwear
 - `pnpm check` = typecheck + lint + build (ejecutar antes de dar algo por terminado)
 - `pnpm lint:fix` · `pnpm test` · `pnpm lhci`
 - Tests e2e con un Chromium ya instalado: `PLAYWRIGHT_CHROMIUM_PATH=/ruta/a/chrome pnpm test`
+- Sin backend: `EMER_API_FIXTURES=1 pnpm dev` (datos de ejemplo de `src/lib/api/fixtures.ts`; los tests e2e los usan siempre)
 
 ## Arquitectura
 
@@ -26,10 +27,11 @@ src/
   components/
     providers/         Providers (layout): ticker, Lenis, atajos del buscador, fin de carga y cursor
     shell/             cursor, HomeMotion (registra hero y secciones de la home), FocusOnMount
-    sections/          secciones de la web (Hero, ...)
+    sections/          una carpeta por sección: <seccion>-section.tsx (servidor: datos) + componente cliente animado
     ui/                primitivas reutilizables
   lib/
     gsap.ts            ÚNICO sitio donde se registran plugins GSAP y easings (EASE)
+    format.ts          upper, domain, price, pad2, norm (derivados del handoff)
     config/sections.ts ids, etiquetas y orden de las secciones
     motion/
       ticker.ts        reloj único (gsap.ticker): subscribe(fn, { el, essential })
@@ -42,7 +44,8 @@ src/
     api/               cliente tipado del backend KMP (solo servidor)
 ```
 
-Contrato de diseño de cada sección: `design/handoff/<sección>.md`.
+Contrato de diseño de cada sección: `design/handoff/<sección>.md` (referencias visuales en `design/referencia/`, no se lintan). Assets de producción en `public/assets/`.
+Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier cosa que se aplace).
 
 ## Reglas de animación (obligatorias)
 

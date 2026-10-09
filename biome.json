@@ -9,10 +9,12 @@
     "includes": [
       "**",
       "!.next",
+      "!.next-fixtures",
       "!node_modules",
       "!playwright-report",
       "!test-results",
-      "!.lighthouseci"
+      "!.lighthouseci",
+      "!design"
     ]
   },
   "formatter": {

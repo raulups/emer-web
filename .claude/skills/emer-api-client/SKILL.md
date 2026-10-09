@@ -12,7 +12,11 @@ Fuente de verdad del backend: `docs/API_CONTRACT.md`. La web **no** accede a la 
 - `client.ts`: `apiGet` (timeout 60 s por el cold start, reintentos en red/429/5xx), `toQuery`, `ApiError`.
 - `types.ts`: tipos `Raw*` (JSON snake_case) y de dominio (camelCase), y los tipos de filtros.
 - `normalize.ts`: convierte Raw → dominio y rellena los campos que el servidor omite (`encodeDefaults = false`).
-- `brands.ts`, `products.ts`, `categories.ts`: una función por endpoint, con `"use cache"` + `cacheLife` + `cacheTag`.
+- `brands.ts`, `products.ts`, `categories.ts`: una función por endpoint, con `"use cache"` + `cacheTag` y `settle(work, "hours")`.
+- **Las funciones cacheadas NO lanzan: devuelven `ApiResult<T>`** (`{ ok: true, data }` o `{ ok: false, error }`). En Next 16 un error dentro de `"use cache"` rompe el prerender aunque el llamador lo capture. `settle` cachea los éxitos con el perfil indicado y los fallos solo segundos (`cacheLife("seconds")`), lo que los saca del prerender: el error nunca queda horneado en el HTML.
+- En el componente: `const r = await getBrands(); if (!r.ok) { await connection(); return <Error/> }`, siempre dentro de un `<Suspense>` con un fallback de la misma geometría.
+- Durante `next build` se hace un solo intento de 40 s (un "use cache" que tarde más de 50 s rompe el build).
+- `fixtures.ts`: datos de ejemplo con la forma exacta de la API, activados con `EMER_API_FIXTURES=1` (los tests e2e los usan siempre). Nunca en producción.
 - `index.ts`: único punto de import: `import { getBrands } from "@/lib/api"`.
 
 Los componentes **solo** ven tipos de dominio, nunca `Raw*`.
@@ -33,6 +37,6 @@ Los componentes **solo** ven tipos de dominio, nunca `Raw*`.
 ## Reglas
 
 - Añadir un endpoint = tipo Raw + tipo de dominio + normalizador + función cacheada con tag + export en `index.ts`.
-- Un id inexistente o inválido devuelve `null` (no lanza); otros errores sí lanzan `ApiError`.
+- Un id inexistente o inválido devuelve `{ ok: true, data: null }`; otros errores, `{ ok: false }`.
 - Invalidación bajo demanda con `revalidateTag("brands" | "products" | "categories")` desde un Route Handler protegido.
 - Antes de usar APIs de caché o `params`, leer la guía de la versión en `node_modules/next/dist/docs/`.

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+<script src="emer-data.js"></script>
+<style>html,body{margin:0;background:#fff;color:#000;font-family:Fraunces,serif;-webkit-font-smoothing:antialiased}@keyframes emLine{0%{transform:scaleX(0);transform-origin:0 50%}50%{transform:scaleX(1);transform-origin:0 50%}50.01%{transform:scaleX(1);transform-origin:100% 50%}100%{transform:scaleX(0);transform-origin:100% 50%}}a{color:#000}a:hover{color:#3f3f3f}::selection{background:#000;color:#fff}</style>
+</helmet>
+<div ref="{{ rootRef }}" style="color:#000;position:relative;background:#fff;overflow-x:clip;isolation:isolate">
+
+  <sc-if value="{{ isA }}" hint-placeholder-val="{{ true }}">
+    <section ref="{{ aSec }}" onMouseLeave="{{ aLeave }}" style="position:relative;padding:clamp(64px,8vw,120px) clamp(20px,4vw,56px)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(28px,4vw,48px)">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font:300 9px Fraunces;letter-spacing:.3em;color:#666">MARCAS</span>
+          <span style="font:400 clamp(56px,8vw,120px)/0.88 Anton;letter-spacing:.005em">EMERGENTES</span>
+        </div>
+        <span style="font:300 italic 15px/1.5 Fraunces;color:#3f3f3f;max-width:300px;text-wrap:pretty">Las últimas en llegar a Emer. Pasa por encima; toca para ver sus prendas.</span>
+      </div>
+      <div style="border-top:1px solid #000">
+        <sc-for list="{{ aRows }}" as="r" hint-placeholder-count="0">
+          <div onMouseEnter="{{ r.enter }}" onClick="{{ r.toggle }}" style="border-bottom:1px solid #000;cursor:pointer">
+            <div style="display:grid;grid-template-columns:{{ aCols }};align-items:center;gap:16px;padding:clamp(10px,1.2vw,16px) 0">
+              <span style="font:400 9px Fraunces;letter-spacing:.2em;color:#8a8a8a">{{ r.n }}</span>
+              <span style="font:400 clamp(44px,7vw,112px)/0.92 Anton;letter-spacing:.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{ r.col }};transform:translateX({{ r.tx }});transition:color .45s cubic-bezier(.4,0,.2,1),transform .8s cubic-bezier(.16,1,.3,1)">{{ r.name }}</span>
+              <sc-if value="{{ aWide }}" hint-placeholder-val="{{ true }}"><span style="font:400 9px Fraunces;letter-spacing:.22em;color:{{ r.sub }};transition:color .45s">{{ r.date }}</span></sc-if>
+              <sc-if value="{{ aWide }}" hint-placeholder-val="{{ true }}"><span style="font:400 9px Fraunces;letter-spacing:.22em;color:{{ r.sub }};transition:color .45s">{{ r.cat }}</span></sc-if>
+              <span style="justify-self:end;font:300 20px Fraunces;transform:rotate({{ r.rot }});transition:transform .6s cubic-bezier(.16,1,.3,1)">↗</span>
+            </div>
+            <div style="display:grid;grid-template-rows:{{ r.rows }};transition:grid-template-rows .8s cubic-bezier(.16,1,.3,1)">
+              <div style="overflow:hidden">
+                <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;padding:4px 0 26px {{ aIndent }}">
+                  <sc-for list="{{ r.prods }}" as="p" hint-placeholder-count="0">
+                    <div style="width:clamp(110px,11vw,160px);display:flex;flex-direction:column;gap:6px">
+                      <div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ p.bg }};background-size:cover;background-position:center"></div>
+                      <span style="font:400 9.5px Fraunces;letter-spacing:.1em">{{ p.price }}</span>
+                    </div>
+                  </sc-for>
+                  <span style="margin-left:auto;align-self:center;font:400 10px Fraunces;letter-spacing:.3em;padding-bottom:3px;border-bottom:1px solid #000">IR A LA TIENDA ↗</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div ref="{{ aFloat }}" style="position:absolute;left:0;top:0;width:clamp(220px,19vw,290px);aspect-ratio:3/4;pointer-events:none;z-index:5;opacity:0;will-change:transform,clip-path;display:{{ aFloatDisp }}">
+        <sc-for list="{{ aImgs }}" as="f" hint-placeholder-count="0">
+          <div style="position:absolute;inset:0;background-color:#ededed;background-image:{{ f.bg }};background-size:cover;background-position:center;opacity:{{ f.op }};transition:opacity .45s cubic-bezier(.4,0,.2,1)"></div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isB }}" hint-placeholder-val="{{ false }}">
+    <section style="position:relative;padding:clamp(64px,8vw,120px) clamp(20px,4vw,56px)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:clamp(24px,3vw,36px)">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font:300 9px Fraunces;letter-spacing:.3em;color:#666">MARCAS</span>
+          <span style="font:400 clamp(56px,8vw,120px)/0.88 Anton;letter-spacing:.005em">EMERGENTES</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <span style="font:300 italic 15px/1.5 Fraunces;color:#3f3f3f">Muévelas, apílalas, ábrelas.</span>
+          <span onClick="{{ bToggle }}" style="height:38px;padding:0 16px;border:1px solid #000;display:flex;align-items:center;font:400 9px Fraunces;letter-spacing:.3em;cursor:pointer;transition:background .3s,color .3s" style-hover="background:#000;color:#fff">{{ bModeLbl }}</span>
+        </div>
+      </div>
+      <div ref="{{ bBoard }}" style="position:relative;height:clamp(620px,58vw,800px);border:1px solid #000;background:#f6f6f4;background-image:radial-gradient(#cdcdcd 1px,transparent 1.3px);background-size:22px 22px;overflow:hidden;touch-action:none">
+        <span style="position:absolute;left:16px;bottom:14px;font:400 8px Fraunces;letter-spacing:.24em;color:#8a8a8a">TABLÓN · {{ bCount }} MARCAS</span>
+        <sc-for list="{{ bCards }}" as="c" hint-placeholder-count="0">
+          <div data-card="{{ c.i }}" onPointerDown="{{ c.down }}" style="position:absolute;left:0;top:0;width:clamp(150px,13.5vw,205px);background:#fff;border:1px solid #000;padding:8px 8px 11px;box-sizing:border-box;will-change:transform;cursor:grab;user-select:none;-webkit-user-select:none;opacity:0">
+            <div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ c.bg }};background-size:cover;background-position:center;pointer-events:none"></div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px;pointer-events:none">
+              <span style="font:400 20px/1 Anton;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span>
+              <span style="flex:none;font:400 7.5px Fraunces;letter-spacing:.2em;color:#8a8a8a">{{ c.date }}</span>
+            </div>
+          </div>
+        </sc-for>
+        <div style="position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);background:#fff;border-left:1px solid #000;z-index:500;transform:translateX({{ bDrawerX }});transition:transform .8s cubic-bezier(.16,1,.3,1);display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #000">
+            <span style="font:400 8px Fraunces;letter-spacing:.24em;color:#8a8a8a">{{ bDate }}</span>
+            <span onClick="{{ bClose }}" style="font:400 9px Fraunces;letter-spacing:.3em;cursor:pointer">CERRAR ×</span>
+          </div>
+          <div style="aspect-ratio:4/3;background-color:#ededed;background-image:{{ bBg }};background-size:cover;background-position:center;border-bottom:1px solid #000"></div>
+          <div style="padding:18px;display:flex;flex-direction:column;gap:16px;flex:1;min-height:0">
+            <span style="font:400 clamp(40px,4vw,56px)/0.9 Anton">{{ bName }}</span>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+              <sc-for list="{{ bProds }}" as="p" hint-placeholder-count="0">
+                <div style="display:flex;flex-direction:column;gap:5px"><div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ p.bg }};background-size:cover;background-position:center"></div><span style="font:400 9px Fraunces;letter-spacing:.08em">{{ p.price }}</span></div>
+              </sc-for>
+            </div>
+            <span style="margin-top:auto;height:46px;background:#000;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font:400 9px Fraunces;letter-spacing:.3em">IR A LA TIENDA<span style="font-size:14px;letter-spacing:0">↗</span></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ isC }}" hint-placeholder-val="{{ false }}">
+    <section ref="{{ cWrap }}" style="position:relative;height:300vh">
+      <div ref="{{ cStick }}" style="position:sticky;top:0;height:100vh;display:flex;flex-direction:column;justify-content:center">
+        <div ref="{{ cDeco }}" style="position:absolute;left:0;top:0;height:100%;width:100%;pointer-events:none;will-change:transform;z-index:-1;background:#fff">
+          <div data-pt="" data-i="0" data-r="0" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:3vw;top:8vh;width:clamp(60px,6vw,96px);transform:rotate(0deg)"><img data-gh="" src="assets/deco/estrellas.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/estrellas.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="1" data-r="-4" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:11vw;top:56vh;width:clamp(300px,30vw,480px);transform:rotate(-4deg)"><img data-gh="" src="assets/deco/coche.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/coche.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="2" data-r="4" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:40vw;top:-4vh;width:clamp(200px,19vw,300px);transform:rotate(4deg)"><img data-gh="" src="assets/deco/ojos.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;clip-path:inset(0 0 13% 0);pointer-events:none"></img><img src="assets/deco/ojos.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;clip-path:inset(0 0 13% 0);pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="3" data-r="12" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:64vw;top:54vh;width:clamp(80px,8vw,130px);transform:rotate(12deg)"><img data-gh="" src="assets/deco/dolar.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/dolar.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="4" data-r="8" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:82vw;top:4vh;width:clamp(110px,10vw,160px);transform:rotate(8deg)"><img data-gh="" src="assets/deco/golondrinas.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/golondrinas.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="5" data-r="0" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:98vw;top:44vh;width:clamp(400px,40vw,640px);transform:rotate(0deg)"><img data-gh="" src="assets/deco/edificios.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/edificios.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="6" data-r="-12" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:138vw;top:6vh;width:clamp(140px,13vw,210px);transform:rotate(-12deg)"><img data-gh="" src="assets/deco/mano.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/mano.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="7" data-r="-6" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:158vw;top:50vh;width:clamp(180px,17vw,280px);transform:rotate(-6deg)"><img data-gh="" src="assets/deco/nino-rojo.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/nino-rojo.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="8" data-r="10" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:184vw;top:-6vh;width:clamp(220px,22vw,350px);transform:rotate(10deg)"><img data-gh="" src="assets/deco/bomba.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/bomba.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="9" data-r="0" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:212vw;top:36vh;width:clamp(260px,26vw,420px);transform:rotate(0deg)"><img data-gh="" src="assets/deco/cara-agua.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;clip-path:inset(18% 0 20% 0);pointer-events:none"></img><img src="assets/deco/cara-agua.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;clip-path:inset(18% 0 20% 0);pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="10" data-r="0" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:242vw;top:-2vh;width:clamp(200px,20vw,320px);transform:rotate(0deg)"><img data-gh="" src="assets/deco/caballo.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;clip-path:inset(14% 0 12% 0);pointer-events:none"></img><img src="assets/deco/caballo.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;clip-path:inset(14% 0 12% 0);pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="11" data-r="6" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:266vw;top:54vh;width:clamp(110px,11vw,170px);transform:rotate(6deg)"><img data-gh="" src="assets/deco/ojo.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;clip-path:inset(12% 0 18% 0);pointer-events:none"></img><img src="assets/deco/ojo.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;clip-path:inset(12% 0 18% 0);pointer-events:none;user-select:none"></img></div>
+          <div data-pt="" data-i="12" data-r="4" onMouseEnter="{{ dEnter }}" onMouseLeave="{{ dLeave }}" style="position:absolute;left:288vw;top:6vh;width:clamp(150px,14vw,230px);transform:rotate(4deg)"><img data-gh="" src="assets/deco/nino.png" alt="" style="position:absolute;left:0;top:0;width:100%;height:auto;opacity:0;mix-blend-mode:multiply;pointer-events:none"></img><img src="assets/deco/nino.png" alt="" style="position:relative;display:block;width:100%;height:auto;mix-blend-mode:multiply;pointer-events:none;user-select:none"></img></div>
+        </div>
+        <div style="position:absolute;left:clamp(20px,4vw,56px);right:clamp(20px,4vw,56px);top:{{ cTopBar }};z-index:3;display:flex;justify-content:space-between;align-items:center;gap:20px">
+          <span style="font:400 9px Fraunces;letter-spacing:.3em">EMERGENTES</span>
+          <div style="flex:1;max-width:360px;height:1px;background:#e4e4e4"><div ref="{{ cBar }}" style="height:100%;width:0;background:#000"></div></div>
+          <span ref="{{ cCount }}" style="font:400 9px Fraunces;letter-spacing:.3em">01 / 08</span>
+        </div>
+        <div ref="{{ cTrack }}" style="position:relative;z-index:1;display:flex;align-items:center;gap:clamp(28px,4vw,72px);padding:0 clamp(20px,4vw,56px);width:max-content;will-change:transform;pointer-events:none">
+          <div style="pointer-events:auto;flex:none;display:flex;flex-direction:column;gap:14px;padding-right:clamp(12px,2vw,40px)">
+            <span style="font:300 9px Fraunces;letter-spacing:.3em;color:#666">MARCAS</span>
+            <span style="font:400 clamp(72px,10vw,160px)/0.86 Anton;letter-spacing:.005em;display:flex;flex-direction:column"><span>EMER</span><span>GENTES</span></span>
+            <span style="font:300 italic 15px/1.5 Fraunces;color:#3f3f3f">Baja para recorrerlas ↓</span>
+          </div>
+          <sc-for list="{{ cPanels }}" as="p" hint-placeholder-count="0">
+            <div data-pn="" onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" onClick="{{ p.enter }}" style="pointer-events:auto;flex:none;width:{{ p.w }};height:{{ p.h }};margin-top:{{ p.mt }};display:flex;flex-direction:column;gap:12px;cursor:pointer">
+              <div data-clip="" style="flex:1;min-height:0;position:relative;overflow:hidden;background:#ededed;clip-path:inset(100% 0 0 0)">
+                <div data-par="" style="position:absolute;top:0;bottom:0;left:-14%;right:-14%;background-image:{{ p.bg }};background-size:cover;background-position:center;will-change:transform"></div>
+                <div style="position:absolute;inset:0;background:rgba(0,0,0,{{ p.veil }});transition:background .6s cubic-bezier(.4,0,.2,1)"></div>
+                <span style="position:absolute;left:14px;bottom:8px;font:400 clamp(70px,8vw,130px)/0.8 Anton;color:transparent;-webkit-text-stroke:1.2px #fff;opacity:{{ p.numOp }};transition:opacity .4s">{{ p.n }}</span>
+              </div>
+              <div style="position:relative;display:flex;justify-content:space-between;align-items:baseline;gap:12px;background:#fff;padding:2px 0">
+                <span style="font:400 clamp(26px,2.4vw,36px)/1.2 Anton;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+                <span style="flex:none;font:400 8px Fraunces;letter-spacing:.22em;color:#8a8a8a">{{ p.date }}</span>
+              </div>
+            </div>
+          </sc-for>
+          <div style="pointer-events:auto;flex:none;width:clamp(260px,26vw,380px);display:flex;flex-direction:column;gap:18px;padding-right:clamp(20px,4vw,56px)">
+            <span style="font:400 clamp(48px,5vw,80px)/0.9 Anton;display:flex;flex-direction:column"><span>Y LAS QUE</span><span>VENDRÁN.</span></span>
+            <span style="font:400 10px Fraunces;letter-spacing:.3em;padding-bottom:3px;border-bottom:1px solid #000;align-self:flex-start">VER TODAS LAS MARCAS →</span>
+          </div>
+        </div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8;overflow:visible"><line ref="{{ cLn }}" x1="0" y1="0" x2="0" y2="0" stroke="#000" stroke-width="1.2"></line></svg>
+        <div ref="{{ cDot }}" style="position:absolute;left:0;top:0;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#000;box-shadow:0 0 0 2px #fff;z-index:9;pointer-events:none;transform:scale(0)">
+          <div style="position:absolute;inset:-11px;border:1px solid #000;border-radius:50%;opacity:.5"></div>
+        </div>
+        <div ref="{{ cPop }}" onMouseEnter="{{ popEnter }}" onMouseLeave="{{ popLeave }}" style="position:absolute;left:0;top:0;width:clamp(380px,32vw,480px);z-index:10;opacity:0;pointer-events:none;perspective:1400px;will-change:transform">
+          <div ref="{{ cPBar }}" style="height:1px;background:#000;transform:scaleX(0)"></div>
+          <div ref="{{ cPBody }}" style="background:#fff;border:1px solid #000;border-top:0;clip-path:inset(-2px -12px 100% -2px);box-shadow:8px 8px 0 #000;padding:18px 18px 18px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font:400 clamp(46px,4vw,62px)/0.9 Anton;letter-spacing:.005em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ popName }}</span>
+            </div>
+            <sc-if value="{{ popHas }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+                <sc-for list="{{ popProds }}" as="q" hint-placeholder-count="0">
+                  <div style="display:flex;flex-direction:column;gap:7px;min-width:0">
+                    <span style="font:400 8px Fraunces;letter-spacing:.2em;color:#8a8a8a">{{ q.n }}</span>
+                    <div style="aspect-ratio:3/4;background-color:#ededed;background-image:{{ q.bg }};background-size:cover;background-position:center"></div>
+                    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                      <span style="font:300 12px/1.25 Fraunces;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.name }}</span>
+                      <span style="font:400 10.5px Fraunces">{{ q.price }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-if>
+            <sc-if value="{{ popEmpty }}" hint-placeholder-val="{{ false }}"><span style="font:300 italic 15px/1.45 Fraunces;color:#3f3f3f;text-wrap:pretty">Su catálogo llega pronto. Mientras, está en su web.</span></sc-if>
+            <div style="margin:0 -18px -18px;height:64px;border-top:1px solid #000;display:flex;justify-content:space-between;align-items:center;padding:0 18px;cursor:pointer;color:#000;background:#fff;transition:background .35s cubic-bezier(.4,0,.2,1),color .35s cubic-bezier(.4,0,.2,1)" style-hover="background:#000;color:#fff">
+              <span style="font:400 11px Fraunces;letter-spacing:.32em">IR A LA TIENDA</span>
+              <span style="position:relative;width:56px;height:1px;overflow:hidden"><span style="position:absolute;inset:0;background:currentColor;transform-origin:0 50%;animation:emLine 1.8s cubic-bezier(.65,0,.35,1) infinite"></span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <sc-if value="{{ standalone }}" hint-placeholder-val="{{ false }}"><div style="height:30vh;border-top:1px solid #000;display:flex;align-items:center;justify-content:center;font:400 9px Fraunces;letter-spacing:.3em;color:#8a8a8a">SIGUIENTE SECCIÓN · CATÁLOGO</div></sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Índice&quot;,&quot;Tablón&quot;,&quot;Recorrido&quot;],&quot;default&quot;:&quot;Índice&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { w: 1200, ready: !!window.EMER, ah: -1, aOpen: -1, bMode: 'scatter', bSel: -1, ch: -1 };
+  rootRef = React.createRef(); aSec = React.createRef(); aFloat = React.createRef(); bBoard = React.createRef();
+  cStick = React.createRef(); cDeco = React.createRef(); cPop = React.createRef(); cLn = React.createRef(); cDot = React.createRef(); cPBar = React.createRef(); cPBody = React.createRef(); dHov = -1; po = 0; popCh = -1; lastCh = -1; tx = 0; ty = 0; ppx = null; ppy = 0;
+  cWrap = React.createRef(); cTrack = React.createRef(); cBar = React.createRef(); cCount = React.createRef();
+  bad = new Set(); fx = 0; fy = 0; fr = 0; fo = 0; mx = -999; my = -999; pmx = 0; cards = []; drag = null;
+
+  variant() { if (this.props.embedded) return 'c'; const u = new URLSearchParams(location.search).get('v'); const p = { 'Índice': 'a', 'Tablón': 'b', 'Recorrido': 'c' }[this.props.variant]; return (u || p || 'a')[0]; }
+  em() { if (!window.EMER) return []; return EMER.BRANDS.filter(b => b.img && !this.bad.has(b.img)).sort((x, y) => (y.createdAt || '').localeCompare(x.createdAt || '')).slice(0, 8); }
+
+  componentDidMount() {
+    const wait = () => { if (window.EMER) { this.setState({ ready: true }); EMER.BRANDS.forEach(b => { if (!b.img) return; const im = new Image(); im.onerror = () => { this.bad.add(b.img); this.forceUpdate(); }; im.src = b.img; }); } else this.wt = setTimeout(wait, 60); };
+    wait();
+    this.onResize = () => { const w = document.documentElement.clientWidth || innerWidth; if (w !== this.state.w) this.setState({ w }); };
+    this.onResize(); addEventListener('resize', this.onResize);
+    this.fine = matchMedia('(hover:hover) and (pointer:fine)').matches;
+    this.onMove = e => { this.mx = e.clientX; this.my = e.clientY; if (this.drag) { this.drag.px = e.clientX; this.drag.py = e.clientY; if (Math.hypot(e.clientX - this.drag.sx, e.clientY - this.drag.sy) > 6) this.drag.moved = true; } };
+    this.onUp = () => { const d = this.drag; if (!d) return; this.drag = null; const c = this.cards[d.i]; if (!c) return; if (!d.moved) { this.setState({ bSel: d.i }); c.vx = c.vy = 0; } else { c.free = true; } };
+    addEventListener('pointermove', this.onMove); addEventListener('pointerup', this.onUp);
+    const loop = now => { this.tick(now); this.raf = requestAnimationFrame(loop); };
+    this.raf = requestAnimationFrame(loop);
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearTimeout(this.wt); removeEventListener('resize', this.onResize); removeEventListener('pointermove', this.onMove); removeEventListener('pointerup', this.onUp); }
+
+  layout(mode, bw, bh, cw, ch, n) {
+    const out = [];
+    if (mode === 'grid') {
+      const cols = Math.max(2, Math.min(n, Math.floor((bw - 40) / (cw + 24)))), rows = Math.ceil(n / cols);
+      const gx = (bw - cols * cw) / (cols + 1), gy = Math.max(16, (bh - rows * ch) / (rows + 1));
+      for (let i = 0; i < n; i++) { const c = i % cols, r = Math.floor(i / cols); out.push({ x: gx + c * (cw + gx), y: gy + r * (ch + gy), r: 0 }); }
+    } else {
+      const seed = this.seed || (this.seed = 7);
+      for (let i = 0; i < n; i++) { const a = Math.sin((i + 1) * 12.9898 * seed) * 43758.5453, rx = a - Math.floor(a), b2 = Math.sin((i + 3) * 78.233 * seed) * 12543.13, ry = b2 - Math.floor(b2); out.push({ x: 20 + rx * Math.max(10, bw - cw - 40), y: 20 + ry * Math.max(10, bh - ch - 60), r: (rx - 0.5) * 18 }); }
+    }
+    return out;
+  }
+
+  tick(now) {
+    const v = this.variant(), vh = innerHeight, vw = innerWidth;
+    if (v === 'a') {
+      const sec = this.aSec.current, fl = this.aFloat.current;
+      if (sec && fl) {
+        const r = sec.getBoundingClientRect(), lx = this.mx - r.left, ly = this.my - r.top, vx = this.mx - this.pmx;
+        const on = this.state.ah >= 0 && this.fine;
+        if (this.fo < 0.01 && on) { this.fx = lx; this.fy = ly; }
+        this.fx += (lx + 36 - this.fx) * 0.12; this.fy += (ly - this.fy) * 0.12;
+        this.fr += (Math.max(-12, Math.min(12, vx * 0.5)) - this.fr) * 0.1;
+        this.fo += ((on ? 1 : 0) - this.fo) * 0.14;
+        fl.style.opacity = Math.min(1, this.fo * 1.4);
+        fl.style.clipPath = `inset(${(1 - this.fo) * 100}% 0 0 0)`;
+        fl.style.transform = `translate(${this.fx}px,${this.fy}px) translateY(-55%) rotate(${this.fr}deg)`;
+      }
+    }
+    if (v === 'b') {
+      const bd = this.bBoard.current;
+      if (bd) {
+        const els = [...bd.querySelectorAll('[data-card]')], n = els.length;
+        if (n) {
+          const bw = bd.clientWidth, bh = bd.clientHeight, cw = els[0].offsetWidth, ch = els[0].offsetHeight;
+          if (this.cards.length !== n) { const L = this.layout('scatter', bw, bh, cw, ch, n); this.cards = L.map((p, i) => ({ x: p.x, y: -ch - 60 - i * 40, r: p.r * 2, tx: p.x, ty: p.y, tr: p.r, vx: 0, vy: 0, z: i, free: false, t0: 0 })); this.bLaid = false; }
+          if (!this.bLaid) { const rr = bd.getBoundingClientRect(); if (rr.top < vh * 0.8) { this.bLaid = true; this.cards.forEach((c, i) => { c.t0 = now + i * 90; }); } }
+          if (this.lastMode !== this.state.bMode || this.lastBW !== bw) { if (this.lastMode !== undefined) { const L = this.layout(this.state.bMode, bw, bh, cw, ch, n); this.cards.forEach((c, i) => { c.tx = L[i].x; c.ty = L[i].y; c.tr = L[i].r; c.free = false; c.t0 = Math.min(c.t0, now) + (this.lastMode !== this.state.bMode ? i * 40 : 0); }); } this.lastMode = this.state.bMode; this.lastBW = bw; }
+          const br = bd.getBoundingClientRect();
+          this.cards.forEach((c, i) => {
+            const el = els[i]; const d = this.drag && this.drag.i === i;
+            if (d) {
+              const nx = this.drag.px - br.left - this.drag.ox, ny = this.drag.py - br.top - this.drag.oy;
+              c.vx = nx - c.x; c.vy = ny - c.y; c.x += (nx - c.x) * 0.45; c.y += (ny - c.y) * 0.45;
+              c.r += (Math.max(-14, Math.min(14, c.vx * 0.8)) - c.r) * 0.2;
+            } else if (c.free) {
+              c.x += c.vx; c.y += c.vy; c.vx *= 0.9; c.vy *= 0.9;
+              if (c.x < 0) { c.x = 0; c.vx *= -0.5; } if (c.x > bw - cw) { c.x = bw - cw; c.vx *= -0.5; }
+              if (c.y < 0) { c.y = 0; c.vy *= -0.5; } if (c.y > bh - ch) { c.y = bh - ch; c.vy *= -0.5; }
+              c.r += (c.tr - c.r) * 0.06;
+            } else if (now >= c.t0 && this.bLaid) {
+              c.x += (c.tx - c.x) * 0.1; c.y += (c.ty - c.y) * 0.1; c.r += (c.tr - c.r) * 0.1;
+            }
+            const lift = d ? 1.05 : 1;
+            el.style.opacity = this.bLaid && now >= c.t0 ? 1 : 0;
+            el.style.transform = `translate(${c.x}px,${c.y}px) rotate(${c.r}deg) scale(${lift})`;
+            el.style.zIndex = c.z;
+            el.style.boxShadow = d ? '8px 8px 0 #000' : 'none';
+            el.style.cursor = d ? 'grabbing' : 'grab';
+          });
+        }
+      }
+    }
+    if (v === 'c') {
+      const wrap = this.cWrap.current, tr = this.cTrack.current;
+      if (wrap && tr) {
+        const over = Math.max(0, tr.scrollWidth - vw), want = vh + over;
+        if (Math.abs(wrap.offsetHeight - want) > 2) wrap.style.height = want + 'px';
+        const r = wrap.getBoundingClientRect(), p = Math.max(0, Math.min(1, -r.top / Math.max(1, wrap.offsetHeight - vh)));
+        this.cp = (this.cp ?? p) + (p - (this.cp ?? p)) * 0.12;
+        tr.style.transform = `translate3d(${-this.cp * over}px,0,0)`;
+        if (this.cBar.current) this.cBar.current.style.width = `${this.cp * 100}%`;
+        const pns = tr.querySelectorAll('[data-pn]'); let cur = 0;
+        pns.forEach((pn, i) => {
+          const pr = pn.getBoundingClientRect(), e = Math.max(0, Math.min(1, (vw - pr.left) / (vw * 0.45))), ee = 1 - Math.pow(1 - e, 3);
+          const cl = pn.querySelector('[data-clip]'), px = pn.querySelector('[data-par]');
+          if (cl) cl.style.clipPath = `inset(${(1 - ee) * 100}% 0 0 0)`;
+          if (px) px.style.transform = `translateX(${((pr.left + pr.width / 2) - vw / 2) * -0.1}px) scale(${1.15 - ee * 0.15})`;
+          if (pr.left < vw * 0.5) cur = i;
+        });
+        if (this.cDeco.current) { this.cDeco.current.style.transform = `translate3d(${-this.cp * over * 0.78}px,0,0)`; this.dh = this.dh || []; this.cDeco.current.querySelectorAll('[data-pt]').forEach((el, i) => { const b = +el.dataset.r || 0, k = this.dh[i] = (this.dh[i] || 0) + (((this.dHov === i) ? 1 : 0) - (this.dh[i] || 0)) * 0.12; const jit = k > 0.02 ? Math.sin(now / 38 + i) * 0.7 * k : 0; el.style.transform = `translateY(${-10 * k}px) rotate(${b * (1 - k) + this.cp * (i % 2 ? 6 : -6) * (1 - k) + jit}deg) scale(${1 + 0.08 * k})`; const g = el.firstChild; if (g) { g.style.opacity = 0.4 * k; g.style.transform = `translate(${12 * k}px,${9 * k}px)`; } }); }
+        this.popTick(now, pns);
+        if (this.cCount.current) { const t = `${String(cur + 1).padStart(2, '0')} / ${String(pns.length).padStart(2, '0')}`; if (this.cCount.current.textContent !== t) this.cCount.current.textContent = t; }
+      }
+    }
+    this.pmx = this.mx;
+  }
+
+  popTick(now, pns) {
+    const st = this.cStick.current, pop = this.cPop.current, ln = this.cLn.current, dot = this.cDot.current, bar = this.cPBar.current, body = this.cPBody.current;
+    if (!st || !pop || !ln || !dot || !bar || !body) return;
+    const ch = this.state.ch, dt = Math.min(50, now - (this.pNow || now)); this.pNow = now;
+    if (ch !== this.lastCh) { if (ch >= 0) { if (this.popCh !== ch) { this.po = 0; this.ppx = null; } this.popCh = ch; } this.lastCh = ch; }
+    this.po = Math.max(0, Math.min(1, this.po + (ch >= 0 ? dt / 950 : -dt / 380)));
+    const pn = pns[this.popCh], cl = pn && pn.querySelector('[data-clip]');
+    if (!cl || this.po <= 0) { pop.style.opacity = 0; pop.style.pointerEvents = 'none'; dot.style.transform = 'scale(0)'; ln.setAttribute('x2', ln.getAttribute('x1')); ln.setAttribute('y2', ln.getAttribute('y1')); return; }
+    const seg = (a, b, p = 3) => { const t = Math.max(0, Math.min(1, (this.po - a) / (b - a))); return 1 - Math.pow(1 - t, p); };
+    const e1 = seg(0, 0.2), e2 = seg(0.12, 0.42), e3 = seg(0.36, 0.6, 4), e4 = seg(0.45, 1, 3);
+    const sr = st.getBoundingClientRect(), r = cl.getBoundingClientRect(), W = sr.width, H = sr.height;
+    const ax = r.left + r.width * 0.68 - sr.left, ay = r.top + r.height * 0.3 - sr.top;
+    const pw = pop.offsetWidth, ph = pop.offsetHeight, sc = Math.min(1, (H - 96) / ph), pwS = pw * sc, sh = ph * sc;
+    const right = ax + 90 + pwS < W - 16; let px = right ? ax + 90 : ax - 90 - pwS;
+    px = Math.max(16, Math.min(W - pwS - 16, px));
+    const py = Math.max(this.props.embedded ? 80 : 64, Math.min(H - sh - 28, ay - sh * 0.22));
+    if (this.ppx === null) { this.ppx = px; this.ppy = py; }
+    this.ppx += (px - this.ppx) * 0.25; this.ppy += (py - this.ppy) * 0.25;
+    const ex = right ? this.ppx : this.ppx + pwS, ey = this.ppy;
+    dot.style.left = ax + 'px'; dot.style.top = ay + 'px';
+    dot.style.transform = `scale(${e1 * (1 + Math.sin(now / 420) * 0.06)})`;
+    ln.setAttribute('x1', ax); ln.setAttribute('y1', ay);
+    ln.setAttribute('x2', ax + (ex - ax) * e2); ln.setAttribute('y2', ay + (ey - ay) * e2);
+    pop.style.transformOrigin = '0 0';
+    pop.style.transform = `translate3d(${this.ppx}px,${this.ppy}px,0) scale(${sc})`;
+    pop.style.opacity = e3 > 0 ? 1 : 0;
+    bar.style.transformOrigin = right ? '0 50%' : '100% 50%';
+    bar.style.transform = `scaleX(${e3})`;
+    body.style.transform = 'none'; body.style.clipPath = `inset(-2px -12px calc(${(1 - e4) * 100}% - ${12 * e4}px) -2px)`;
+    body.style.opacity = e4 > 0 ? 1 : 0;
+    body.style.boxShadow = `${8 * e4}px ${8 * e4}px 0 #000`;
+    pop.style.pointerEvents = e4 > 0.4 ? 'auto' : 'none';
+  }
+
+  renderVals() {
+    const s = this.state, v = this.variant(), em = this.em();
+    const pad = x => String(x).padStart(2, '0'), url = u => u ? `url("${u}")` : 'none';
+    const fdate = d => d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(2, 4)}` : '';
+    const cat = b => (Object.entries(b.top || {}).sort((x, y) => y[1] - x[1])[0] || ['—'])[0];
+    const prods = b => (b.preview || []).filter(p => p.img).slice(0, 4).map(p => ({ bg: url(p.img), price: p.priceLbl }));
+    const wide = s.w >= 760;
+    const sel = em[s.bSel] || {};
+    const sizes = [['clamp(260px,26vw,400px)', '64vh', '-4vh'], ['clamp(320px,36vw,560px)', '46vh', '10vh'], ['clamp(240px,22vw,340px)', '56vh', '-10vh']];
+    return {
+      cStick: this.cStick, cDeco: this.cDeco, cPop: this.cPop, cLn: this.cLn, cDot: this.cDot, cPBar: this.cPBar, cPBody: this.cPBody,
+      dEnter: () => {}, dLeave: () => { this.dHov = -1; },
+      ...(() => { const b = em[s.ch >= 0 ? s.ch : this.popCh] || {}, on = s.ch >= 0; const pr = (b.preview || []).filter(p => p.img && !this.bad.has(p.img)).slice(0, 3); const num = x => window.EMER ? EMER.num(x) : x;
+        return { popName: b.upper || '', popIdx: String(em.indexOf(b) + 1).padStart(2, '0'), popCat: b.id && cat(b) !== '—' ? `Sobre todo ${cat(b).toLowerCase()}` : '', popN: b.createdAt ? fdate(b.createdAt) : '', popEmpty: !!b.id && pr.length === 0, popPcs: b.total > 0 ? `${num(b.total)} PIEZAS` : 'CATÁLOGO PRONTO',
+          popHas: pr.length > 0,
+          popProds: pr.map((p, k) => ({ n: String(k + 1).padStart(2, '0'), bg: url(p.img), name: p.name, price: p.priceLbl })),
+          popEnter: () => clearTimeout(this.lt), popLeave: () => { clearTimeout(this.lt); this.lt = setTimeout(() => this.setState({ ch: -1 }), 160); } }; })(),
+      standalone: !this.props.embedded, cTopBar: this.props.embedded ? '40px' : '28px', rootRef: this.rootRef, aSec: this.aSec, aFloat: this.aFloat, bBoard: this.bBoard, cWrap: this.cWrap, cTrack: this.cTrack, cBar: this.cBar, cCount: this.cCount,
+      isA: v === 'a', isB: v === 'b', isC: v === 'c',
+      aWide: wide, aCols: wide ? '56px minmax(0,1fr) 96px 120px 32px' : '30px minmax(0,1fr) 28px', aIndent: wide ? '72px' : '0px', aFloatDisp: this.fine === false ? 'none' : 'block',
+      aRows: em.map((b, i) => { const hov = s.ah === i, dim = s.ah >= 0 && !hov, open = s.aOpen === i; return { n: pad(i + 1), name: b.upper, date: fdate(b.createdAt), cat: cat(b), col: dim ? '#d6d6d6' : '#000', sub: dim ? '#d6d6d6' : '#000', tx: hov ? '22px' : '0px', rot: open ? '90deg' : hov ? '45deg' : '0deg', rows: open ? '1fr' : '0fr', prods: prods(b), enter: () => { if (this.state.ah !== i) this.setState({ ah: i }); }, toggle: () => this.setState({ aOpen: this.state.aOpen === i ? -1 : i }) }; }),
+      aImgs: em.map((b, i) => ({ bg: url(b.img), op: s.ah === i ? 1 : 0 })),
+      aLeave: () => this.setState({ ah: -1 }),
+      bCount: pad(em.length), bModeLbl: s.bMode === 'grid' ? 'DESORDENAR' : 'ORDENAR',
+      bToggle: () => { if (s.bMode === 'grid') this.seed = 3 + Math.random() * 9; this.setState({ bMode: s.bMode === 'grid' ? 'scatter' : 'grid' }); },
+      bCards: em.map((b, i) => ({ i: String(i), bg: url(b.img), name: b.upper, date: fdate(b.createdAt), down: e => { const bd = this.bBoard.current, c = this.cards[i]; if (!bd || !c) return; const br = bd.getBoundingClientRect(); this.drag = { i, ox: e.clientX - br.left - c.x, oy: e.clientY - br.top - c.y, px: e.clientX, py: e.clientY, sx: e.clientX, sy: e.clientY, moved: false }; c.z = (this.zTop = (this.zTop || 50) + 1); } })),
+      bDrawerX: s.bSel >= 0 ? '0%' : '101%', bName: sel.upper || '', bBg: url(sel.img), bDate: sel.createdAt ? `LLEGÓ EL ${fdate(sel.createdAt)}` : '', bProds: sel.id ? prods(sel) : [],
+      bClose: () => this.setState({ bSel: -1 }),
+      cPanels: em.map((b, i) => { const on = s.ch === i; const pr = (b.preview || []).filter(p => p.img && !this.bad.has(p.img)).slice(0, 3); const num = x => window.EMER ? EMER.num(x) : x;
+        return { n: pad(i + 1), name: b.upper, date: fdate(b.createdAt), bg: url(b.img), w: sizes[i % 3][0], h: sizes[i % 3][1], mt: sizes[i % 3][2],
+          veil: on ? 0.28 : 0, numOp: on ? 0 : 1, boxClip: on ? 'inset(0 0 0 0)' : 'inset(100% 0 0 0)', empty: pr.length === 0,
+          pcsLbl: b.total > 0 ? `${num(b.total)} PIEZAS` : 'CATÁLOGO PRONTO',
+          prods: pr.map((p, k) => ({ bg: url(p.img), name: p.name, price: p.priceLbl, op: on ? 1 : 0, ty: on ? '0px' : '14px', d: on ? `${180 + k * 80}ms` : '0ms' })),
+          enter: () => { clearTimeout(this.lt); if (this.state.ch !== i) this.setState({ ch: i }); }, leave: () => { clearTimeout(this.lt); this.lt = setTimeout(() => { if (this.state.ch === i) this.setState({ ch: -1 }); }, 260); } }; }),
+    };
+  }
+}
+</script>
+</body>
+</html>
