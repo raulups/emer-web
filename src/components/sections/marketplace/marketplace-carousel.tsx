@@ -361,8 +361,8 @@ function Carousel({ items, reduced }: { items: MarketItem[]; reduced: boolean })
               }
             }
             visible.current[slot] = c > 0;
-            // La tarjeta abierta se va hacia atrás (rueda, arrastre): se cierra su popup.
-            if (slot === hoverRef.current && c < 0.35) close();
+            // La tarjeta abierta se va hacia atrás (rueda, arrastre): se cierra su popup. Con foco no: el anillo la trae al frente.
+            if (slot === hoverRef.current && c < 0.35 && !focusInside.current) close();
             if (c < -0.9 && !swapped[slot]) {
               swapped[slot] = true;
               swap(slot);

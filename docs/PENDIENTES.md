@@ -52,6 +52,15 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **04-emergentes popup en móvil estrecho**: mide `100vw - 32px` y puede tapar el panel activo. Valorar colocarlo debajo del panel por debajo de ~600 px.
 - [ ] **04-emergentes nombres largos**: se cortan con elipsis (panel y popup). Valorar 2 líneas.
 
+- [ ] **06-marketplace accesibilidad (añadido, fuera del diseño — confirmar en el punto de control)**: botones «Pausar giro» y ←/→ (WCAG 2.2.2 y 2.5.7); la rueda solo gira el carrusel con el escenario centrado en pantalla (si no, la página sigue bajando); con foco de teclado el anillo trae la tarjeta al frente; Esc cierra el popup.
+- [ ] **06-marketplace popup** `aria-hidden` (la tarjeta ya tiene nombre, precio, marca y categoría) y CTA del popup fuera del orden de Tab.
+- [ ] **06-marketplace decorados** estáticos, como en el diseño (el handoff proponía el hover de Emergentes).
+- [ ] **06-marketplace móvil**: el popup no cabe a ningún lado (≤ 600 px) y se coloca dentro del escenario, tapando parte de la tarjeta. Valorar colocarlo debajo.
+- [ ] **06-marketplace orden inicial** determinista (los más nuevos); el diseño barajaba al montar. La rotación sí elige al azar.
+- [ ] **06-marketplace «IR AL MARKETPLACE»** se pinta como texto hasta tener `LINKS.marketplace`.
+- [ ] **06-marketplace nombres largos** se cortan con elipsis; marca (7,5 px) y categoría (8 px) muy pequeñas.
+- [ ] **Reintentar tras error** (catálogo y marketplace): el error se cachea con `cacheLife("seconds")` y el primer `router.refresh()` puede devolverlo aún. Valorar una server action con `updateTag`.
+
 - [ ] **05-catálogo «sin imagen»**: el nombre grande va en trazo negro. El diseño lo pide blanco, pero sobre el fondo #f3f3f1 no se veía (1,1:1).
 - [ ] **05-catálogo móvil**: celdas de igual ancho (2 por fila, como dice el handoff). La referencia tenía anchos irregulares también en móvil.
 - [ ] **05-catálogo revelado**: incluye la cabecera, como dice el handoff (la referencia solo revelaba las marcas).
@@ -64,6 +73,9 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 
 - [ ] **04-emergentes al entrar con `/#catalogo`** o con restauración de scroll: en SSR la sección mide `100svh` y al hidratar crece a `vh + recorrido`, así que el destino queda desplazado. Opciones: altura estimada desde el servidor o re-hacer el scroll al hash tras la primera medida.
 - [ ] **04-emergentes apertura del popup**: anima `clip-path` y `box-shadow` por frame (≈0,5 s). Si da tirones en móvil, pasar la sombra a un `::after` con `transform`.
+
+- [ ] **06-marketplace con popup abierto**: se leen 2 `getBoundingClientRect` por frame (aceptado en el handoff). Alternativa: calcular la posición desde el ángulo y `--r`.
+- [ ] **06-marketplace `translateZ(30px)`** del hover no tiene efecto (la tarjeta no es `preserve-3d`, igual que en la referencia).
 
 - [ ] **TBT** en Lighthouse: en el contenedor sale 190–470 ms (presupuesto 200), dominado por la hidratación de React. Medir en local con `pnpm build && pnpm lhci`. Si se confirma, valorar cargar GSAP/Lenis con `import()` tras la hidratación.
 
