@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
 import { registerHero } from "@/lib/motion/scroll";
+import { trackSection } from "@/lib/motion/sections";
 
 /** Fallo de `/brands`: fondo del hero, «EMER» y reintentar (texto propuesto en el handoff). */
 export function HeroError() {
@@ -12,7 +13,11 @@ export function HeroError() {
 
   useEffect(() => {
     const el = sectionRef.current;
-    return el ? registerHero(el) : undefined;
+    if (!el) return;
+    const cleanups = [registerHero(el), trackSection(el, "marcas")];
+    return () => {
+      for (const cleanup of cleanups) cleanup();
+    };
   }, []);
 
   return (

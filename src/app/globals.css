@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-@theme {
+/* static: emite siempre todas las variables (los CSS modules las usan sin pasar por Tailwind). */
+@theme static {
   --color-ink: #000;
   --color-paper: #fff;
   --color-hero: #0a0a0a;
