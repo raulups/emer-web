@@ -5,33 +5,34 @@ description: Cómo consumir el backend KMP de Emer (Render) desde la web con cac
 
 # Cliente API de Emer
 
-La web **no** accede a la BDD. Todo pasa por el backend KMP.
+Fuente de verdad del backend: `docs/API_CONTRACT.md`. La web **no** accede a la BDD; todo pasa por la API.
 
-## Ubicación
+## Estructura (`src/lib/api/`)
 
-- `src/lib/api/client.ts`: `apiFetch` (base URL, timeout, errores tipados).
-- `src/lib/api/<recurso>.ts`: una función por endpoint de lectura, con `"use cache"`.
-- Tipos en `src/lib/api/types.ts`, validados en el borde (no confiar en el JSON).
+- `client.ts`: `apiGet` (timeout 60 s por el cold start, reintentos en red/429/5xx), `toQuery`, `ApiError`.
+- `types.ts`: tipos `Raw*` (JSON snake_case) y de dominio (camelCase), y los tipos de filtros.
+- `normalize.ts`: convierte Raw → dominio y rellena los campos que el servidor omite (`encodeDefaults = false`).
+- `brands.ts`, `products.ts`, `categories.ts`: una función por endpoint, con `"use cache"` + `cacheLife` + `cacheTag`.
+- `index.ts`: único punto de import: `import { getBrands } from "@/lib/api"`.
 
-## Patrón de lectura
+Los componentes **solo** ven tipos de dominio, nunca `Raw*`.
 
-```ts
-import { cacheLife, cacheTag } from "next/cache";
-import { apiFetch } from "./client";
-import type { Brand } from "./types";
+## Datos del backend que hay que recordar
 
-export async function getBrands(): Promise<Brand[]> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("brands");
-  return apiFetch<Brand[]>("/brands");
-}
-```
+- Base: `EMER_API_URL` (por defecto `https://emerapp.onrender.com`). Solo servidor.
+- Sin auth, solo `GET`. Sin slugs: las URLs usan UUID.
+- Parámetros de query en **camelCase** (`isEmergent`, `brandIds`, `categoryId`). En snake_case se ignoran sin error.
+- Paginación `limit` (1..100, defecto 20) / `offset`. No hay `has_more`: lo calcula `normalize.paginated`.
+- `/products` filtra `available=true` por defecto; `/brands/{id}/products` no filtra.
+- **No existe**: búsqueda (`q`), orden de marcas, filtro de marcas por categoría, destacados, slugs, `Cache-Control`. Si la web lo necesita, filtrar en cliente/servidor sobre datos ya cargados o pedir el cambio en el backend (propuesta en la sección 8 del contrato).
+- Rate limit: 60 peticiones/60 s, posiblemente compartido por todos los clientes. Evitar bucles de llamadas; `getAllBrands` pagina de 100 en 100.
+- Cold start de ~35 s en la primera petición: preferir datos cacheados/ISR y un estado de carga explícito.
+- CORS: solo `localhost:3000`. Las llamadas desde servidor no lo necesitan; no llamar a la API desde el navegador hasta ampliar CORS en el backend.
+- Imágenes: hosts `cdn.shopify.com` y `aidisezaeymiesrdfnza.supabase.co` (ya en `images.remotePatterns`). `thumbnail_image_url` es igual a la principal.
 
 ## Reglas
 
-- Solo servidor. Nada de secretos en el cliente; `EMER_API_URL` sin prefijo `NEXT_PUBLIC_`.
-- Render en plan gratuito tiene cold starts: timeout generoso (≥ 15 s) con reintento, y caché larga para que los visitantes rara vez lo sufran.
-- Invalidación bajo demanda: `revalidateTag("brands")` desde un Route Handler protegido, que el backend puede llamar tras escrituras.
+- Añadir un endpoint = tipo Raw + tipo de dominio + normalizador + función cacheada con tag + export en `index.ts`.
+- Un id inexistente o inválido devuelve `null` (no lanza); otros errores sí lanzan `ApiError`.
+- Invalidación bajo demanda con `revalidateTag("brands" | "products" | "categories")` desde un Route Handler protegido.
 - Antes de usar APIs de caché o `params`, leer la guía de la versión en `node_modules/next/dist/docs/`.
-- Si el backend no expone el endpoint público necesario (o CORS), documentarlo y pedirlo en el proyecto KMP; no saltarse el backend.

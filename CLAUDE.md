@@ -47,7 +47,7 @@ src/
 ## Datos / backend
 
 - Lecturas en servidor con `"use cache"` + `cacheLife` + `cacheTag`; esto además amortigua los cold starts de Render.
-- Cliente en `src/lib/api/`. Variables en `.env` (ver `.env.example`). Nunca exponer secretos al cliente.
+- Contrato del backend: `docs/API_CONTRACT.md` (fuente de verdad). Cliente en `src/lib/api/`; importar siempre desde `@/lib/api`. Variables en `.env` (ver `.env.example`). Nunca exponer secretos al cliente.
 - Si falta un endpoint público de lectura en el backend, pedirlo/anotarlo; no saltarse el backend.
 
 ## Convenciones
