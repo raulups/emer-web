@@ -20,6 +20,7 @@ import { bus } from "@/lib/motion/bus";
 import { cursor } from "@/lib/motion/cursor";
 import { isReduced, subscribeReduced } from "@/lib/motion/reduced";
 import { getHeroHeight, getScrollY, registerHero } from "@/lib/motion/scroll";
+import { trackSection } from "@/lib/motion/sections";
 import { initHeroKeys } from "@/lib/motion/shortcuts";
 import { subscribe } from "@/lib/motion/ticker";
 import type { HeroBrand, HeroProduct } from "./types";
@@ -180,7 +181,7 @@ export function HeroCarousel({ brands }: { brands: HeroBrand[] }) {
   useEffect(() => {
     const el = sectionRef.current;
     if (!el) return;
-    const cleanups = [registerHero(el), initHeroKeys(el)];
+    const cleanups = [registerHero(el), initHeroKeys(el), trackSection(el, "marcas")];
     // Marca de "hidratado y registrado" (el hero hidrata aparte, dentro de su Suspense).
     el.dataset.registered = "";
     return () => {

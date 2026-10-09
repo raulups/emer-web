@@ -75,6 +75,8 @@ Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier
 - Componentes en kebab-case de archivo, PascalCase de export.
 - Accesibilidad: HTML semántico, foco visible, contraste AA, animaciones no esenciales para la información.
 - Antes de importar diseño de Claude Design, usar la skill `design-import`.
+- Estilos de sección complejos (hover, :has(), estados): CSS module junto al componente. Solo `globals.css` pasa por Tailwind (regla de Turbopack); los tokens están disponibles como variables gracias a `@theme static`.
+- Cada sección real se registra a sí misma con `trackSection(el, id)` al montarse y su fallback de Suspense tiene la misma geometría.
 
 ## Agentes y skills del proyecto
 

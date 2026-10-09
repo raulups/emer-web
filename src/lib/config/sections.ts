@@ -16,3 +16,6 @@ export type Section = (typeof SECTIONS)[number];
 export type SectionId = Section["id"];
 
 export const HERO_ID: SectionId = "marcas";
+
+export const isSectionId = (value: string): value is SectionId =>
+  SECTIONS.some((section) => section.id === value);

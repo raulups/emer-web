@@ -43,7 +43,15 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **03-hero altura** `100svh` en vez de `100vh`: en móvil no queda tapado por la barra del navegador.
 - [ ] **03-hero popup**: se puede sobrevolar con el ratón y se cierra con Esc (WCAG 1.4.13). En táctil se cierra tocando fuera de los productos.
 
+- [ ] **05-catálogo «sin imagen»**: el nombre grande va en trazo negro. El diseño lo pide blanco, pero sobre el fondo #f3f3f1 no se veía (1,1:1).
+- [ ] **05-catálogo móvil**: celdas de igual ancho (2 por fila, como dice el handoff). La referencia tenía anchos irregulares también en móvil.
+- [ ] **05-catálogo revelado**: incluye la cabecera, como dice el handoff (la referencia solo revelaba las marcas).
+- [ ] **05-catálogo**: añadido «Saltar el catálogo» (visible solo con foco de teclado) para no tabular por ~32 enlaces.
+- [ ] **Etiqueta del catálogo en `difference`** (8px sobre la foto): en tonos medios el contraste cae cerca de 1:1. Valorar una pastilla sólida o `text-shadow`. Decisión de diseño.
+
 ## Rendimiento
+
+- [ ] **05-catálogo, expansión con hover**: durante los .85s de `flex-grow` se redimensionan todas las celdas y se repintan sus imágenes, incluida la copia en gris (`filter: grayscale` estático). Medir en el Mac con CPU 4× en el panel Performance; si hay tirones, usar la variante gris del CDN (Supabase image transformations) o atenuar solo con el velo.
 
 - [ ] **TBT** en Lighthouse: en el contenedor sale 190–470 ms (presupuesto 200), dominado por la hidratación de React. Medir en local con `pnpm build && pnpm lhci`. Si se confirma, valorar cargar GSAP/Lenis con `import()` tras la hidratación.
 
