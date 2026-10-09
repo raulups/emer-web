@@ -43,6 +43,8 @@
 @layer base {
   html {
     background: var(--color-paper);
+    /* Con el header abierto, el foco y las anclas no quedan debajo de sus 60px. */
+    scroll-padding-top: 64px;
   }
 
   body {
@@ -107,6 +109,58 @@ html.is-loading [data-hero-item] {
   to {
     transform: none;
     opacity: 1;
+  }
+}
+
+/* Línea en bucle compartida (02, 05, 06, 07, 09). Bucle CSS del compositor, fuera del ticker. */
+@keyframes emLine {
+  0% {
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+  50% {
+    transform: scaleX(1);
+    transform-origin: 0 50%;
+  }
+  50.01% {
+    transform: scaleX(1);
+    transform-origin: 100% 50%;
+  }
+  100% {
+    transform: scaleX(0);
+    transform-origin: 100% 50%;
+  }
+}
+
+.loop-line {
+  display: inline-block;
+  height: 1px;
+  background: currentColor;
+  animation: emLine 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+.loop-line[data-paused],
+.topbar[data-closed] .loop-line {
+  animation-play-state: paused;
+}
+
+/* 02-topbar: el foco de teclado nunca queda fuera de pantalla, ni antes de hidratar. */
+.topbar:has(:focus-visible) {
+  transform: none !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Destinos de navegación con tabindex=-1: sin anillo de foco en el bloque entero. */
+section[tabindex="-1"]:focus,
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loop-line {
+    animation: none !important;
+    transform: none;
   }
 }
 

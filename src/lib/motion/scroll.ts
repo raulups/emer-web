@@ -9,7 +9,6 @@ const SNAP_COOLDOWN_MS = 520;
 const WHEEL_QUIET_MS = 180;
 const STEP_THROTTLE_MS = 700;
 const STEP_MIN_DELTA = 12;
-const ANCHOR_OFFSET = -64;
 const ANCHOR_DURATION = 1.2;
 
 const expoOut = (t: number) => Math.min(1, 1.001 - 2 ** (-10 * t));
@@ -34,11 +33,23 @@ let cooldown: number | undefined;
 
 // ---------- Helpers ----------
 
+/**
+ * Destino en scroll nativo. Como Lenis, descuenta el `scroll-padding-top` del documento
+ * (64px por el header) y el `scroll-margin-top` del elemento.
+ */
 function resolveTop(target: ScrollTarget, offset = 0): number {
   if (typeof target === "number") return target + offset;
   const el = typeof target === "string" ? document.querySelector(target) : target;
   if (!el) return window.scrollY;
-  return el.getBoundingClientRect().top + window.scrollY + offset;
+  const padding = Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+  const margin = Number.parseFloat(getComputedStyle(el).scrollMarginTop);
+  return (
+    el.getBoundingClientRect().top +
+    window.scrollY +
+    offset -
+    (Number.isNaN(padding) ? 0 : padding) -
+    (Number.isNaN(margin) ? 0 : margin)
+  );
 }
 
 function stepHero(deltaX: number) {
@@ -224,9 +235,9 @@ export function scrollTo(target: ScrollTarget, opts?: ScrollOpts) {
   window.scrollTo({ top: resolveTop(target, opts?.offset), behavior: "auto" });
 }
 
-/** Navegación a una sección desde la nav (compensa el header). */
+/** Navegación a una sección desde la nav. El hueco del header lo da `scroll-padding-top`. */
 export function scrollToSection(id: string) {
-  scrollTo(`#${id}`, { offset: ANCHOR_OFFSET, duration: ANCHOR_DURATION });
+  scrollTo(`#${id}`, { duration: ANCHOR_DURATION });
 }
 
 /** Lo usa el swipe hacia arriba del hero en táctil. */

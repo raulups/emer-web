@@ -27,7 +27,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <noscript>
           <style>
             {
-              "html.is-loading{overflow:auto;animation:none}html.is-loading [data-hero-name],html.is-loading [data-hero-item]{transform:none;opacity:1;animation:none}"
+              "html.is-loading{overflow:auto;animation:none}html.is-loading [data-hero-name],html.is-loading [data-hero-item]{transform:none;opacity:1;animation:none}.topbar{position:sticky!important;transform:none!important}[data-js-only]{display:none!important}"
             }
           </style>
         </noscript>

@@ -68,6 +68,7 @@ export function Section() {
 - Instancia única en `src/lib/motion/scroll.ts` (la monta `Providers`), con `autoRaf: false` y sobre `gsap.ticker`. No crear otras instancias.
 - Scroll programático siempre con `scrollTo` / `scrollToSection` / `snapToContent` de `@/lib/motion/scroll` (funcionan también sin Lenis).
 - Con movimiento reducido no hay Lenis ni snap.
+- El hueco del header fijo (64px) lo da `html { scroll-padding-top }`: Lenis y `resolveTop` ya lo descuentan. No pasar offsets manuales a `scrollToSection`.
 - El hero se registra desde su propia sección: `useEffect(() => registerHero(el), [])`. Hoy lo hace `HomeMotion`; cuando exista 03-hero, el registro pasa a esa sección.
 - El snap del hero usa `virtualScroll`: si el guard devuelve `false`, hay que llamar a `event.preventDefault()` a mano (Lenis no lo hace).
 

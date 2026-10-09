@@ -29,7 +29,8 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **Autoplay del hero (WCAG 2.2.2)**: se pausa con hover, foco, buscador, scroll y fuera de pantalla, pero no hay un botón visible de pausa. El diseño no lo contempla; valorar añadirlo.
 
 - [ ] **Contraste del hero sobre fotos claras**: con el velo del diseño, en el peor caso (zona blanca de la foto) BUSCAR, el nombre e «IR A LA TIENDA» quedan por debajo de 3:1, y la pista de los segmentos (`white/35`) también. Depende de las fotos reales: valorar un velo inferior más opaco, una franja tras BUSCAR o un `text-shadow` suave.
-- [ ] **Texto gris del popup** (#8a8a8a a 8px sobre blanco) da 3,45:1. Valorar `muted-dark`.
+- [ ] **Gris `muted` (#8a8a8a) sobre blanco** da 3,45:1 (AA pide 4,5:1 en texto pequeño): popup del hero, nav inactiva y «⌘K» de la topbar. El mínimo que pasa es #767676. Decisión de diseño.
+- [ ] **Textos en mayúsculas en el HTML** (nav, BUSCAR, etiquetas): algunos lectores de pantalla deletrean palabras en mayúsculas. Se podrían escribir en minúsculas con `text-transform: uppercase`.
 
 ## Ajustes de diseño hechos en la implementación (confirmar)
 
