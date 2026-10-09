@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Footer } from "@/components/sections/footer/footer";
 import { HeroFallback, HeroSection } from "@/components/sections/hero/hero-section";
 import { Topbar } from "@/components/sections/topbar/topbar";
 import { HomeMotion } from "@/components/shell/home-motion";
@@ -32,6 +33,7 @@ export default function Home() {
         ))}
         <HomeMotion />
       </main>
+      <Footer />
     </>
   );
 }
