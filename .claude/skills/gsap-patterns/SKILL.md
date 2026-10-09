@@ -65,16 +65,30 @@ export function Section() {
 
 ## Lenis
 
-- Instancia única en `SmoothScroll`, con `autoRaf: false` y sincronizada con el ticker de GSAP:
+- Instancia única en `src/lib/motion/scroll.ts` (la monta `Providers`), con `autoRaf: false` y sobre `gsap.ticker`. No crear otras instancias.
+- Scroll programático siempre con `scrollTo` / `scrollToSection` / `snapToContent` de `@/lib/motion/scroll` (funcionan también sin Lenis).
+- Con movimiento reducido no hay Lenis ni snap.
+- El hero se registra desde su propia sección: `useEffect(() => registerHero(el), [])`. Hoy lo hace `HomeMotion`; cuando exista 03-hero, el registro pasa a esa sección.
+- El snap del hero usa `virtualScroll`: si el guard devuelve `false`, hay que llamar a `event.preventDefault()` a mano (Lenis no lo hace).
+
+## Ticker y visibilidad
 
 ```ts
-lenis.on("scroll", ScrollTrigger.update);
-gsap.ticker.add((t) => lenis.raf(t * 1000));
-gsap.ticker.lagSmoothing(0);
+import { subscribe } from "@/lib/motion/ticker";
+
+// Dentro de useGSAP / useEffect:
+const off = subscribe((time, dt) => {
+  // solo escribir transform/opacity; dt ya viene acotado a 50 ms
+}, { el: sectionEl });          // se pausa sola fuera de pantalla
+return off;
 ```
 
-- Destruir en el cleanup. Desactivar en reduced-motion.
-- Anclas y scroll programático con `lenis.scrollTo`.
+- `essential: true` solo para lo que debe seguir con movimiento reducido (línea de progreso).
+- Nunca leer layout dentro del callback: cachear medidas en resize.
+
+## Easings del diseño
+
+`import { EASE } from "@/lib/gsap"` → `EASE.outExpo` (transforms), `EASE.standard` (opacidad), `EASE.inOutQ`, `EASE.reveal`, `EASE.back`, `EASE.curtain`.
 
 ## Rendimiento
 

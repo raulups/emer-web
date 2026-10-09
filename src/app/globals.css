@@ -56,6 +56,117 @@
     background: var(--color-ink);
     color: var(--color-paper);
   }
+
+  a {
+    color: var(--color-ink);
+  }
+
+  a:hover {
+    color: var(--color-hover);
+  }
+
+  :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+}
+
+/* ---------- 00-shell ---------- */
+
+/* Si el JS falla y nadie quita is-loading, el CSS desbloquea el scroll a los 6 s (el loader fuerza a los 5 s). */
+html.is-loading {
+  overflow: hidden;
+  animation: emer-unlock 0s 6s forwards;
+}
+
+@keyframes emer-unlock {
+  to {
+    overflow: auto;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor * {
+    cursor: none !important;
+  }
+}
+
+.skip-link {
+  position: fixed;
+  left: 16px;
+  top: -48px;
+  z-index: 10001;
+  padding: 10px 14px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font: 400 10px / 1 var(--font-serif);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.skip-link:focus {
+  top: 16px;
+  color: var(--color-paper);
+}
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  pointer-events: none;
+  mix-blend-mode: difference;
+  opacity: 0;
+}
+
+.cursor__press {
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+.cursor__fill,
+.cursor__ring,
+.cursor__bar,
+.cursor__label {
+  position: absolute;
+}
+
+.cursor__fill {
+  left: -43px;
+  top: -43px;
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.cursor__ring {
+  left: -32px;
+  top: -32px;
+  width: 64px;
+  height: 64px;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+}
+
+.cursor__bar {
+  left: -1px;
+  top: -13px;
+  width: 2px;
+  height: 26px;
+  background: #fff;
+}
+
+.cursor__label {
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  padding-left: 0.24em;
+  font: 400 8px / 1 var(--font-serif);
+  letter-spacing: 0.24em;
+  white-space: nowrap;
 }
 
 /* Escala display (Anton, siempre en mayúsculas) */
@@ -105,7 +216,7 @@ html.lenis body {
 }
 
 .lenis.lenis-stopped {
-  overflow: clip;
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {
