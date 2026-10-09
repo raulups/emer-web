@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import { type Brand, getAllBrands, getProducts, type Product } from "@/lib/api";
+import { type Brand, getAllBrands, getPreviewProductsById, type Product } from "@/lib/api";
 import { selectHeroBrands } from "@/lib/config/hero";
 import { price } from "@/lib/format";
 import { HeroCarousel } from "./hero-carousel";
@@ -7,25 +7,6 @@ import { HeroError } from "./hero-error";
 import type { HeroBrand } from "./types";
 
 const HERO_BG = "#0a0a0a";
-
-/**
- * `PreviewProduct` no trae nombre ni URL (FALTA EN BACKEND). Se intentan resolver por id con
- * dos consultas cacheadas: las novedades y las ofertas de las marcas del hero (la vista de
- * previews prioriza ofertas y luego novedades). Lo que no se encuentre se queda sin nombre.
- */
-async function resolvePreviewProducts(brands: Brand[]): Promise<Map<string, Product>> {
-  const brandIds = brands.map((brand) => brand.id);
-  const results = await Promise.allSettled([
-    getProducts({ brandIds, limit: 100, sort: "newest" }),
-    getProducts({ brandIds, limit: 100, isOnSale: true }),
-  ]);
-  const byId = new Map<string, Product>();
-  for (const result of results) {
-    if (result.status !== "fulfilled" || !result.value.ok) continue;
-    for (const product of result.value.data.items) byId.set(product.id, product);
-  }
-  return byId;
-}
 
 function toHeroBrand(brand: Brand, products: Map<string, Product>): HeroBrand | null {
   if (!brand.img) return null;
@@ -65,7 +46,7 @@ export async function HeroSection() {
   const selected = selectHeroBrands(result.data);
   if (selected.length === 0) return null;
 
-  const products = await resolvePreviewProducts(selected);
+  const products = await getPreviewProductsById(selected);
   const heroBrands = selected
     .map((brand) => toHeroBrand(brand, products))
     .filter((brand): brand is HeroBrand => brand !== null);

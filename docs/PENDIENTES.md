@@ -43,6 +43,15 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **03-hero altura** `100svh` en vez de `100vh`: en móvil no queda tapado por la barra del navegador.
 - [ ] **03-hero popup**: se puede sobrevolar con el ratón y se cierra con Esc (WCAG 1.4.13). En táctil se cierra tocando fuera de los productos.
 
+- [ ] **04-emergentes fecha**: se muestra la fecha de alta (dd.mm.aa). El handoff la daba por inexistente, pero `createdAt` sí llega del backend.
+- [ ] **04-emergentes pin** con `position: sticky` (y la altura de la sección calculada), no con el pin de ScrollTrigger: sin saltos ni `pin-spacer`.
+- [ ] **04-emergentes teclado**: un botón por panel abre el popup. Enter lleva al CTA, Tab sigue al siguiente panel y Esc cierra. Con foco, el scroll vertical lleva el panel a la vista.
+- [ ] **04-emergentes contraste**: la fecha y el índice de prenda pasan a `#6f6f6f` (el `#8a8a8a` del diseño da 3,45:1).
+- [ ] **04-emergentes popup** sin `role="dialog"` (es un disclosure que no atrapa el foco): botón con `aria-expanded` + `aria-controls`.
+- [ ] **04-emergentes altura** `100svh` en el pin (diseño `100vh`); paneles y decorados siguen en `vh`. Revisar en móvil real.
+- [ ] **04-emergentes popup en móvil estrecho**: mide `100vw - 32px` y puede tapar el panel activo. Valorar colocarlo debajo del panel por debajo de ~600 px.
+- [ ] **04-emergentes nombres largos**: se cortan con elipsis (panel y popup). Valorar 2 líneas.
+
 - [ ] **05-catálogo «sin imagen»**: el nombre grande va en trazo negro. El diseño lo pide blanco, pero sobre el fondo #f3f3f1 no se veía (1,1:1).
 - [ ] **05-catálogo móvil**: celdas de igual ancho (2 por fila, como dice el handoff). La referencia tenía anchos irregulares también en móvil.
 - [ ] **05-catálogo revelado**: incluye la cabecera, como dice el handoff (la referencia solo revelaba las marcas).
@@ -52,6 +61,9 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 ## Rendimiento
 
 - [ ] **05-catálogo, expansión con hover**: durante los .85s de `flex-grow` se redimensionan todas las celdas y se repintan sus imágenes, incluida la copia en gris (`filter: grayscale` estático). Medir en el Mac con CPU 4× en el panel Performance; si hay tirones, usar la variante gris del CDN (Supabase image transformations) o atenuar solo con el velo.
+
+- [ ] **04-emergentes al entrar con `/#catalogo`** o con restauración de scroll: en SSR la sección mide `100svh` y al hidratar crece a `vh + recorrido`, así que el destino queda desplazado. Opciones: altura estimada desde el servidor o re-hacer el scroll al hash tras la primera medida.
+- [ ] **04-emergentes apertura del popup**: anima `clip-path` y `box-shadow` por frame (≈0,5 s). Si da tirones en móvil, pasar la sombra a un `::after` con `transform`.
 
 - [ ] **TBT** en Lighthouse: en el contenedor sale 190–470 ms (presupuesto 200), dominado por la hidratación de React. Medir en local con `pnpm build && pnpm lhci`. Si se confirma, valorar cargar GSAP/Lenis con `import()` tras la hidratación.
 

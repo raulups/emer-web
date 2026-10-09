@@ -232,6 +232,11 @@ export function CatalogGrid(props: Props) {
         onEnter: () => {
           tl.play();
         },
+        // Si la página cambia de altura (secciones de arriba que se miden tarde) y al recalcular
+        // ya estamos dentro, se revela igualmente: el disparo «una vez» no se puede perder.
+        onRefresh: (self) => {
+          if (self.progress > 0) tl.play();
+        },
       });
 
       // Si llega el foco de teclado antes de que termine, se completa al momento.

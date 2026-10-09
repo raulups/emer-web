@@ -37,7 +37,7 @@
   font-weight: 300;
   font-size: 9px;
   letter-spacing: 0.3em;
-  color: #666;
+  color: var(--color-eyebrow);
 }
 
 .headBody {

@@ -1,0 +1,487 @@
+/* 04-emergentes («Recorrido»). Las transformaciones continuas las escribe el ticker;
+   aquí solo layout, estados de hover y los modos estático / movimiento reducido. */
+
+.section {
+  position: relative;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  /* clip (no hidden): el pin no es desplazable, así el foco no lo mueve por su cuenta. */
+  overflow: clip;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Decorados: siempre por debajo (z -1) y sin capturar el puntero. */
+.deco {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--color-paper);
+}
+
+.decoItem {
+  position: absolute;
+  margin: 0;
+}
+
+.decoGhost,
+.decoImg {
+  display: block;
+  mix-blend-mode: multiply;
+  width: 100%;
+  height: auto;
+  user-select: none;
+}
+
+.decoImg {
+  position: relative;
+}
+
+.decoGhost {
+  position: absolute;
+  inset: 0 auto auto 0;
+  opacity: 0;
+}
+
+.bar {
+  position: absolute;
+  top: 40px;
+  left: clamp(20px, 4vw, 56px);
+  right: clamp(20px, 4vw, 56px);
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: 9px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.3em;
+}
+
+.progress {
+  flex: 1;
+  max-width: 360px;
+  height: 1px;
+  background: var(--color-track);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.track {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(28px, 4vw, 72px);
+  padding: 0 clamp(20px, 4vw, 56px);
+  width: max-content;
+}
+
+.intro {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: clamp(12px, 2vw, 40px);
+}
+
+.eyebrow {
+  font-size: 9px;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0.3em;
+  color: var(--color-eyebrow);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(72px, 10vw, 160px);
+  line-height: 0.86;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+.hint {
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--color-hover);
+}
+
+.panel {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.clip {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Revelado: la máscara (.clip) queda fija; sube el bloque y su contenido hace de contrapeso. */
+.reveal {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-skeleton);
+}
+
+.clipInner {
+  position: absolute;
+  inset: 0;
+}
+
+.par {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -14%;
+  right: -14%;
+}
+
+.parImg {
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-standard);
+}
+
+.parImg[data-loaded] {
+  opacity: 1;
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ink);
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-standard);
+}
+
+.num {
+  position: absolute;
+  left: 14px;
+  bottom: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(70px, 8vw, 130px);
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--color-paper);
+  transition: opacity 0.4s var(--ease-standard);
+}
+
+.panel:is(:hover, [data-active], :focus-within) .veil {
+  opacity: 0.28;
+}
+
+.panel:is(:hover, [data-active], :focus-within) .num {
+  opacity: 0;
+}
+
+/* Botón que cubre el panel: abre el popup con clic, toque o teclado. */
+.hit {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.hit:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 2px var(--color-paper),
+    inset 0 0 0 4px var(--color-ink);
+}
+
+.foot {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  background: var(--color-paper);
+  padding: 2px 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.4vw, 36px);
+  font-weight: 400;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.date {
+  flex: none;
+  font-size: 8px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.22em;
+  color: var(--color-muted-dark);
+}
+
+.outro {
+  flex: none;
+  width: clamp(260px, 26vw, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-right: clamp(20px, 4vw, 56px);
+}
+
+.outroTitle {
+  font-family: var(--font-display);
+  font-size: clamp(48px, 5vw, 80px);
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.outroCta {
+  align-self: flex-start;
+  border-bottom: 1px solid var(--color-ink);
+  padding-bottom: 3px;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.3em;
+}
+
+/* --- Popup: punto → línea → barra → persiana --- */
+
+.line {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 9;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  box-shadow: 0 0 0 2px var(--color-paper);
+  pointer-events: none;
+  transform: scale(0);
+}
+
+.dotRing {
+  position: absolute;
+  inset: -11px;
+  border: 1px solid var(--color-ink);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.pop {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 10;
+  width: clamp(380px, 32vw, 480px);
+  max-width: calc(100vw - 32px);
+  opacity: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+}
+
+.popBar {
+  height: 1px;
+  background: var(--color-ink);
+  transform: scaleX(0);
+}
+
+.popBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px;
+  background: var(--color-paper);
+  border: 1px solid var(--color-ink);
+  border-top: 0;
+  clip-path: inset(-2px -12px 100% -2px);
+}
+
+.popBody:focus {
+  outline: none;
+}
+
+.popName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: clamp(46px, 4vw, 62px);
+  font-weight: 400;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+}
+
+.prods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.prod {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.prodIndex {
+  font-size: 8px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.2em;
+  color: var(--color-muted-dark);
+}
+
+.prodImg {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--color-skeleton);
+}
+
+.prodMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prodName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.prodPrice {
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.empty {
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.45;
+  color: var(--color-hover);
+  text-wrap: pretty;
+}
+
+.cta {
+  margin: 0 -18px -18px;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 18px;
+  border-top: 1px solid var(--color-ink);
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: 0.32em;
+  transition:
+    background-color 0.35s var(--ease-standard),
+    color 0.35s var(--ease-standard);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+/* --- Modo estático (sin recorrido: pocas marcas) --- */
+.section[data-mode="static"] .track {
+  margin-inline: auto;
+}
+
+/* --- Movimiento reducido: fila con scroll horizontal nativo y snap, sin pin --- */
+.section[data-mode="reduced"] {
+  height: auto !important;
+}
+
+.section[data-mode="reduced"] .pin {
+  position: relative;
+  height: auto;
+  min-height: 100svh;
+  padding-block: 96px 48px;
+}
+
+.section[data-mode="reduced"] .track {
+  width: auto;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-block: 10vh;
+}
+
+.section[data-mode="reduced"] .panel,
+.section[data-mode="reduced"] .intro,
+.section[data-mode="reduced"] .outro {
+  scroll-snap-align: start;
+}
+
+.section[data-mode="reduced"] .pop {
+  transition: opacity 0.2s var(--ease-standard);
+}
+
+.section[data-mode="reduced"] .pop[data-open] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.section[data-mode="reduced"] .popBar {
+  transform: none;
+}
+
+.section[data-mode="reduced"] .popBody {
+  clip-path: none;
+  box-shadow: 8px 8px 0 var(--color-ink);
+}
+
+.section[data-mode="reduced"] .dot,
+.section[data-mode="reduced"] .line {
+  display: none;
+}
