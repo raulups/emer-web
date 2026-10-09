@@ -591,11 +591,16 @@ export function HeroCarousel({ brands }: { brands: HeroBrand[] }) {
       <div className="absolute inset-0 z-[6]">
         <button
           type="button"
+          data-js-only=""
+          aria-haspopup="dialog"
+          aria-keyshortcuts="Meta+K Control+K"
           onClick={() => bus.emit("emer:search:open")}
           className="absolute top-[22px] left-1/2 flex -translate-x-1/2 items-center gap-4 py-2 text-[12px] font-normal tracking-[0.32em] text-paper"
         >
           <span>BUSCAR</span>
-          <kbd className="hidden font-[inherit] opacity-55 lg:inline">⌘K</kbd>
+          <span aria-hidden="true" className="hidden font-[inherit] opacity-55 lg:inline">
+            ⌘K
+          </span>
         </button>
 
         {/* biome-ignore lint/a11y/useSemanticElements: patrón APG de carrusel (diapositiva = role group); un fieldset no aplica. */}
