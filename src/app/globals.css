@@ -17,6 +17,8 @@
   --color-skeleton: #ededed;
   --color-track: #e4e4e4;
   --color-eyebrow: #666;
+  --color-hint-dark: #bdbdbd;
+  --color-card-dark: #151515;
   --color-row-hover: #f4f4f4;
 
   --breakpoint-md: 760px;

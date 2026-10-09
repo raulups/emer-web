@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import {
   type CSSProperties,
   type MouseEvent,
@@ -9,11 +8,10 @@ import {
   type SyntheticEvent,
   useEffect,
   useRef,
-  useState,
   useSyncExternalStore,
-  useTransition,
 } from "react";
 import { LoopLine } from "@/components/ui/loop-line";
+import { RetryButton } from "@/components/ui/retry-button";
 import type { SectionId } from "@/lib/config/sections";
 import { EASE, gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import { bus } from "@/lib/motion/bus";
@@ -156,31 +154,6 @@ function BrandCell({
   );
 }
 
-function RetryButton() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [attempted, setAttempted] = useState(false);
-  return (
-    <>
-      <button
-        type="button"
-        className={s.retry}
-        aria-disabled={pending}
-        onClick={() => {
-          if (pending) return;
-          setAttempted(true);
-          startTransition(() => router.refresh());
-        }}
-      >
-        Reintentar <span aria-hidden="true">↻</span>
-      </button>
-      <span role="status" className="sr-only">
-        {pending ? "Cargando las marcas…" : attempted ? "No se han podido cargar las marcas." : ""}
-      </span>
-    </>
-  );
-}
-
 /** 05-catalogo: grid irregular con todas las marcas. */
 export function CatalogGrid(props: Props) {
   const reduced = useSyncExternalStore(subscribeReduced, isReduced, () => false);
@@ -289,7 +262,7 @@ export function CatalogGrid(props: Props) {
                 ? "Aún no hay marcas. Vuelve pronto."
                 : "No hemos podido cargar las marcas."}
             </p>
-            {props.state === "error" && <RetryButton />}
+            {props.state === "error" && <RetryButton className={s.retry} subject="marcas" />}
           </Head>
         </div>
       </section>
