@@ -6,6 +6,10 @@ import {
 } from "@/components/sections/emergentes/emergentes-section";
 import { Footer } from "@/components/sections/footer/footer";
 import { HeroFallback, HeroSection } from "@/components/sections/hero/hero-section";
+import {
+  MarketplaceFallback,
+  MarketplaceSection,
+} from "@/components/sections/marketplace/marketplace-section";
 import { Topbar } from "@/components/sections/topbar/topbar";
 import { HomeMotion } from "@/components/shell/home-motion";
 import { SECTIONS, type SectionId } from "@/lib/config/sections";
@@ -44,7 +48,9 @@ export default function Home() {
         <Suspense fallback={<CatalogFallback />}>
           <CatalogSection />
         </Suspense>
-        <Placeholder id="marketplace" />
+        <Suspense fallback={<MarketplaceFallback />}>
+          <MarketplaceSection />
+        </Suspense>
         <Placeholder id="sugiere" />
         <HomeMotion />
       </main>
