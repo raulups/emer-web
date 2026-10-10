@@ -12,8 +12,8 @@ export const anton = localFont({
 
 export const fraunces = localFont({
   src: [
-    { path: "../fonts/fraunces-normal.woff2", style: "normal", weight: "300 400" },
-    { path: "../fonts/fraunces-italic.woff2", style: "italic", weight: "300 400" },
+    { path: "../fonts/fraunces-normal.woff2", style: "normal", weight: "300 600" },
+    { path: "../fonts/fraunces-italic.woff2", style: "italic", weight: "300 600" },
   ],
   display: "swap",
   variable: "--font-fraunces",

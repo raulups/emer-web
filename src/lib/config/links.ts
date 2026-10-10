@@ -3,7 +3,7 @@
  * se renderiza como texto, sin enlace, para no tener enlaces muertos.
  */
 export const LINKS = {
-  marketplace: null,
+  marketplace: "/marketplace",
   stores: null,
   forBrands: null,
   privacy: null,
