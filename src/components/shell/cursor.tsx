@@ -35,6 +35,7 @@ const LOOKS: Record<CursorState, Look> = {
 function resolve(target: EventTarget | null): CursorState {
   if (!(target instanceof Element)) return "default";
   if (target.closest(TYPING)) return "type";
+  if (target.closest('[data-cursor="link"]')) return "link"; // p. ej. flechas dentro de una card
   if (target.closest('[data-cursor="prod"]')) return "prod";
   if (target.closest(LINK)) return "link";
   if (target.closest('[data-cursor="hero"]')) return "hero";

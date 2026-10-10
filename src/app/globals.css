@@ -300,7 +300,8 @@ html.lenis body {
 }
 
 .lenis.lenis-stopped,
-html[data-search-open] {
+html[data-search-open],
+html[data-scroll-locked] {
   overflow: hidden;
 }
 

@@ -97,3 +97,14 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 ## 09-buscar
 - Un único `Search` cliente que reciba las marcas sin remontarse (hoy fallback y datos montan instancias distintas; se mitiga conservando el opener, pero la consulta escrita se pierde si el remontaje ocurre con el buscador abierto).
 - Buscador sin pruebas contra backend real (solo fixtures).
+
+## 10-marketplace (página /marketplace)
+- [ ] **Backend sin verificar**: todo se probó con fixtures; la web no alcanza el backend real desde el entorno de desarrollo. Revisar con datos reales: recuentos por categoría, imágenes y carga en frío.
+- [ ] **Recuentos aproximados**: los números de categorías y de «TODO» salen de `total_product_count` / `category_counts` de las marcas, que incluyen productos no disponibles; la rejilla solo muestra disponibles. Pedir recuentos agregados al backend.
+- [ ] **«RELEVANCIA»** usa `sort=newest` (el diseño pide alternar marcas, no es posible con paginación en servidor). «MARCA: A–Z» recorre las marcas en orden, una petición por marca.
+- [ ] **Precio nulo/0**: el diseño lo ordena al final; el backend pone los `null` al principio en `price_desc`.
+- [ ] **Tramos de precio sueltos** (p. ej. HASTA 30 + 60–100): una consulta por tramo y el orden global solo se mantiene dentro de cada tramo.
+- [ ] **Imágenes de producto** con `<img>` (hosts variables; el ancho se pide solo a cdn.shopify.com). Valorar `next/image` cuando se conozcan todos los hosts.
+- [ ] **Banda «EN EL ESCAPARATE»** de la referencia HTML (no está en el handoff .md): no implementada.
+- [ ] **«VER TODO →» del hero y del catálogo** podrían apuntar a `/marketplace?marcas={id}`.
+- [ ] Rate limit: cada cambio de filtro son ~2 peticiones (con caché `hours`); el recuento de precios, 4 al abrir FILTROS.

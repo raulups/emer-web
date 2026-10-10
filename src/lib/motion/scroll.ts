@@ -131,6 +131,27 @@ function guard({ deltaX, deltaY, event }: VirtualScrollData): boolean {
 
 // ---------- API pública ----------
 
+let locks = 0;
+let syncScroll: (() => void) | null = null;
+
+/**
+ * Bloquea el scroll (Lenis y `overflow` de <html>) mientras haya un modal abierto.
+ * Devuelve la función que lo libera; admite varios bloqueos a la vez.
+ */
+export function lockScroll(): () => void {
+  locks += 1;
+  document.documentElement.setAttribute("data-scroll-locked", "");
+  syncScroll?.();
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    locks -= 1;
+    if (locks === 0) document.documentElement.removeAttribute("data-scroll-locked");
+    syncScroll?.();
+  };
+}
+
 /**
  * Crea Lenis sobre `gsap.ticker`. Con movimiento reducido no se crea (scroll nativo, sin snap).
  * Si Lenis falla, cae a scroll nativo y fuerza `emer:loaded` para no bloquear la página.
@@ -161,9 +182,10 @@ export function initScroll({ reduced }: { reduced: boolean }): () => void {
   gsap.ticker.add(raf);
 
   const sync = () => {
-    if (bus.isLoaded() && !bus.isSearchOpen()) instance.start();
+    if (bus.isLoaded() && !bus.isSearchOpen() && locks === 0) instance.start();
     else instance.stop();
   };
+  syncScroll = sync;
   sync();
   const offs = [
     bus.onLoaded(sync),
@@ -173,6 +195,7 @@ export function initScroll({ reduced }: { reduced: boolean }): () => void {
 
   return () => {
     for (const off of offs) off();
+    if (syncScroll === sync) syncScroll = null;
     resetSnap();
     gsap.ticker.remove(raf);
     instance.off("scroll", onLenisScroll);
