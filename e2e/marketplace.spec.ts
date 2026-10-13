@@ -75,6 +75,26 @@ test("MARCAS: «Ver más» abre la lista y «Ver menos» la recoge", async ({ pa
   await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toBeVisible();
 });
 
+test("CATEGORÍAS: 6 visibles y «Ver más» abre el resto", async ({ page }) => {
+  const bolsos = menu(page).getByRole("button", { name: /^Bolsos/ });
+  await expect(menu(page).getByRole("button", { name: /^Accesorios/ })).toBeInViewport();
+  await expect(bolsos).not.toBeInViewport();
+  await menu(page).getByRole("button", { name: "Ver más · 1" }).click();
+  await expect(bolsos).toBeInViewport();
+  await bolsos.click();
+  await expect(bolsos).toHaveAttribute("aria-current", "true");
+});
+
+test("la ficha de marca cabe entera en pantalla con MARCAS abierta", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile", "sin hover en táctil");
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
+  await menu(page)
+    .getByRole("button", { name: /^Scuffers/ })
+    .hover();
+  const card = menu(page).getByRole("figure", { name: "Marca: Scuffers" });
+  await expect(card).toBeInViewport({ ratio: 1 });
+});
+
 test("ficha de marca de la primera seleccionada, con fallback de imagen", async ({ page }) => {
   await menu(page)
     .getByRole("button", { name: /^Imagen Rota/ })
@@ -117,6 +137,17 @@ test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => 
     .click();
   await expect(page.getByText("SIN RESULTADOS")).toBeVisible();
   await expect(page.getByText("Prueba con otra talla o quita algún filtro.")).toBeVisible();
+});
+
+test("panel de filtros: COLOR muestra 6 y «Ver más» el resto", async ({ page }) => {
+  await filtersButton(page).click();
+  const naranja = panel(page).getByRole("button", { name: /^Naranja/ });
+  await expect(panel(page).getByRole("button", { name: /^Beige/ })).toBeInViewport();
+  await expect(naranja).not.toBeInViewport();
+  await panel(page).getByRole("button", { name: "Ver más · 2" }).click();
+  await expect(naranja).toBeInViewport();
+  await naranja.click();
+  await expect(naranja).toHaveAttribute("aria-pressed", "true");
 });
 
 test("precio: el slider se maneja con teclado", async ({ page }) => {

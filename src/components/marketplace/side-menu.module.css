@@ -46,11 +46,21 @@
 .group {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   align-items: flex-start;
   gap: 17px;
 }
 
+/* Hueco fijo para la ficha: aparecer no mueve la lista de marcas bajo el cursor. Si falta alto
+   se encoge junto con MARCAS abierta, en vez de quedar fuera de la pantalla. */
+.slot {
+  flex: 0 1 265px;
+  min-height: 130px;
+  margin-top: -16px;
+}
+
 .filters {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 14px;

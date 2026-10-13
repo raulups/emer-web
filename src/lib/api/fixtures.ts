@@ -38,6 +38,9 @@ const CAT = {
   pantalones: "a0ca4fd5-0138-419d-b001-77f45938b571",
   gorras: "6ed4e7c2-416c-4648-81b1-437e18da139e",
   calzado: "4fb481c8-7680-4591-81b7-5a67461bbc9b", // sin productos: no aparece en el menú
+  chaquetas: "0b1c2d3e-4f50-4a61-8b72-93a4b5c6d7e8",
+  bolsos: "1c2d3e4f-5061-4b72-9c83-a4b5c6d7e8f9",
+  accesorios: "2d3e4f50-6172-4c83-8d94-b5c6d7e8f90a",
 } as const;
 const CATEGORY_NAMES: Record<string, string> = {
   [CAT.camisetas]: "Camisetas",
@@ -45,7 +48,16 @@ const CATEGORY_NAMES: Record<string, string> = {
   [CAT.pantalones]: "Pantalones",
   [CAT.gorras]: "Gorras y gorros",
   [CAT.calzado]: "Calzado",
+  [CAT.chaquetas]: "Chaquetas",
+  [CAT.bolsos]: "Bolsos",
+  [CAT.accesorios]: "Accesorios",
 };
+/** Pocas piezas en estas categorías: sirven para probar «Ver más» sin alterar los recuentos base. */
+const EXTRA_KINDS = [
+  { name: "Chaqueta", category: CAT.chaquetas },
+  { name: "Bolso", category: CAT.bolsos },
+  { name: "Cinturón", category: CAT.accesorios },
+];
 const KINDS = [
   { name: "Camiseta", category: CAT.camisetas },
   { name: "Sudadera", category: CAT.sudaderas },
@@ -58,6 +70,13 @@ const COLORS = [
   { name: "Azul", hex: "#1E4FA3" },
   { name: "Rojo", hex: "#C62828" },
 ];
+const EXTRA_COLORS = [
+  { name: "Verde", hex: "#2E7D32" },
+  { name: "Beige", hex: "#D8C8A8" },
+  { name: "Gris", hex: "#8A8A8A" },
+  { name: "Naranja", hex: "#E65100" },
+];
+const ALL_COLORS = [...COLORS, ...EXTRA_COLORS];
 const PRICES = [19, 25.5, 45, 64.9, 89, 120, 34.99, 55];
 const SIZE_LABELS = ["S", "M", "L", "XL"];
 
@@ -97,8 +116,15 @@ function sizesFor(b: number, i: number): RawProductSize[] {
 let createdSeq = 0;
 const RAW_PRODUCTS: RawProduct[] = BRANDS.flatMap((brand, b) =>
   Array.from({ length: brand.products }, (_, i): RawProduct => {
-    const kind = KINDS[(i + b) % KINDS.length] as (typeof KINDS)[number];
-    const color = COLORS[(i * 3 + b) % COLORS.length] as (typeof COLORS)[number];
+    const extra = (i + b) % 7 === 6 ? 1 : -1;
+    const kind = (
+      extra >= 0 ? EXTRA_KINDS[(i * 2 + b) % 3] : KINDS[(i + b) % KINDS.length]
+    ) as (typeof KINDS)[number];
+    const color = (
+      i % 3 === 2
+        ? EXTRA_COLORS[(i + b) % EXTRA_COLORS.length]
+        : COLORS[(i * 3 + b) % COLORS.length]
+    ) as (typeof COLORS)[number];
     const price = PRICES[(i + b) % PRICES.length] as number;
     const onSale = i % 4 === 1;
     const gallery = i % 5 === 4 ? 1 : 2 + (i % 2);
@@ -200,7 +226,7 @@ function facets(scope: RawProduct[]): RawProductFacets {
     sizes: [
       ...count(scope.flatMap((p) => (p.sizes ?? []).map((s) => s.size_normalized ?? ""))),
     ].map(([value, n]) => ({ value, count: n })),
-    colors: COLORS.map((c) => ({
+    colors: ALL_COLORS.map((c) => ({
       name: c.name,
       hex: c.hex,
       count: scope.filter((p) => p.color_name === c.name).length,

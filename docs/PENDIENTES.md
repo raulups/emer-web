@@ -23,10 +23,11 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 
 ## Rehecho desde cero (handoff etapa 2)
 
-- [ ] **Reglas de animación de CLAUDE.md**: piden GSAP + `gsap.ticker` y prohíben `requestAnimationFrame`, pero el README del handoff calcula el scroll en un bucle rAF con lerp (`s += (t − s) · 0.14`). Decidir antes de implementar la Landing. (`gsap`, `lenis` y `motion` siguen en `package.json`, sin uso.)
+- [x] **Reglas de animación de CLAUDE.md**: decidido: un único bucle con `gsap.ticker.add` (sin rAF directo), estilos escritos en refs y lerp 0.14 como en el README. La regla 6 de CLAUDE.md ya lo recoge; se aplica al implementar la Landing.
 - [ ] **`src/lib/api/suggestions.ts`** (`postSuggestion`) ya no lo usa nadie: borrar si el nuevo diseño no tiene formulario de sugerencias.
 - [ ] **Assets de `public/assets/deco/`**: son los PNG del handoff tal cual (≈2 MB en total). Pasarlos a WebP/AVIF o servirlos con `next/image`.
 - [ ] **`docs/API_CONTRACT.md` desfasado en `/products`**: el backend cambió (2026-10). Ver la nota al principio del contrato; `src/lib/api` ya usa la forma nueva.
+- [ ] **Listas CATEGORÍAS / MARCAS / COLOR** (`expandable-list`): 6 filas y «Ver más» con `max-height` animado (contra la regla 1 de CLAUDE.md, como en el README). Con MARCAS abierta el alto se reparte con la ficha (mínimo 3 filas); en pantallas muy bajas (< ~700 px) el menú vuelve a hacer scroll propio. Las fixtures llevan categorías y colores extra para probarlo.
 - [ ] **Animaciones de layout del Marketplace** (exigidas por el README, contra la regla 1 de CLAUDE.md): ancho del menú 260→0, `max-height` de MARCAS 181→300, `padding` del grid, ancho de los guiones del índice de fotos y `font-weight` en hover/selección. Todo lo demás es `transform`/`opacity`.
 - [ ] **Marketplace en móvil** (no está en el diseño): el menú empieza oculto y se abre como panel fijo; [ MENÚ ] baja a una segunda fila bajo el switch. Confirmar.
 - [ ] **Galería de la tarjeta**: la referencia rellena con fotos de otros productos de la marca cuando un producto tiene una sola; no se ha portado (con una foto no hay carrusel ni flechas). Máximo 8 fotos por tarjeta.
