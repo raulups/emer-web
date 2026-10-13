@@ -42,6 +42,7 @@ test("categorías: selección única con línea; marcas: selección múltiple", 
   await expect(all).not.toHaveAttribute("aria-current", "true");
   await expect(products(page).first()).toContainText("Gorra");
 
+  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
   await menu(page)
     .getByRole("button", { name: /^Satenier/ })
     .click();
@@ -67,32 +68,37 @@ test("categorías: selección única con línea; marcas: selección múltiple", 
 test("MARCAS: «Ver más» abre la lista y «Ver menos» la recoge", async ({ page }) => {
   const tinta = menu(page).getByRole("button", { name: /^Tinta/ });
   await expect(tinta).not.toBeInViewport();
-  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
   await expect(menu(page).getByRole("button", { name: "Ver menos" })).toBeVisible();
   await tinta.scrollIntoViewIfNeeded();
   await expect(tinta).toBeVisible();
   await menu(page).getByRole("button", { name: "Ver menos" }).click();
-  await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toBeVisible();
+  await expect(menu(page).getByRole("button", { name: "Ver más · 4" })).toBeVisible();
 });
 
-test("CATEGORÍAS: 6 visibles y «Ver más» abre el resto", async ({ page }) => {
+test("CATEGORÍAS: 5 visibles y «Ver más» abre hasta 8", async ({ page }) => {
   const bolsos = menu(page).getByRole("button", { name: /^Bolsos/ });
-  await expect(menu(page).getByRole("button", { name: /^Accesorios/ })).toBeInViewport();
+  await expect(menu(page).getByRole("button", { name: /^Chaquetas/ })).toBeInViewport();
   await expect(bolsos).not.toBeInViewport();
-  await menu(page).getByRole("button", { name: "Ver más · 1" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 2" }).click();
   await expect(bolsos).toBeInViewport();
   await bolsos.click();
   await expect(bolsos).toHaveAttribute("aria-current", "true");
 });
 
-test("la ficha de marca cabe entera en pantalla con MARCAS abierta", async ({ page }, info) => {
-  test.skip(info.project.name === "mobile", "sin hover en táctil");
-  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
-  await menu(page)
-    .getByRole("button", { name: /^Scuffers/ })
-    .hover();
-  const card = menu(page).getByRole("figure", { name: "Marca: Scuffers" });
-  await expect(card).toBeInViewport({ ratio: 1 });
+test("el menú cabe sin scroll de primeras y hace scroll al abrir las listas", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === "mobile", "el menú móvil es un panel aparte");
+  const overflow = () =>
+    menu(page)
+      .locator("div")
+      .first()
+      .evaluate((el) => el.scrollHeight - el.clientHeight);
+  expect(await overflow()).toBeLessThanOrEqual(0);
+  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 2" }).click();
+  await expect.poll(overflow).toBeGreaterThan(0);
 });
 
 test("ficha de marca de la primera seleccionada, con fallback de imagen", async ({ page }) => {
@@ -139,12 +145,12 @@ test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => 
   await expect(page.getByText("Prueba con otra talla o quita algún filtro.")).toBeVisible();
 });
 
-test("panel de filtros: COLOR muestra 6 y «Ver más» el resto", async ({ page }) => {
+test("panel de filtros: COLOR muestra 5 y «Ver más» abre hasta 8", async ({ page }) => {
   await filtersButton(page).click();
   const naranja = panel(page).getByRole("button", { name: /^Naranja/ });
-  await expect(panel(page).getByRole("button", { name: /^Beige/ })).toBeInViewport();
+  await expect(panel(page).getByRole("button", { name: /^Verde/ })).toBeInViewport();
   await expect(naranja).not.toBeInViewport();
-  await panel(page).getByRole("button", { name: "Ver más · 2" }).click();
+  await panel(page).getByRole("button", { name: "Ver más · 3" }).click();
   await expect(naranja).toBeInViewport();
   await naranja.click();
   await expect(naranja).toHaveAttribute("aria-pressed", "true");

@@ -143,7 +143,7 @@ export function FilterPanel(props: Props) {
               items={props.colors}
               itemKey={(color) => color.name}
               label="Colores"
-              gap={18}
+              gap={14}
               renderItem={(color) => (
                 <ColorChoice
                   name={color.name}

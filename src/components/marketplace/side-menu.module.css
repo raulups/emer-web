@@ -20,11 +20,11 @@
 .inner {
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 28px;
   box-sizing: border-box;
   width: 260px;
   max-height: calc(100vh - 76px);
-  padding: 28px 24px 40px 48px;
+  padding: 24px 24px 28px 48px;
   overflow: hidden auto;
   scrollbar-width: none;
   opacity: 0;
@@ -48,15 +48,21 @@
   flex-direction: column;
   flex-shrink: 0;
   align-items: flex-start;
-  gap: 17px;
+  gap: 14px;
 }
 
 /* Hueco fijo para la ficha: aparecer no mueve la lista de marcas bajo el cursor. Si falta alto
-   se encoge junto con MARCAS abierta, en vez de quedar fuera de la pantalla. */
+   (listas recogidas) se acorta antes de forzar scroll. */
 .slot {
   flex: 0 1 265px;
-  min-height: 130px;
-  margin-top: -16px;
+  min-height: 120px;
+  margin-top: -12px;
+}
+
+/* Con una lista abierta el menú crece y hace scroll: la ficha conserva su alto completo. */
+.inner:has([data-open]) .slot {
+  flex-basis: 265px;
+  flex-shrink: 0;
 }
 
 .filters {

@@ -1,12 +1,12 @@
 .group {
   --closed: calc(var(--rows) * 15.6px + (var(--rows) - 1) * var(--gap) + 3px);
-  --open-min: calc(3 * 15.6px + 2 * var(--gap) + 3px);
+  --opened: calc(var(--open-rows) * 15.6px + (var(--open-rows) - 1) * var(--gap) + 3px);
 
   display: flex;
   flex-direction: column;
-  flex-shrink: 1;
+  flex-shrink: 0;
   align-self: stretch;
-  gap: 17px;
+  gap: 14px;
 }
 
 .heading {
@@ -16,21 +16,12 @@
   letter-spacing: 0.28em;
 }
 
-/* Abierta y encogible: puede ceder alto (mínimo 3 filas) a la ficha; 64px = título, huecos y botón. */
-.group[data-open][data-shrinkable] {
-  min-height: calc(var(--open-min) + 64px);
-}
-
-/* Seis filas de 15.6px + sus separaciones + 3px para el subrayado de la última. */
+/* Cinco filas de 15.6px + sus separaciones + 3px para el subrayado de la última. */
 .frame {
   position: relative;
   display: flex;
   flex-direction: column;
   min-height: var(--closed);
-}
-
-.group[data-open][data-shrinkable] .frame {
-  min-height: var(--open-min);
 }
 
 .list {
@@ -60,7 +51,7 @@
 }
 
 .group[data-open] .list {
-  max-height: 300px;
+  max-height: var(--opened);
   overflow-y: auto;
 }
 

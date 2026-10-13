@@ -27,7 +27,7 @@ type Props = {
   onClear: () => void;
 };
 
-/** Menú lateral (README §3): categorías y MARCAS (6 filas + «Ver más»), FILTROS (n) + BORRAR y ficha de marca. */
+/** Menú lateral (README §3): categorías y MARCAS (5 filas, «Ver más» abre 8 con scroll), FILTROS (n) + BORRAR y ficha. */
 export function SideMenu(props: Props) {
   const { visible, categories, cat, filterCount, canClear, cardBrand } = props;
 
@@ -51,7 +51,7 @@ export function SideMenu(props: Props) {
             items={categories}
             itemKey={(category) => category.id}
             label="Más categorías"
-            gap={17}
+            gap={14}
             inset
             renderItem={(category) => (
               <OptionRow
@@ -69,9 +69,8 @@ export function SideMenu(props: Props) {
           label="Marcas"
           items={props.brands}
           itemKey={(brand) => brand.id}
-          gap={17}
+          gap={14}
           inset
-          shrinkable
           renderItem={(brand) => (
             <OptionRow
               label={brand.name}

@@ -11,8 +11,9 @@ import {
 } from "react";
 import styles from "./expandable-list.module.css";
 
-/** Filas visibles con la lista recogida. */
-const VISIBLE = 6;
+/** Filas visibles con la lista recogida y con la lista abierta (a partir de ahí, scroll). */
+const VISIBLE = 5;
+const OPEN_ROWS = 8;
 /** Escalonado de las filas que entran al abrir (máx. 12 pasos). */
 const ROW_STAGGER_MS = 35;
 const MAX_STAGGER_STEPS = 12;
@@ -28,12 +29,10 @@ type Props<T> = {
   gap: number;
   /** Hueco a la izquierda para la línea de selección (filas de OptionRow). */
   inset?: boolean;
-  /** Si el alto disponible se agota (menú lateral), la lista abierta puede encogerse. */
-  shrinkable?: boolean;
 };
 
 /**
- * Lista de 6 filas con «Ver más · N»: al abrir entran las demás, escalonadas, y se activa el
+ * Lista de 5 filas con «Ver más · N»: al abrir se ven 8, las demás entran escalonadas y se activa el
  * scroll propio con un indicador de 1px. «Ver menos» la recoge y sube suavemente.
  */
 export function ExpandableList<T>({
@@ -44,7 +43,6 @@ export function ExpandableList<T>({
   heading,
   gap,
   inset = false,
-  shrinkable = false,
 }: Props<T>) {
   const [open, setOpen] = useState(false);
   const scroller = useRef<HTMLUListElement>(null);
@@ -81,8 +79,7 @@ export function ExpandableList<T>({
     <div
       className={styles.group}
       data-open={open || undefined}
-      data-shrinkable={shrinkable || undefined}
-      style={{ "--gap": `${gap}px`, "--rows": VISIBLE } as CSSProperties}
+      style={{ "--gap": `${gap}px`, "--rows": VISIBLE, "--open-rows": OPEN_ROWS } as CSSProperties}
     >
       {heading && (
         <span className={styles.heading} id={headingId}>
