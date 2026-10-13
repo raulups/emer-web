@@ -1,0 +1,308 @@
+.nv {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  border-top: 1px solid var(--hairline-dark);
+  background: var(--dark);
+  color: var(--text-on-dark);
+}
+
+.left {
+  position: relative;
+}
+
+/* Ocupa las dos mitades (200 % de la columna) para que la máscara de la transición cubra todo. */
+.stk {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  width: 200%;
+  height: 100vh;
+  pointer-events: none;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  width: 50%;
+  overflow: hidden;
+}
+
+.vline {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  width: 1px;
+  background: var(--hairline-dark-2);
+}
+
+.hline {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--hairline-dark);
+}
+
+.title {
+  position: absolute;
+  bottom: calc(50% + 2.4vh);
+  left: 2vw;
+  margin: 0;
+  font-weight: var(--w-title);
+  font-size: min(6vw, 15vh);
+  line-height: var(--lh-title);
+  letter-spacing: var(--track-title);
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 1.6s var(--ease-out-expo),
+    transform 1.8s var(--ease-out-expo);
+}
+
+.text {
+  position: absolute;
+  top: calc(50% + 12px);
+  left: 2vw;
+  max-width: 240px;
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-out-expo) 0.25s;
+}
+
+.nv[data-in] :is(.title, .text) {
+  opacity: 1;
+  transform: none;
+}
+
+/* Foto de la marca en hover: aparece y desaparece de golpe (sin transición). */
+.preview {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--dark);
+  clip-path: inset(0 0 100% 0);
+}
+
+.preview[data-on] {
+  clip-path: inset(0);
+}
+
+.previewImage {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewProducts {
+  position: absolute;
+  right: 2vw;
+  bottom: 24px;
+  left: 2vw;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  width: min(8vw, 15vh, 120px);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.previewPhoto {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.previewProductImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.previewMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 6px 7px 8px;
+}
+
+.previewName,
+.previewPrice {
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 10px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.previewPrice {
+  color: var(--grey-text);
+}
+
+/* Fondo negro de toda la pantalla mientras gira la línea (lo enciende el bucle). */
+.sw {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: none;
+  background: var(--dark);
+}
+
+/* Línea de 160vmax que gira 180° sobre el centro: una sola vuelta visual. */
+.sl {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  width: 200%;
+  height: 100vh;
+  margin-top: -100vh;
+  overflow: hidden;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.slLine {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1px;
+  height: 160vmax;
+  margin: -80vmax 0 0 -1px;
+  background: var(--grey-mute-dark);
+}
+
+.nv[data-live] .slLine,
+.nv[data-live] .stk {
+  will-change: transform;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  padding: calc(50vh - 11vh) 0 0;
+}
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rowWrap {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 1.4s var(--ease-out-expo) var(--delay),
+    transform 1.6s var(--ease-out-expo) var(--delay);
+}
+
+.nv[data-in] .rowWrap {
+  opacity: 1;
+  transform: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 20px;
+  align-content: start;
+  box-sizing: border-box;
+  min-height: 22vh;
+  padding: 3vh 2vw 3vh 1.4vw;
+  border-top: 1px solid var(--hairline-dark);
+  color: var(--text-on-dark);
+}
+
+.row:hover {
+  color: var(--text-on-dark);
+}
+
+.row:focus-visible {
+  outline: 1px solid var(--text-on-dark);
+  outline-offset: -4px;
+}
+
+.nv[data-live] .row {
+  will-change: opacity;
+}
+
+.rowName {
+  font-weight: var(--w-text);
+  font-size: min(4vw, 8vh);
+  line-height: 1;
+  letter-spacing: var(--track-name);
+  text-wrap: balance;
+}
+
+.plus {
+  font-weight: var(--w-ui);
+  font-size: min(2.6vw, 5vh);
+  line-height: 1;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.row:hover .plus,
+.row:focus-visible .plus {
+  transform: rotate(45deg);
+}
+
+.rowMeta {
+  grid-column: 1;
+  margin-top: 10px;
+  color: var(--grey-mute-dark);
+  font-weight: var(--w-text);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.end {
+  border-top: 1px solid var(--hairline-dark);
+}
+
+.spacer {
+  height: 200vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rowWrap {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .title,
+  .text {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .spacer,
+  .sl,
+  .sw {
+    display: none;
+  }
+}

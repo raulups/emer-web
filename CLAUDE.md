@@ -39,7 +39,7 @@ src/
     data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
     format.ts          reglas puras: price, discount, órdenes de marcas, fallback de imagen
     marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
-    explora-data.ts    Populares: 6 marcas por nº de piezas + 2 productos cada una (solo servidor)
+    explora-data.ts    Explora: Populares, Novedades y Emergentes con sus piezas (solo servidor)
     marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
     motion/            `ticker.ts` (único reloj), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings)
     api/               cliente tipado del backend KMP (solo servidor)

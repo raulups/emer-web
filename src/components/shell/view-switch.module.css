@@ -9,6 +9,8 @@
   color: var(--black);
   transform: translateX(-50%);
   isolation: isolate;
+  /* El switch no se desliza con la vista: su propio grupo de la View Transition. */
+  view-transition-name: view-switch;
 }
 
 .option {

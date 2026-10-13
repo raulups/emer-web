@@ -1,12 +1,12 @@
-import { getPopularBrands } from "@/lib/explora-data";
+import { getExploraData } from "@/lib/explora-data";
 import { Explora } from "./explora";
 import styles from "./explora.module.css";
 
-/** Servidor: marcas populares con sus piezas. El cliente anima desde aquí. */
+/** Servidor: datos de Explora. El cliente anima desde aquí. */
 export async function ExploraSection() {
-  const popular = await getPopularBrands();
+  const data = await getExploraData();
 
-  if (!popular) {
+  if (!data) {
     return (
       <div className={styles.error} role="alert">
         <h1 className={styles.errorTitle}>SIN CONEXIÓN</h1>
@@ -17,7 +17,7 @@ export async function ExploraSection() {
     );
   }
 
-  return <Explora popular={popular} />;
+  return <Explora data={data} />;
 }
 
 /** Pantalla en blanco del alto de la vista mientras llegan los datos (sin CLS). */

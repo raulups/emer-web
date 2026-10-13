@@ -53,3 +53,55 @@
     cursor: none !important;
   }
 }
+
+/*
+ * Slide horizontal entre Marketplace y Explora (View Transitions, solo transform).
+ * La vista entrante llega por el lado hacia el que se avanza; la saliente se va por el contrario.
+ */
+@keyframes slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+}
+
+html[data-slide]::view-transition-old(root),
+html[data-slide]::view-transition-new(root) {
+  mix-blend-mode: normal;
+  animation-duration: 0.9s;
+  animation-timing-function: var(--ease-out-expo);
+  animation-fill-mode: both;
+}
+
+html[data-slide="forward"]::view-transition-old(root) {
+  animation-name: slide-out-left;
+}
+
+html[data-slide="forward"]::view-transition-new(root) {
+  animation-name: slide-in-right;
+}
+
+html[data-slide="back"]::view-transition-old(root) {
+  animation-name: slide-out-right;
+}
+
+html[data-slide="back"]::view-transition-new(root) {
+  animation-name: slide-in-left;
+}

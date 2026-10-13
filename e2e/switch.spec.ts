@@ -54,3 +54,15 @@ test("en hover la línea viaja a la opción y sus letras suben", async ({ page }
   await expect(line(page, "Marketplace")).toHaveCSS("transform", SCALE_ON);
   await expect(line(page, "Explora")).toHaveCSS("transform", SCALE_OFF);
 });
+
+test("el cambio de vista es un slide horizontal (View Transition)", async ({ page }) => {
+  await page.goto("/web");
+  await expect(page.getByRole("region", { name: "Productos" })).toBeVisible();
+  const slide = page.waitForFunction(() => document.documentElement.dataset.slide === "forward");
+  await option(page, "Explora").click();
+  await slide;
+  await expect(page.locator("html")).not.toHaveAttribute("data-slide", /./, { timeout: 4000 });
+  const back = page.waitForFunction(() => document.documentElement.dataset.slide === "back");
+  await option(page, "Marketplace").click();
+  await back;
+});

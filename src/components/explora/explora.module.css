@@ -299,7 +299,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  width: min(9vw, 17vh, 140px);
+  width: var(--pw, min(9vw, 17vh, 140px));
   color: var(--ink);
 }
 
