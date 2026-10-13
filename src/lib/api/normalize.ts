@@ -5,13 +5,17 @@ import type {
   Paginated,
   Product,
   ProductDetail,
+  ProductFacets,
   ProductPreview,
   ProductSize,
+  ProductsPage,
   RawBrand,
   RawCategory,
   RawProduct,
+  RawProductFacets,
   RawProductPreview,
   RawProductSize,
+  RawProductsPage,
   RawStoreLocation,
   StoreLocation,
 } from "./types";
@@ -56,7 +60,8 @@ export function brand(raw: RawBrand): Brand {
     img: raw.img ?? null,
     logo: raw.logo ?? null,
     color: raw.color ?? null,
-    isEmergent: raw.is_emergent,
+    isEmergent: raw.is_emergent ?? false,
+    tags: raw.tags ?? [],
     createdAt: raw.created_at,
     storeLocations: (raw.store_locations ?? []).map(storeLocation),
     // El servidor omite estos campos cuando valen su defecto (encodeDefaults = false).
@@ -87,6 +92,7 @@ export function product(raw: RawProduct): Product {
     thumbnailUrl: raw.thumbnail_image_url ?? null,
     imageUrls: raw.image_urls ?? [],
     colorName: raw.color_name ?? null,
+    colorHex: raw.color_hex ?? null,
     tags: raw.attributes?.tags ?? [],
     productType: raw.attributes?.product_type ?? null,
     vendor: raw.attributes?.vendor ?? null,
@@ -97,6 +103,7 @@ export function product(raw: RawProduct): Product {
 function productSize(raw: RawProductSize): ProductSize {
   return {
     label: raw.size_label,
+    normalized: (raw.size_normalized ?? raw.size_label).trim().toUpperCase(),
     sku: raw.sku ?? null,
     // `available` se omite cuando es true: ausente = true.
     available: raw.available ?? true,
@@ -131,4 +138,25 @@ export function paginated<R, T>(
   const limit = meta?.limit ?? items.length;
   const offset = meta?.offset ?? 0;
   return { items, total, limit, offset, hasMore: offset + items.length < total };
+}
+
+function facets(raw: RawProductFacets | undefined): ProductFacets {
+  return {
+    categories: raw?.categories ?? [],
+    sizes: raw?.sizes ?? [],
+    colors: raw?.colors ?? [],
+    priceRange: raw?.price_range ?? null,
+  };
+}
+
+export function productsPage(raw: RawProductsPage | undefined): ProductsPage {
+  const items = (raw?.products ?? []).map(product);
+  return {
+    items,
+    total: raw?.total ?? items.length,
+    page: raw?.page ?? 1,
+    pageSize: raw?.page_size ?? items.length,
+    hasMore: raw?.has_more ?? false,
+    facets: facets(raw?.filters),
+  };
 }

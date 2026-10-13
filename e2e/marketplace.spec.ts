@@ -1,142 +1,167 @@
 import { expect, type Page, test } from "@playwright/test";
 
-const section = (page: Page) => page.locator("#marketplace:not([aria-busy])");
-const cards = (page: Page) => section(page).locator("a[data-cursor='prod']");
-const ring = (page: Page) => section(page).locator("[data-ring='0']");
+/** Datos de src/lib/api/fixtures.ts: 9 marcas con productos y 49 productos. */
+const TOTAL = 49;
 
-async function toMarketplace(page: Page) {
-  await page.goto("/");
-  await expect(page.locator("#marcas[data-registered]")).toBeAttached();
-  await section(page).evaluate((el) => el.scrollIntoView());
-  await page.waitForTimeout(1200);
-}
+const products = (page: Page) => page.getByRole("region", { name: "Productos" }).locator("article");
+const menu = (page: Page) => page.getByRole("complementary", { name: "Menú del catálogo" });
+const filtersButton = (page: Page) => menu(page).getByRole("button", { name: /^FILTROS/ });
+const panel = (page: Page) => page.getByRole("dialog", { name: "Filtros" });
 
-const ringAngle = (page: Page) =>
-  ring(page).evaluate((el) =>
-    Number(/rotateY\(([-\d.e]+)deg\)/.exec(el.style.transform)?.[1] ?? 0),
+test.beforeEach(async ({ page }, info) => {
+  await page.goto("/web");
+  await expect(products(page).first()).toBeVisible();
+  // En móvil el menú empieza oculto.
+  if (info.project.name === "mobile") await page.getByRole("button", { name: "Menú" }).click();
+});
+
+test("grid con la primera página y carga infinita al bajar", async ({ page }) => {
+  await expect(products(page)).toHaveCount(24);
+  await expect(products(page).first()).toContainText("Satenier");
+  // Cada vez que se llega al final se pide la página siguiente.
+  const last = page.getByRole("region", { name: "Productos" }).locator("li").last();
+  await expect
+    .poll(async () => {
+      await last.scrollIntoViewIfNeeded();
+      return products(page).count();
+    })
+    .toBe(TOTAL);
+});
+
+test("categorías: selección única con línea; marcas: selección múltiple", async ({ page }) => {
+  const all = menu(page).getByRole("button", { name: /^Ver todo/ });
+  await expect(all).toHaveAttribute("aria-current", "true");
+
+  await menu(page)
+    .getByRole("button", { name: /^Gorras y gorros/ })
+    .click();
+  await expect(menu(page).getByRole("button", { name: /^Gorras y gorros/ })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+  await expect(all).not.toHaveAttribute("aria-current", "true");
+  await expect(products(page).first()).toContainText("Gorra");
+
+  await menu(page)
+    .getByRole("button", { name: /^Satenier/ })
+    .click();
+  await menu(page)
+    .getByRole("button", { name: /^Ruido/ })
+    .click();
+  await expect(menu(page).getByRole("button", { name: /^Satenier/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(menu(page).getByRole("button", { name: "BORRAR" })).toBeVisible();
+  // Gorras de Satenier (3) y Ruido (1) en las fixtures.
+  await expect(products(page)).toHaveCount(4);
+  for (const card of await products(page).all()) {
+    await expect(card).toContainText(/Satenier|Ruido/);
+  }
+
+  await menu(page).getByRole("button", { name: "BORRAR" }).click();
+  await expect(all).toHaveAttribute("aria-current", "true");
+  await expect(products(page)).toHaveCount(24);
+});
+
+test("MARCAS: «Ver más» abre la lista y «Ver menos» la recoge", async ({ page }) => {
+  const tinta = menu(page).getByRole("button", { name: /^Tinta/ });
+  await expect(tinta).not.toBeInViewport();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
+  await expect(menu(page).getByRole("button", { name: "Ver menos" })).toBeVisible();
+  await tinta.scrollIntoViewIfNeeded();
+  await expect(tinta).toBeVisible();
+  await menu(page).getByRole("button", { name: "Ver menos" }).click();
+  await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toBeVisible();
+});
+
+test("ficha de marca de la primera seleccionada, con fallback de imagen", async ({ page }) => {
+  await menu(page)
+    .getByRole("button", { name: /^Imagen Rota/ })
+    .click();
+  const card = menu(page).getByRole("figure", { name: "Marca: Imagen Rota" });
+  await expect(card).toBeVisible();
+  // La imagen de la marca no existe: se usa la del primer producto.
+  await expect(card.getByRole("img", { name: "Imagen Rota" })).toHaveAttribute(
+    "src",
+    /\/assets\/deco\/.+\.png$/,
+  );
+});
+
+test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => {
+  await filtersButton(page).click();
+  await expect(panel(page)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cerrar filtros" })).toBeFocused();
+
+  await panel(page).getByRole("button", { name: "M", exact: true }).click();
+  await expect(panel(page).getByRole("button", { name: "M", exact: true })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(filtersButton(page)).toHaveText("FILTROS (1)");
+  await expect(panel(page).getByRole("button", { name: /^VER \d+$/ })).not.toHaveText(
+    `VER ${TOTAL}`,
   );
 
-test.describe("06-marketplace", () => {
-  test("dos anillos de 18 tarjetas con enlace a la prenda", async ({ page }) => {
-    await toMarketplace(page);
-    await expect(section(page).getByRole("heading", { level: 2 })).toHaveText(
-      /todas las\s*prendas/i,
-    );
-    await expect(cards(page)).toHaveCount(36);
-    await expect(cards(page).first()).toHaveAttribute("href", /\.example\/products\//);
-    await expect(cards(page).first()).toHaveAttribute("target", "_blank");
-  });
+  await page.keyboard.press("Escape");
+  await expect(panel(page)).toBeHidden();
+  await expect(filtersButton(page)).toBeFocused();
 
-  test("gira solo en reposo; la rueda lo acelera con el escenario centrado", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "Rueda de escritorio");
-    await toMarketplace(page);
-    const a0 = await ringAngle(page);
-    await page.waitForTimeout(600);
-    expect(await ringAngle(page)).toBeGreaterThan(a0);
+  // Marea solo tiene tallas S–XL: con ÚNICA no queda nada.
+  await filtersButton(page).click();
+  await panel(page).getByRole("button", { name: "M", exact: true }).click();
+  await panel(page).getByRole("button", { name: "ÚNICA" }).click();
+  await panel(page).getByRole("button", { name: /^VER/ }).click();
+  await menu(page)
+    .getByRole("button", { name: /^Marea/ })
+    .click();
+  await expect(page.getByText("SIN RESULTADOS")).toBeVisible();
+  await expect(page.getByText("Prueba con otra talla o quita algún filtro.")).toBeVisible();
+});
 
-    // Sin centrar: la rueda baja la página.
-    const viewport = page.viewportSize();
-    if (!viewport) throw new Error("sin viewport");
-    await page.mouse.move(viewport.width / 2, viewport.height - 40);
-    const y0 = await page.evaluate(() => window.scrollY);
-    await page.mouse.wheel(0, 300);
-    await page.waitForTimeout(900);
-    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(y0);
+test("precio: el slider se maneja con teclado", async ({ page }) => {
+  await filtersButton(page).click();
+  const min = panel(page).getByRole("slider", { name: "Precio mínimo" });
+  await min.focus();
+  await page.keyboard.press("End");
+  await expect(min).toHaveAttribute("aria-valuenow", "120");
+  await expect(filtersButton(page)).toHaveText("FILTROS (1)");
+  await expect(panel(page).getByRole("button", { name: /^VER/ })).toHaveText(/^VER [1-9]\d?$/);
+});
 
-    // Al llegar al centro, la rueda deja de bajar la página y pasa a girar el carrusel.
-    await page.mouse.move(viewport.width / 2, viewport.height / 2);
-    for (let i = 0; i < 8; i++) {
-      await page.mouse.wheel(0, 200);
-      await page.waitForTimeout(150);
-    }
-    await page.waitForTimeout(900);
-    const y1 = await page.evaluate(() => window.scrollY);
-    const b0 = await ringAngle(page);
-    for (let i = 0; i < 5; i++) await page.mouse.wheel(0, 200);
-    await page.waitForTimeout(500);
-    expect((await ringAngle(page)) - b0).toBeGreaterThan(10);
-    expect(await page.evaluate(() => window.scrollY)).toBe(y1);
-  });
+test("tarjeta: en hover pasa a la 2.ª foto y muestra tallas", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile", "sin hover en táctil");
+  const card = products(page).first();
+  await card.hover();
+  await expect(card.getByText("2/2")).toBeVisible();
+  await expect(card.getByText("XL", { exact: true })).toBeVisible();
+  await expect(card.locator("[data-soldout]")).toHaveText("S");
+  await card.getByRole("button", { name: /Foto siguiente/ }).click();
+  await expect(card.getByText("1/2")).toBeVisible();
+  await page.mouse.move(5, 600);
+  await expect(card.locator("[data-hovered]")).toHaveCount(0);
+});
 
-  test("«Pausar giro» detiene el giro automático", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Escritorio");
-    await toMarketplace(page);
-    const pause = section(page).getByRole("button", { name: "Pausar giro" });
-    await pause.click();
-    await expect(section(page).getByRole("button", { name: "Reanudar giro" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
-    );
-    await page.mouse.move(5, 5);
-    await page.waitForTimeout(2500);
-    const a0 = await ringAngle(page);
-    await page.waitForTimeout(600);
-    expect(Math.abs((await ringAngle(page)) - a0)).toBeLessThan(0.05);
-  });
+test("[ MENÚ ] oculta y muestra el menú", async ({ page }) => {
+  const toggle = page.getByRole("button", { name: "Menú" });
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(menu(page)).toHaveAttribute("inert", "");
+  await toggle.click();
+  await expect(menu(page)).not.toHaveAttribute("inert", "");
+});
 
-  test("hover en una tarjeta abre el popup con marca y categoría", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Hover de escritorio");
-    await toMarketplace(page);
-    const box = await ring(page).boundingBox();
-    const viewport = page.viewportSize();
-    if (!box || !viewport) throw new Error("sin anillo");
-    await page.mouse.move(viewport.width / 2, box.y + 150);
-    const open = section(page)
-      .locator("[data-open][class*='pop_'], [data-open][class*='pop']")
-      .last();
-    await expect(open).toBeAttached();
-    await expect(open).toContainText("CAMISETAS");
-    await expect(open).toContainText("IR A LA TIENDA");
-    await page.mouse.move(5, 5);
-    await expect(section(page).locator("[data-open]")).toHaveCount(0, { timeout: 3000 });
-  });
-
-  test("teclado: la tarjeta enfocada gira hasta quedar de frente", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Teclado de escritorio");
-    await toMarketplace(page);
-    await section(page).getByRole("button", { name: "Girar hacia la derecha" }).focus();
-    for (let i = 0; i < 9; i++) await page.keyboard.press("Tab");
-    const focused = cards(page).nth(8);
-    await expect(focused).toBeFocused();
-    await page.waitForTimeout(1500);
-    await expect(focused).toHaveCSS("opacity", "1");
-    const box = await focused.boundingBox();
-    const width = page.viewportSize()?.width ?? 0;
-    const center = (box?.x ?? 0) + (box?.width ?? 0) / 2;
-    expect(Math.abs(center - width / 2)).toBeLessThan(width * 0.1);
-    await expect(section(page).locator("[data-open]").first()).toBeAttached();
-  });
-
-  test("táctil: el primer toque abre el popup sin navegar", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "Solo móvil");
-    await toMarketplace(page);
-    const box = await ring(page).boundingBox();
-    const viewport = page.viewportSize();
-    if (!box || !viewport) throw new Error("sin anillo");
-    const url = page.url();
-    await page.touchscreen.tap(viewport.width / 2, box.y + 120);
-    await expect(section(page).locator("[data-open]").first()).toBeAttached();
-    expect(page.url()).toBe(url);
-    expect(page.context().pages()).toHaveLength(1);
-  });
-
-  test("movimiento reducido: filas planas con scroll horizontal nativo", async ({
-    browser,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "Crea su propio contexto de escritorio");
-    const context = await browser.newContext({
-      reducedMotion: "reduce",
-      viewport: { width: 1440, height: 900 },
-    });
-    const page = await context.newPage();
-    await toMarketplace(page);
-    await expect(section(page)).toHaveAttribute("data-mode", "reduced");
-    await expect(ring(page)).toHaveCSS("overflow-x", "auto");
-    await expect(ring(page)).toHaveCSS("transform", "none");
-    await context.close();
-  });
+test("en hover las etiquetas no cambian de tamaño", async ({ page }, info) => {
+  test.skip(info.project.name === "mobile", "sin hover en táctil");
+  const label = menu(page)
+    .getByRole("button", { name: /^Camisetas/ })
+    .locator("span")
+    .nth(1);
+  const before = await label.boundingBox();
+  await label.hover();
+  await expect(label).toHaveCSS("font-weight", "500");
+  const after = await label.boundingBox();
+  expect(after?.width).toBe(before?.width);
+  expect(after?.height).toBe(before?.height);
 });

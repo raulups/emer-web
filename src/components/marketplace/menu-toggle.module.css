@@ -1,0 +1,26 @@
+.toggle {
+  position: fixed;
+  top: 26px;
+  left: 48px;
+  z-index: 50;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font: inherit;
+  cursor: pointer;
+  isolation: isolate;
+}
+
+.toggle:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 6px;
+}
+
+/* En pantallas estrechas el switch ocupa la franja superior: el botón baja una fila. */
+@media (max-width: 760px) {
+  .toggle {
+    top: 64px;
+    left: 16px;
+  }
+}

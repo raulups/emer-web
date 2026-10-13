@@ -1,0 +1,39 @@
+.root {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* El grid se ensancha cuando el menú se oculta (padding izquierdo 24 → 48px, 0.8s). */
+.main {
+  flex: 1 1 560px;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 28px 48px 72px;
+  transition: padding 0.8s var(--ease-out-expo);
+}
+
+.main[data-side] {
+  padding-left: 24px;
+}
+
+@media (max-width: 760px) {
+  /* Sin wrap: el menú (oculto, 0px de ancho) no debe empujar el grid a otra línea. */
+  .root {
+    flex-wrap: nowrap;
+  }
+
+  .main {
+    padding: 28px 16px 56px;
+  }
+
+  .main[data-side] {
+    padding-left: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .main {
+    transition-duration: 0.01ms;
+  }
+}

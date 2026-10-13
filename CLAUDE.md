@@ -17,34 +17,31 @@ Web de marketing/descubrimiento de **Emer** (marketplace de marcas de streetwear
 - `pnpm check` = typecheck + lint + build (ejecutar antes de dar algo por terminado)
 - `pnpm lint:fix` · `pnpm test` · `pnpm lhci`
 - Tests e2e con un Chromium ya instalado: `PLAYWRIGHT_CHROMIUM_PATH=/ruta/a/chrome pnpm test`
-- Sin backend: `EMER_API_FIXTURES=1 pnpm dev` (datos de ejemplo de `src/lib/api/fixtures.ts`; los tests e2e los usan siempre)
+- Backend: `EMER_API_URL` en `.env.local` (pública: https://emerapp.onrender.com). Sin backend: `EMER_API_FIXTURES=1 pnpm dev` (datos de ejemplo de `src/lib/api/fixtures.ts`; los tests e2e los usan siempre)
 
 ## Arquitectura
 
 ```
 src/
-  app/                 rutas (Server Components por defecto)
-  components/
-    providers/         Providers (layout): ticker, Lenis, atajos del buscador, fin de carga y cursor
-    shell/             cursor, HomeMotion (registra hero y secciones de la home), FocusOnMount
-    sections/          una carpeta por sección: <seccion>-section.tsx (servidor: datos) + componente cliente animado
-    ui/                primitivas reutilizables
+  app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora)
+  app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
+  components/          componentes; cursor.tsx = cursor propio global (layout)
+    shell/             Shell + switch MARKETPLACE / EXPLORA
+    marketplace/       sección de servidor (datos) + cliente (filtros, menú, panel, grid, tarjeta)
+    ui/                halo, bracket-label (letras + corchetes + línea)
+  fonts/Inter.woff2    única fuente (variable 100–900, subconjunto latino)
+  styles/
+    theme.css          tokens: color, --font, --w-*, tracking, easings, halo, @font-face
+    theme.ts           los mismos tokens para JS (EASE, LERP, WEIGHT)
   lib/
-    gsap.ts            ÚNICO sitio donde se registran plugins GSAP y easings (EASE)
-    format.ts          upper, domain, price, pad2, norm (derivados del handoff)
-    config/sections.ts ids, etiquetas y orden de las secciones
-    motion/
-      ticker.ts        reloj único (gsap.ticker): subscribe(fn, { el, essential })
-      scroll.ts        Lenis + snap; registerHero(el), scrollTo, scrollToSection, snapToContent
-      in-view.ts       IntersectionObserver compartido: observe(el, cb)
-      bus.ts           eventos globales tipados (emer:loaded, hero:step, section:change...)
-      cursor.ts        cursor.set('drag') / cursor.clear()
-      reduced.ts       prefers-reduced-motion reactivo
-      shortcuts.ts     ⌘K, «/», ←/→, AvPág/Espacio
+    data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
+    format.ts          reglas puras: price, discount, órdenes de marcas, fallback de imagen
+    marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
+    marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
     api/               cliente tipado del backend KMP (solo servidor)
 ```
 
-Contrato de diseño de cada sección: `design/handoff/<sección>.md` (referencias visuales en `design/referencia/`, no se lintan). Assets de producción en `public/assets/`.
+Contrato de diseño: `design_handoff_emer_web/README.md` (prototipos en `design_handoff_emer_web/referencia/`, no se lintan; ante la duda manda su código). Assets de producción en `public/assets/`.
 Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier cosa que se aplace).
 
 ## Reglas de animación (obligatorias)

@@ -1,317 +1,55 @@
 @import "tailwindcss";
+@import "../styles/theme.css";
 
-/* static: emite siempre todas las variables (los CSS modules las usan sin pasar por Tailwind). */
-@theme static {
-  --color-ink: #000;
-  --color-paper: #fff;
-  --color-hero: #0a0a0a;
-  --color-surface-dark: #1a1a1a;
-  --color-muted: #8a8a8a;
-  --color-muted-dark: #6f6f6f;
-  --color-hover: #3f3f3f;
-  --color-placeholder: #4a4a4a;
-  --color-line-light: #d6d6d6;
-  --color-line-disabled: #c8c8c8;
-  --color-line-dark: #3a3a3a;
-  --color-line-darker: #262626;
-  --color-skeleton: #ededed;
-  --color-track: #e4e4e4;
-  --color-eyebrow: #666;
-  --color-hint-dark: #bdbdbd;
-  --color-card-dark: #151515;
-  --color-row-hover: #f4f4f4;
+/* Utilidades de Tailwind sobre los tokens de EMER. Sin radios ni sombras. */
+@theme inline {
+  --color-ink: var(--ink);
+  --color-black: var(--black);
+  --color-paper: var(--paper);
+  --color-dark: var(--dark);
+  --color-on-dark: var(--text-on-dark);
+  --color-grey-text: var(--grey-text);
+  --color-grey-mute: var(--grey-mute);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-hairline-dark: var(--hairline-dark);
+  --color-placeholder: var(--placeholder);
 
-  --breakpoint-md: 760px;
-  --breakpoint-lg: 860px;
+  --font-sans: var(--font);
 
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in-out-q: cubic-bezier(0.65, 0, 0.35, 1);
-  --ease-reveal: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-curtain: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-out-expo: var(--ease-out-expo);
+  --ease-load: var(--ease-load);
 
   --radius-*: initial;
-
-  --shadow-hard: 8px 8px 0 #000;
-  --shadow-ring: 0 0 0 2px #fff;
-
-  --spacing-page: clamp(16px, 3vw, 40px);
-  --spacing-hero: clamp(20px, 4vw, 56px);
-}
-
-@theme inline {
-  --font-display: var(--font-anton), sans-serif;
-  --font-serif: var(--font-fraunces), serif;
+  --shadow-*: initial;
 }
 
 @layer base {
   html {
-    background: var(--color-paper);
-    /* Con el header abierto, el foco y las anclas no quedan debajo de sus 60px. */
-    scroll-padding-top: 64px;
+    background: var(--paper);
   }
 
   body {
-    background: var(--color-paper);
-    color: var(--color-ink);
-    font-family: var(--font-serif);
-    font-weight: 300;
-  }
-
-  ::selection {
-    background: var(--color-ink);
-    color: var(--color-paper);
+    margin: 0;
+    background: var(--paper);
+    color: var(--black);
+    font-family: var(--font);
+    font-weight: var(--w-text);
+    -webkit-font-smoothing: antialiased;
   }
 
   a {
-    color: var(--color-ink);
+    color: var(--black);
+    text-decoration: none;
   }
 
   a:hover {
-    color: var(--color-hover);
+    color: var(--link-hover);
   }
 
-  :focus-visible {
-    outline: 2px solid currentColor;
-    outline-offset: 3px;
-  }
-}
-
-/* ---------- 00-shell ---------- */
-
-/* Si el JS falla y nadie quita is-loading, el CSS desbloquea el scroll a los 6 s (el loader fuerza a los 5 s). */
-html.is-loading {
-  overflow: hidden;
-  animation: emer-unlock 0s 6s forwards;
-}
-
-@keyframes emer-unlock {
-  to {
-    overflow: auto;
-  }
-}
-
-/* 03-hero: estado inicial de la entrada hasta que hidrata (luego lo controla GSAP).
-   Si el JS falla, a los 6 s el contenido aparece igualmente. */
-html.is-loading [data-hero-name] {
-  transform: translateY(105%);
-  animation: emer-reveal 0s 6s forwards;
-}
-
-html.is-loading [data-hero-item] {
-  opacity: 0;
-  animation: emer-reveal 0s 6s forwards;
-}
-
-/* Un enlace que recibe foco durante su entrada se muestra al momento (foco nunca invisible). */
-[data-hero-item]:focus-visible,
-[data-hero-item]:focus-within {
-  opacity: 1 !important;
-}
-
-@keyframes emer-reveal {
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-
-/* Línea en bucle compartida (02, 05, 06, 07, 09). Bucle CSS del compositor, fuera del ticker. */
-@keyframes emLine {
-  0% {
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-  }
-  50% {
-    transform: scaleX(1);
-    transform-origin: 0 50%;
-  }
-  50.01% {
-    transform: scaleX(1);
-    transform-origin: 100% 50%;
-  }
-  100% {
-    transform: scaleX(0);
-    transform-origin: 100% 50%;
-  }
-}
-
-.loop-line {
-  display: inline-block;
-  height: 1px;
-  background: currentColor;
-  animation: emLine 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
-}
-
-.loop-line[data-paused],
-.topbar[data-closed] .loop-line {
-  animation-play-state: paused;
-}
-
-/* 02-topbar: el foco de teclado nunca queda fuera de pantalla, ni antes de hidratar. */
-.topbar:has(:focus-visible) {
-  transform: none !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-}
-
-/* Destinos de navegación con tabindex=-1: sin anillo de foco en el bloque entero. */
-section[tabindex="-1"]:focus,
-main[tabindex="-1"]:focus {
-  outline: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loop-line {
-    animation: none !important;
-    transform: none;
-  }
-}
-
-@media (hover: hover) and (pointer: fine) {
+  /* El cursor del sistema solo se oculta cuando el cursor propio está activo (pointer:fine + JS). */
   html.has-cursor,
   html.has-cursor * {
     cursor: none !important;
-  }
-}
-
-.skip-link {
-  position: fixed;
-  left: 16px;
-  top: -48px;
-  z-index: 10001;
-  padding: 10px 14px;
-  background: var(--color-ink);
-  color: var(--color-paper);
-  font: 400 10px / 1 var(--font-serif);
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-}
-
-.skip-link:focus {
-  top: 16px;
-  color: var(--color-paper);
-}
-
-.cursor {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 10000;
-  pointer-events: none;
-  mix-blend-mode: difference;
-  opacity: 0;
-}
-
-.cursor__press {
-  position: relative;
-  width: 0;
-  height: 0;
-}
-
-.cursor__fill,
-.cursor__ring,
-.cursor__bar,
-.cursor__label {
-  position: absolute;
-}
-
-.cursor__fill {
-  left: -43px;
-  top: -43px;
-  width: 86px;
-  height: 86px;
-  border-radius: 50%;
-  background: #fff;
-}
-
-.cursor__ring {
-  left: -32px;
-  top: -32px;
-  width: 64px;
-  height: 64px;
-  border: 1.5px solid #fff;
-  border-radius: 50%;
-}
-
-.cursor__bar {
-  left: -1px;
-  top: -13px;
-  width: 2px;
-  height: 26px;
-  background: #fff;
-}
-
-.cursor__label {
-  left: 0;
-  top: 0;
-  transform: translate(-50%, -50%);
-  padding-left: 0.24em;
-  font: 400 8px / 1 var(--font-serif);
-  letter-spacing: 0.24em;
-  white-space: nowrap;
-}
-
-/* Escala display (Anton, siempre en mayúsculas) */
-@utility text-display-xl {
-  font-family: var(--font-display);
-  font-size: clamp(60px, 9vw, 150px);
-  line-height: 0.86;
-  text-transform: uppercase;
-}
-
-@utility text-display-l {
-  font-family: var(--font-display);
-  font-size: clamp(54px, 8vw, 150px);
-  line-height: 0.88;
-  text-transform: uppercase;
-}
-
-@utility text-display-m {
-  font-family: var(--font-display);
-  font-size: clamp(40px, 4.6vw, 76px);
-  line-height: 0.88;
-  text-transform: uppercase;
-}
-
-@utility text-display-s {
-  font-family: var(--font-display);
-  font-size: clamp(28px, 3vw, 42px);
-  line-height: 1.1;
-  text-transform: uppercase;
-}
-
-@utility text-display-xs {
-  font-family: var(--font-display);
-  font-size: clamp(16px, 1.6vw, 26px);
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-/* Lenis */
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-stopped,
-html[data-search-open],
-html[data-scroll-locked] {
-  overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }

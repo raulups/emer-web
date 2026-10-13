@@ -1,48 +1,58 @@
 import { cacheTag } from "next/cache";
 import { ApiError, type ApiResult, apiGet, settle, toQuery } from "./client";
 import * as normalize from "./normalize";
-import type { Paginated, Product, ProductDetail, ProductsQuery, RawProduct } from "./types";
+import type {
+  ProductDetail,
+  ProductsPage,
+  ProductsQuery,
+  RawProduct,
+  RawProductsPage,
+} from "./types";
 
+/**
+ * El backend lee los filtros de `/products` en snake_case; los camelCase se ignoran sin error.
+ * Las listas (`brand_id`, `size`, `color`) se envían repitiendo la clave.
+ */
 function productsQuery(query: ProductsQuery, withBrandIds: boolean): string {
   return toQuery({
-    limit: query.limit,
-    offset: query.offset,
-    brandIds: withBrandIds ? query.brandIds : undefined,
-    categoryId: query.categoryId,
-    isOnSale: query.isOnSale,
-    available: query.available,
-    minPrice: query.minPrice,
-    maxPrice: query.maxPrice,
+    page: query.page,
+    page_size: query.pageSize,
+    brand_id: withBrandIds ? query.brandIds : undefined,
+    category_id: query.categoryId,
+    size: query.sizes,
+    color: query.colors,
+    on_sale: query.onSale,
+    min_price: query.minPrice,
+    max_price: query.maxPrice,
     sort: query.sort,
+    q: query.q,
   });
 }
 
-/** Por defecto el servidor solo devuelve productos disponibles (`available=true`). */
-export async function getProducts(
-  query: ProductsQuery = {},
-): Promise<ApiResult<Paginated<Product>>> {
+/** Página de productos disponibles con sus facetas (categorías, tallas, colores, precio). */
+export async function getProducts(query: ProductsQuery = {}): Promise<ApiResult<ProductsPage>> {
   "use cache";
   cacheTag("products");
 
   return settle(async () => {
-    const { data, meta } = await apiGet<RawProduct[]>(`/products${productsQuery(query, true)}`);
-    return normalize.paginated(data, meta, normalize.product);
+    const { data } = await apiGet<RawProductsPage>(`/products${productsQuery(query, true)}`);
+    return normalize.productsPage(data);
   }, "hours");
 }
 
-/** Productos de una marca. Aquí `available` no se filtra por defecto. */
+/** Productos de una marca, con la misma forma que `getProducts`. */
 export async function getBrandProducts(
   brandId: string,
   query: Omit<ProductsQuery, "brandIds"> = {},
-): Promise<ApiResult<Paginated<Product>>> {
+): Promise<ApiResult<ProductsPage>> {
   "use cache";
   cacheTag("products", `brand:${brandId}`);
 
   return settle(async () => {
-    const { data, meta } = await apiGet<RawProduct[]>(
+    const { data } = await apiGet<RawProductsPage>(
       `/brands/${encodeURIComponent(brandId)}/products${productsQuery(query, false)}`,
     );
-    return normalize.paginated(data, meta, normalize.product);
+    return normalize.productsPage(data);
   }, "hours");
 }
 

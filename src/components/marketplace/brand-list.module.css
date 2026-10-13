@@ -1,0 +1,116 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.heading {
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+}
+
+.frame {
+  position: relative;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  max-height: 181px;
+  margin: 0;
+  /* Hueco para la línea de selección (la fila se desplaza −18px sin seleccionar). */
+  padding: 0 14px 0 18px;
+  margin-left: -18px;
+  overflow: hidden;
+  scrollbar-width: none;
+  list-style: none;
+  transition: max-height 1s var(--ease-out-expo);
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.frame[data-open] .list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.item {
+  transition:
+    opacity 0.6s var(--ease-out-expo) var(--delay),
+    transform 0.8s var(--ease-out-expo) var(--delay);
+}
+
+.item[data-hidden] {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Indicador de scroll: barra negra de 1px, sin flechas. */
+.track {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.6s var(--ease-out-expo) 0.3s;
+}
+
+.frame[data-open] .track {
+  opacity: 1;
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 30%;
+  background: var(--black);
+}
+
+.more {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-text);
+  font-family: var(--font);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.more:hover,
+.more:focus-visible {
+  color: var(--black);
+  font-weight: var(--w-active);
+  text-decoration-color: currentColor;
+}
+
+.more:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list,
+  .item,
+  .track {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
+}

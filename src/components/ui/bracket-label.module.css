@@ -1,0 +1,92 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.word {
+  display: flex;
+  font-family: var(--font);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: var(--halo-text-shadow);
+}
+
+/* Letras: 40 % / 80 % / 100 %, y −2px en hover, con stagger. */
+.letter {
+  display: inline-block;
+  opacity: 0.4;
+  transition:
+    opacity 0.6s var(--ease-out-expo) var(--delay),
+    transform 0.7s var(--ease-out-expo) var(--delay);
+}
+
+.root[data-level="hover"] .letter {
+  opacity: 0.8;
+}
+
+.root[data-level="full"] .letter {
+  opacity: 1;
+}
+
+.root[data-raised] .letter {
+  transform: translateY(-2px);
+}
+
+/* Corchetes: se abren desde el texto hacia fuera. */
+.open,
+.close {
+  display: inline-block;
+  opacity: 0;
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.open {
+  margin-right: 0.5em;
+  transform: translateX(8px);
+}
+
+.close {
+  margin-left: 0.2em;
+  transform: translateX(-8px);
+}
+
+.root[data-bracketed] .open,
+.root[data-bracketed] .close {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.line {
+  display: block;
+  height: 1px;
+  background: var(--black);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.8s var(--ease-out-expo);
+}
+
+.root[data-origin="right"] .line {
+  transform-origin: right;
+}
+
+.root[data-lined] .line {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter,
+  .open,
+  .close,
+  .line {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
+}

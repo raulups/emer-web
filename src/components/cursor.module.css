@@ -1,0 +1,23 @@
+.dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: var(--cursor-size);
+  height: var(--cursor-size);
+  margin: calc(var(--cursor-size) / -2) 0 0 calc(var(--cursor-size) / -2);
+  border-radius: 50%;
+  background: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.dot[hidden] {
+  display: none;
+}
+
+@media not (pointer: fine) {
+  .dot {
+    display: none;
+  }
+}

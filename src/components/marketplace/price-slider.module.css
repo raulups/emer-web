@@ -1,0 +1,54 @@
+.slider {
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 4px;
+}
+
+.track {
+  position: relative;
+  height: 14px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.rail,
+.range {
+  position: absolute;
+  top: 6px;
+  height: 1px;
+}
+
+.rail {
+  right: 0;
+  left: 0;
+  background: #c8c8c8;
+}
+
+.range {
+  right: var(--to);
+  left: var(--from);
+  background: var(--black);
+}
+
+.thumb {
+  position: absolute;
+  top: 2px;
+  width: 9px;
+  height: 9px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--black);
+}
+
+.thumb:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 3px;
+}
+
+.value {
+  font-weight: var(--w-text);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
