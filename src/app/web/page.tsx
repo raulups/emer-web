@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ExploraSection, ExploraSkeleton } from "@/components/explora/explora-section";
 import {
   MarketplaceSection,
   MarketplaceSkeleton,
 } from "@/components/marketplace/marketplace-section";
 import { Shell } from "@/components/shell/shell";
-import { ViewPlaceholder } from "@/components/views/view-placeholder";
 
 export const metadata: Metadata = { title: "Marketplace" };
 
@@ -18,7 +18,11 @@ export default function WebPage() {
           <MarketplaceSection />
         </Suspense>
       }
-      explora={<ViewPlaceholder title="Explora" fullBleed />}
+      explora={
+        <Suspense fallback={<ExploraSkeleton />}>
+          <ExploraSection />
+        </Suspense>
+      }
     />
   );
 }

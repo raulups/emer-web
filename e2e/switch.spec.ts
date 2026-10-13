@@ -32,7 +32,7 @@ test("EXPLORA monta Explora a sangre", async ({ page }) => {
   await expect(option(page, "Explora")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("region", { name: "Productos" })).toHaveCount(0);
 
-  const explora = page.locator('[data-placeholder="explora"]');
+  const explora = page.locator("[data-intro]");
   await expect(explora).toBeVisible();
   expect((await explora.boundingBox())?.y).toBe(0);
 

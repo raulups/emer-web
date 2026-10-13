@@ -28,6 +28,7 @@ src/
   components/          componentes; cursor.tsx = cursor propio global (layout)
     shell/             Shell + switch MARKETPLACE / EXPLORA
     landing/           Landing: `landing.tsx` (un bucle por scroll), túnel de marcas (servidor + Suspense)
+    explora/           Explora: `explora.tsx` (un bucle por scroll: intro + Populares), sección de servidor + datos
     marketplace/       sección de servidor (datos) + cliente (filtros, menú, panel, grid, tarjeta)
     ui/                halo, bracket-label (letras + corchetes + línea)
   fonts/Inter.woff2    única fuente (variable 100–900, subconjunto latino)
@@ -38,6 +39,7 @@ src/
     data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
     format.ts          reglas puras: price, discount, órdenes de marcas, fallback de imagen
     marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
+    explora-data.ts    Populares: 6 marcas por nº de piezas + 2 productos cada una (solo servidor)
     marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
     motion/            `ticker.ts` (único reloj), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings)
     api/               cliente tipado del backend KMP (solo servidor)

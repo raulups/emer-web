@@ -1,0 +1,405 @@
+.root {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.skeleton {
+  min-height: 100vh;
+  background: var(--paper);
+}
+
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100vh;
+}
+
+.errorTitle {
+  margin: 0;
+  font-weight: var(--w-title);
+  font-size: min(7vw, 16vh);
+  line-height: var(--lh-title);
+  letter-spacing: var(--track-title);
+}
+
+.errorText {
+  margin: 0;
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 13px;
+}
+
+/* ---------- §4.1 Intro: MARCAS fija y PO / PU / LA / RES en escalera ---------- */
+
+.intro {
+  position: relative;
+  overflow-x: clip;
+  background: var(--paper);
+}
+
+/* Cuadrícula 2×2 sticky: queda detrás de todo el recorrido de la intro. */
+.grid {
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  height: 100vh;
+  margin-bottom: -100vh;
+  pointer-events: none;
+}
+
+.gridV,
+.gridH,
+.lineV,
+.lineH {
+  position: absolute;
+  background: var(--hairline);
+}
+
+.gridV {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+}
+
+.gridH {
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+}
+
+.introRow {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  font-weight: var(--w-title);
+  font-size: min(9vw, 30vh);
+  line-height: var(--lh-title);
+  letter-spacing: var(--track-title);
+}
+
+.introLeft {
+  position: relative;
+}
+
+.introSticky {
+  position: sticky;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  padding: 0 1vw;
+  transform: translateY(-50%);
+}
+
+.introTitle {
+  white-space: nowrap;
+}
+
+.introSub {
+  position: absolute;
+  top: calc(100% + 18px);
+  left: 1vw;
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* Empiezan bajo el pliegue; RES acaba a la altura de MARCAS (padding-bottom .42em). */
+.introWords {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12em;
+  padding: 100vh 0 0.42em 1vw;
+  white-space: nowrap;
+}
+
+.introWord {
+  display: block;
+}
+
+.intro[data-live] .introWord {
+  will-change: transform;
+}
+
+/* ---------- §4.2 Populares ---------- */
+
+.pop {
+  position: relative;
+  background: var(--paper);
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.lineV {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: 3;
+  width: 1px;
+}
+
+.lineH {
+  top: 47%;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  height: 1px;
+}
+
+/* Nombres: base gris y copia negra recortada a la ventana 50–75 %. */
+.names {
+  position: absolute;
+  right: 0;
+  bottom: 53%;
+  left: 0;
+  padding-bottom: 3vh;
+  font-weight: var(--w-text);
+  font-size: min(5.6vw, 12vh);
+  line-height: 1;
+  letter-spacing: var(--track-name);
+  white-space: nowrap;
+}
+
+.namesBase,
+.namesTop {
+  display: flex;
+}
+
+.namesBase {
+  color: var(--grey-ghost);
+}
+
+.namesTop {
+  color: var(--ink);
+}
+
+.namesClip {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 3vh;
+  clip-path: inset(0 25% 0 50%);
+}
+
+.name {
+  flex: none;
+  padding-right: 8vw;
+}
+
+.pop[data-live] :is(.namesBase, .namesTop, .imTrack) {
+  will-change: transform;
+}
+
+/* Imagen de marca en la ventana 50–75 %, bajo la línea; una foto por marca, sincronizada. */
+.imWindow {
+  position: absolute;
+  top: 47%;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  width: 25%;
+  overflow: hidden;
+}
+
+.imTrack {
+  display: flex;
+  height: 100%;
+}
+
+.imTile {
+  flex: 0 0 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.imImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  position: absolute;
+  top: calc(47% + 12px);
+  left: 2.2vw;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: min(30vw, 420px);
+}
+
+.desc {
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: clamp(15px, 1.3vw, 20px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.brandLink {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: flex-start;
+  color: var(--ink);
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.brandLine {
+  height: 1px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.brandLink:hover .brandLine,
+.brandLink:focus-visible .brandLine {
+  transform: scaleX(1);
+}
+
+.brandLink:focus-visible,
+.product:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.products {
+  position: absolute;
+  bottom: 22px;
+  left: 2.2vw;
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.product {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(9vw, 17vh, 140px);
+  color: var(--ink);
+}
+
+.productPhoto {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.productImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease-out-expo);
+}
+
+.product:hover .productImage {
+  transform: scale(1.05);
+}
+
+.productName {
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productPrice {
+  margin-top: -4px;
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.counter {
+  position: absolute;
+  right: 1.6vw;
+  bottom: 22px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.counterNum {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.counterBar {
+  width: 1px;
+  height: 12px;
+  background: var(--grey-rule);
+}
+
+/* Solo con «reducir movimiento»: lista estática en lugar del recorrido por scroll. */
+.staticList {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid,
+  .pop {
+    display: none;
+  }
+
+  .introWords {
+    padding-top: 12vh;
+  }
+
+  .staticList {
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    margin: 0;
+    padding: 12vh 4vw;
+    list-style: none;
+  }
+
+  .staticItem {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: min(60ch, 100%);
+  }
+
+  .staticName {
+    font-weight: var(--w-text);
+    font-size: min(8vw, 12vh);
+    line-height: 1;
+    letter-spacing: var(--track-name);
+  }
+}
