@@ -112,8 +112,7 @@
 .skip:hover .skipLine,
 .skip:focus-visible .skipLine,
 .autoButton:hover .autoLine,
-.autoButton:focus-visible .autoLine,
-.root[data-auto] .autoLine {
+.autoButton:focus-visible .autoLine {
   transform: scaleX(1);
 }
 
@@ -202,8 +201,8 @@
   font-weight: var(--w-display);
   font-size: min(27vw, 50vh);
   line-height: var(--lh-display);
-  /* Un punto más cerrado que el token: las letras se funden y no queda línea blanca al hacer zoom. */
-  letter-spacing: -0.07em;
+  /* Algo más abierto que el token (−.06em) para que las letras respiren. */
+  letter-spacing: -0.035em;
   transform-origin: 50% 55%;
 }
 
@@ -230,7 +229,7 @@
   cursor: pointer;
 }
 
-.root[data-ready]:not([data-auto]) .autoLabel {
+.root[data-ready] .autoLabel {
   animation: blink 0.7s steps(1, end) infinite;
 }
 

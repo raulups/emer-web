@@ -6,19 +6,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { Halo } from "@/components/ui/halo";
-import { clamp01, easeInOutCubic, easeInOutQuad, lerpTo, pad } from "@/lib/motion/math";
+import { clamp01, easeInOutCubic, lerpTo, pad } from "@/lib/motion/math";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write, writeText } from "@/lib/motion/write";
 import {
-  AUTO_MIN_MS,
-  AUTO_PX_PER_MS,
+  AUTO,
   CURTAIN_MS,
   DECO,
   EXIT_PROGRESS,
   FALLBACK_TOTAL,
   GOLDEN_ANGLE,
+  IMAGES_TIMEOUT_S,
   INTRO_HOLD_S,
   INTRO_S,
+  LOAD_TIMEOUT_S,
+  LOADING_CAP,
   MANIFESTO,
 } from "./content";
 import styles from "./landing.module.css";
@@ -37,14 +39,13 @@ type Props = {
 /**
  * Landing (README §1, `Landing.dc.html`): loader, hero con zoom y túnel, manifiesto y salida.
  * Todo lo ligado al scroll se calcula en un único bucle (`gsap.ticker`) que escribe estilos en los
- * nodos con `write`; React solo guarda los cambios discretos (listo, automático, saliendo).
+ * nodos con `write`; React solo guarda los cambios discretos (listo, saliendo).
  */
 export function Landing({ tunnel }: Props) {
   const root = useRef<HTMLElement>(null);
   const controls = useRef<Controls | null>(null);
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [auto, setAuto] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
   useGSAP(
@@ -123,31 +124,37 @@ export function Landing({ tunnel }: Props) {
           // Las tarjetas del túnel y el total llegan con Suspense: se vuelven a leer al cambiar.
           let tiles: HTMLElement[] = [];
           let total = FALLBACK_TOTAL;
+          let dataLoaded = false;
           const readTunnel = () => {
+            dataLoaded = tunnelRoot.querySelector("[data-loaded]") !== null;
             tiles = [...tunnelRoot.querySelectorAll<HTMLElement>("[data-tile]")];
             total =
               Number(tunnelRoot.querySelector("[data-total]")?.getAttribute("data-total")) ||
               FALLBACK_TOTAL;
             dirty = true;
           };
+          const imagesDone = () =>
+            tiles.every((tile) => {
+              const img = tile.querySelector("img");
+              return !img || img.complete;
+            });
           readTunnel();
           const tunnelObserver = new MutationObserver(readTunnel);
           tunnelObserver.observe(tunnelRoot, { childList: true, subtree: true });
 
           // ---- Salida y autoscroll ----
+          type Segment = { from: number; to: number; at: number; ms: number };
           let left = false;
           let autoOn = false;
-          let autoStart = 0;
-          let autoDist = 0;
-          let autoDur = 0;
           let autoT0 = -1;
-          let wantAuto = false;
+          let autoPos = 0;
+          let autoSegments: Segment[] = [];
+          let autoTotal = 0;
 
           const stopAuto = () => {
-            if (!autoOn && !wantAuto) return;
             autoOn = false;
-            wantAuto = false;
-            setAuto(false);
+            autoT0 = -1;
+            dirty = true;
           };
           const leave = () => {
             if (left) return;
@@ -156,22 +163,59 @@ export function Landing({ tunnel }: Props) {
             setLeaving(true);
             window.setTimeout(() => router.push("/web"), CURTAIN_MS);
           };
+          /** Recorrido por tramos desde la posición actual: cada tramo con su velocidad. */
+          const planAuto = (start: number) => {
+            const [heroTop, heroH] = geo.hero;
+            const [maniTop, maniH] = geo.mani;
+            const [exitTop, exitH] = geo.exit;
+            const stops = [
+              { y: heroTop + AUTO.zoomEnd * (heroH - vh), v: AUTO.zoomSpeed, hold: 0 },
+              { y: heroTop + heroH - vh, v: AUTO.tunnelSpeed, hold: 0 },
+              { y: maniTop, v: AUTO.gapSpeed, hold: 0 },
+              {
+                y: maniTop + AUTO.bombAt * (maniH - vh),
+                v: AUTO.manifestoSpeed,
+                hold: AUTO.bombHoldMs,
+              },
+              { y: exitTop + exitH - vh, v: AUTO.exitSpeed, hold: 0 },
+            ];
+            const segments: Segment[] = [];
+            let at = 0;
+            let from = start;
+            for (const stop of stops) {
+              if (stop.y <= from) continue;
+              const ms = (stop.y - from) / stop.v;
+              segments.push({ from, to: stop.y, at, ms });
+              at += ms;
+              from = stop.y;
+              if (stop.hold > 0) {
+                segments.push({ from, to: from, at, ms: stop.hold });
+                at += stop.hold;
+              }
+            }
+            autoSegments = segments;
+            autoTotal = at;
+          };
+          const autoTarget = (elapsedMs: number) => {
+            const segment =
+              autoSegments.find((seg) => elapsedMs < seg.at + seg.ms) ?? autoSegments.at(-1);
+            if (!segment) return window.scrollY;
+            return (
+              segment.from +
+              (segment.to - segment.from) * clamp01((elapsedMs - segment.at) / segment.ms)
+            );
+          };
           controls.current = {
             toggleAuto: () => {
-              if (autoOn || wantAuto) {
-                stopAuto();
-                return;
-              }
-              const dist = geo.exit[0] + geo.exit[1] - vh - window.scrollY;
-              if (dist <= 0) {
+              if (autoOn) return;
+              planAuto(window.scrollY);
+              if (autoSegments.length === 0) {
                 leave();
                 return;
               }
-              autoStart = window.scrollY;
-              autoDist = dist;
-              autoDur = Math.max(AUTO_MIN_MS, dist / AUTO_PX_PER_MS);
-              wantAuto = true;
-              setAuto(true);
+              autoPos = window.scrollY;
+              autoT0 = -1;
+              autoOn = true;
             },
           };
           const onUserInput = (event: Event) => {
@@ -185,6 +229,7 @@ export function Landing({ tunnel }: Props) {
           let phase: "intro" | "live" = "intro";
           let t0 = -1;
           let readyAt = -1;
+          let dataAt = -1;
           let s = 0;
           const last = { a: Number.NaN, b: Number.NaN, c: Number.NaN };
           const wordOn: boolean[] = [];
@@ -198,7 +243,11 @@ export function Landing({ tunnel }: Props) {
 
             if (phase === "intro") {
               if (window.scrollY !== 0) window.scrollTo(0, 0);
-              const k = clamp01((time - t0) / INTRO_S);
+              // El contador espera (90 %) a que lleguen las marcas y sus imágenes.
+              if (dataLoaded && dataAt < 0) dataAt = time;
+              const settled = dataLoaded && (imagesDone() || time - dataAt >= IMAGES_TIMEOUT_S);
+              const cap = settled || time - t0 >= LOAD_TIMEOUT_S ? 1 : LOADING_CAP;
+              const k = Math.min(clamp01((time - t0) / INTRO_S), cap);
               writeText(counter, pad(Math.round(k * 100), 3));
               write(bar, "transform", `scaleX(${k})`);
               if (k >= 1 && readyAt < 0) readyAt = time;
@@ -211,15 +260,12 @@ export function Landing({ tunnel }: Props) {
             }
             if (left) return;
 
-            if (wantAuto && autoT0 < 0) {
-              autoT0 = time;
-              autoOn = true;
-            }
-            if (!wantAuto) autoT0 = -1;
             if (autoOn) {
-              const k = clamp01(((time - autoT0) * 1000) / autoDur);
-              window.scrollTo(0, autoStart + autoDist * easeInOutQuad(k));
-              if (k >= 1) {
+              if (autoT0 < 0) autoT0 = time;
+              const elapsed = (time - autoT0) * 1000;
+              autoPos = lerpTo(autoPos, autoTarget(elapsed), deltaMs);
+              window.scrollTo(0, autoPos);
+              if (elapsed >= autoTotal + AUTO.endGraceMs) {
                 leave();
                 return;
               }
@@ -236,9 +282,9 @@ export function Landing({ tunnel }: Props) {
             write(bar, "transform", `scaleX(${clamp01(s / docH)})`);
 
             // Hero: zoom de EMER, imágenes fuera antes del negro, túnel y contador.
-            const showAuto = pA < 0.04 || autoOn;
+            const showAuto = pA < 0.04 && !autoOn;
             write(autoWrap, "opacity", showAuto ? "1" : "0");
-            write(autoWrap, "pointer-events", pA < 0.04 ? "auto" : "none");
+            write(autoWrap, "pointer-events", showAuto ? "auto" : "none");
             if (pA !== last.a) {
               last.a = pA;
               hero.toggleAttribute("data-live", pA > 0 && pA < 1);
@@ -347,7 +393,6 @@ export function Landing({ tunnel }: Props) {
       ref={root}
       className={styles.root}
       data-ready={ready || undefined}
-      data-auto={auto || undefined}
       data-leaving={leaving || undefined}
     >
       <h1 className="sr-only">EMER</h1>
@@ -409,7 +454,7 @@ export function Landing({ tunnel }: Props) {
               data-auto-button
               onClick={() => controls.current?.toggleAuto()}
             >
-              <span className={styles.autoLabel}>{auto ? "[ DETENER ]" : "[ AUTOMÁTICO ]"}</span>
+              <span className={styles.autoLabel}>[ AUTOMÁTICO ]</span>
               <span className={styles.autoLine} aria-hidden="true" />
             </button>
           </div>

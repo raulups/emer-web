@@ -40,18 +40,33 @@ test("hero: EMER, [ AUTOMÁTICO ] y el zoom con el scroll", async ({ page }) => 
   await expect(page.locator("[data-auto-wrap]")).toHaveCSS("pointer-events", "none");
 });
 
-test("[ AUTOMÁTICO ] pasa a [ DETENER ] y se para con el scroll del usuario", async ({
+test("[ AUTOMÁTICO ] arranca el zoom ya, se oculta y se para con el scroll del usuario", async ({
   page,
 }, info) => {
   test.skip(info.project.name === "mobile", "sin rueda en táctil");
   await page.goto("/");
   await expect(page.locator("main[data-ready]")).toBeAttached({ timeout: 6000 });
   await page.getByRole("button", { name: "[ AUTOMÁTICO ]" }).click();
-  const stop = page.getByRole("button", { name: "[ DETENER ]" });
-  await expect(stop).toBeVisible();
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-  await page.mouse.wheel(0, 40);
-  await expect(page.getByRole("button", { name: "[ AUTOMÁTICO ]" })).toBeAttached();
+  await expect(page.getByRole("button", { name: "[ DETENER ]" })).toHaveCount(0);
+  await expect(page.locator("[data-auto-wrap]")).toHaveCSS("opacity", "0");
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 3000 })
+    .toBeGreaterThan(300);
+  await page.mouse.wheel(0, 10);
+  await page.waitForTimeout(400);
+  const stopped = await page.evaluate(() => window.scrollY);
+  await page.waitForTimeout(600);
+  expect(Math.abs((await page.evaluate(() => window.scrollY)) - stopped)).toBeLessThan(3);
+});
+
+test("[ AUTOMÁTICO ] recorre la Landing sin parar y abre el Marketplace", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === "mobile", "mismo recorrido que en escritorio");
+  await page.goto("/");
+  await expect(page.locator("main[data-ready]")).toBeAttached({ timeout: 6000 });
+  await page.getByRole("button", { name: "[ AUTOMÁTICO ]" }).click();
+  await page.waitForURL("**/web", { timeout: 30_000 });
 });
 
 test("manifiesto: palabras que se encienden y corte a la bomba", async ({ page }) => {

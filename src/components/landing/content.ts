@@ -1,9 +1,30 @@
 /** Duración del contador del loader y pausa antes de abrir (README §1.1). */
 export const INTRO_S = 1.8;
 export const INTRO_HOLD_S = 0.25;
-/** Autoscroll de [ AUTOMÁTICO ]: `max(12 s, distancia / 0.4 px·ms⁻¹)`. */
-export const AUTO_MIN_MS = 12000;
-export const AUTO_PX_PER_MS = 0.4;
+/** Con el backend lento el loader espera a las marcas y a sus imágenes, hasta estos límites. */
+export const LOAD_TIMEOUT_S = 45;
+export const IMAGES_TIMEOUT_S = 8;
+/** El contador del loader no pasa de aquí hasta tener marcas e imágenes. */
+export const LOADING_CAP = 0.9;
+
+/**
+ * [ AUTOMÁTICO ]: velocidades (px/ms) por tramo. Zoom de EMER rápido; túnel/contador y manifiesto
+ * a ritmo cómodo; hueco entre secciones y salida muy rápidos, con una pausa en la imagen grande.
+ */
+export const AUTO = {
+  /** Fracción del hero (`pA`) en la que termina el zoom y entra el contador. */
+  zoomEnd: 0.28,
+  /** Fracción del manifiesto (`pB`) en la que ya se ve la imagen grande. */
+  bombAt: 0.7,
+  zoomSpeed: 0.9,
+  tunnelSpeed: 0.45,
+  gapSpeed: 1.6,
+  manifestoSpeed: 0.5,
+  bombHoldMs: 800,
+  exitSpeed: 1.6,
+  /** Margen tras el final del recorrido antes de forzar la salida. */
+  endGraceMs: 1500,
+} as const;
 /** Tiempo que dura la cortina blanca antes de navegar. */
 export const CURTAIN_MS = 850;
 export const EXIT_PROGRESS = 0.99;
