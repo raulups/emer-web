@@ -4,7 +4,8 @@
   color: var(--ink);
 }
 
-/* Entrada: 70vh en blanco donde la línea vertical del 50 % baja dibujándose con el scroll. */
+/* Entrada: 70vh en blanco donde la línea vertical del 50 % baja dibujándose con el scroll (la misma
+   línea que la división de Emergentes y que el borde de la primera columna: mismo x). */
 .lead {
   position: relative;
   height: 70vh;
@@ -16,7 +17,6 @@
   left: 50%;
   width: 1px;
   height: 100%;
-  margin-left: -1px;
   background: var(--hairline-strong);
   transform: scaleY(0);
   transform-origin: top;
@@ -47,7 +47,7 @@
 .panel {
   position: relative;
   flex: none;
-  width: 50vw;
+  width: 50%;
   height: 100%;
 }
 

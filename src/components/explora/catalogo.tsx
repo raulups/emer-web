@@ -6,15 +6,19 @@ import { price } from "@/lib/format";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
 
-/** Columnas del grid irregular (README §4.5, `LAY`): ancho y alto relativo de cada celda. */
+/**
+ * Columnas del grid irregular (README §4.5, `LAY`): ancho y alto relativo de cada celda. Los anchos
+ * van en % de la pantalla (no en vw): así la primera columna arranca en el mismo 50 % que la línea
+ * de Emergentes aunque haya barra de scroll.
+ */
 const LAY: readonly { width: string; heights: readonly number[] }[] = [
-  { width: "26vw", heights: [1] },
-  { width: "20vw", heights: [0.62, 0.38] },
-  { width: "32vw", heights: [0.45, 0.55] },
-  { width: "18vw", heights: [1, 1, 1] },
-  { width: "28vw", heights: [1] },
-  { width: "22vw", heights: [0.5, 0.5] },
-  { width: "30vw", heights: [0.7, 0.3] },
+  { width: "26%", heights: [1] },
+  { width: "20%", heights: [0.62, 0.38] },
+  { width: "32%", heights: [0.45, 0.55] },
+  { width: "18%", heights: [1, 1, 1] },
+  { width: "28%", heights: [1] },
+  { width: "22%", heights: [0.5, 0.5] },
+  { width: "30%", heights: [0.7, 0.3] },
 ];
 
 type Cell = { brand: ExploraBrand; height: number; first: boolean };
