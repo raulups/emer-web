@@ -302,3 +302,18 @@ test("Catálogo: todas las marcas, sin repetir, y «Catálogo pronto» en las qu
     page.locator("[data-cat] [data-cat-g] a", { hasText: "Catálogo pronto" }),
   ).toHaveCount(1);
 });
+
+test("imágenes rotas: Catálogo y Emergentes usan la foto del primer producto", async ({ page }) => {
+  await openExplora(page);
+  for (const scope of ["[data-cat]", "[data-er-car]"]) {
+    const src = await page
+      .locator(`${scope} img[alt="Imagen Rota"]`)
+      .first()
+      .evaluate(async (img: HTMLImageElement) => {
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        return { src: img.getAttribute("src"), ok: img.naturalWidth > 0 };
+      });
+    expect(src.src).toMatch(/\/assets\/deco\/.+\.png/);
+    expect(src.ok).toBe(true);
+  }
+});

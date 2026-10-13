@@ -324,7 +324,7 @@
 
 .productName {
   overflow: hidden;
-  font-weight: 400;
+  font-weight: var(--w-text);
   font-size: 11px;
   line-height: 1.3;
   text-overflow: ellipsis;

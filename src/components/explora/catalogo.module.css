@@ -168,7 +168,7 @@
 .soon {
   background: var(--paper);
   padding: 6px 8px;
-  font-weight: 400;
+  font-weight: var(--w-text);
   line-height: 1;
 }
 

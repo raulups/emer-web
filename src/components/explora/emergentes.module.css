@@ -110,7 +110,7 @@
   gap: 10px;
   justify-content: space-between;
   color: var(--grey-mute);
-  font-weight: 400;
+  font-weight: var(--w-text);
   font-size: 12px;
   line-height: 1;
   transition: color 0.4s;
@@ -208,7 +208,7 @@
 }
 
 .productPrice {
-  font-weight: 400;
+  font-weight: var(--w-text);
   font-size: 10px;
   line-height: 1;
 }

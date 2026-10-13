@@ -1,5 +1,7 @@
 # Pendientes
 
+Revisión final contra los prototipos: ver `docs/REVISION_FINAL.md`.
+
 Todo lo aplazado durante la implementación, para abordarlo al final. Se actualiza en cada PR.
 
 ## Assets que faltan

@@ -151,7 +151,7 @@
 .previewName,
 .previewPrice {
   overflow: hidden;
-  font-weight: 400;
+  font-weight: var(--w-text);
   font-size: 10px;
   line-height: 1.25;
   text-overflow: ellipsis;
