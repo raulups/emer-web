@@ -33,4 +33,9 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 - [ ] **Galería de la tarjeta**: la referencia rellena con fotos de otros productos de la marca cuando un producto tiene una sola; no se ha portado (con una foto no hay carrusel ni flechas). Máximo 8 fotos por tarjeta.
 - [ ] **Precio del slider lineal 0–1750 €**: casi todos los productos caen en el primer 10 % del recorrido. Valorar escala no lineal.
 - [ ] **Tokens en `src/styles/theme.*`** en vez de `styles/tokens.*`: una regla de permisos impide crear archivos con «token» en el nombre.
+- [ ] **Landing — fuentes y tamaños**: League Gothic y Anton sustituidas por Inter. EMER: 900, `min(27vw,50vh)`, tracking −.07em (un punto más cerrado que el token para que no quede línea blanca al hacer zoom); contador: `min(30vw,52vh)`; manifiesto: 800, `min(4.4vw,9vh)`. Ajustar a ojo con el diseño y revisar móvil (el diseño no lo define).
+- [ ] **Landing — clip-path** en las imágenes del manifiesto (README, contra la regla 1 de CLAUDE.md); `will-change` solo mientras la sección está en pantalla.
+- [ ] **Landing sin movimiento** (`prefers-reduced-motion`): sin loader, hero y manifiesto estáticos y [ MARKETPLACE ] como enlace. No está en el diseño: confirmar.
+- [ ] **Landing sin JavaScript**: el loader tapa la página (el contador es JS). Valorar `<noscript>`.
+- [ ] **Túnel de la Landing**: usa `brand.img` o la foto del primer producto; con 12 huecos y menos marcas se repiten. El contador final es el nº real de marcas (41 si el backend no responde).
 - [ ] Favicon y OG de EMER (el `favicon.ico` actual es el de Next).
