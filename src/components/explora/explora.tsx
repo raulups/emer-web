@@ -7,6 +7,7 @@ import type { ExploraData } from "@/lib/explora-data";
 import { clamp01, lerpTo } from "@/lib/motion/math";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write } from "@/lib/motion/write";
+import { Catalogo } from "./catalogo";
 import { Emergentes } from "./emergentes";
 import styles from "./explora.module.css";
 import { Novedades } from "./novedades";
@@ -21,8 +22,8 @@ type Props = { data: ExploraData };
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
 /**
- * Explora §4.1–§4.4: intro, Populares, Novedades y Emergentes, con la transición entre las dos
- * últimas. Un único bucle (`gsap.ticker`) suaviza el scroll con lerp 0.14 (`s`) y escribe estilos
+ * Explora §4.1–§4.5: intro, Populares, Novedades, Emergentes (con la transición entre las dos
+ * últimas) y Catálogo. Un único bucle (`gsap.ticker`) suaviza el scroll con lerp 0.14 (`s`) y escribe estilos
  * en los nodos con geometría medida; React solo guarda las marcas activas.
  */
 export function Explora({ data }: Props) {
@@ -61,6 +62,14 @@ export function Explora({ data }: Props) {
       const colA = one("er-a");
       const colB = one("er-b");
       const erInfo = one("er-info");
+      const cat = one("cat");
+      const lead = one("cat-lead");
+      const catLine = one("cat-line");
+      const pin = one("cat-pin");
+      const track = one("cat-track");
+      const catH = one("cat-h");
+      const catTexts = [...el.querySelectorAll<HTMLElement>("[data-cat-t]")];
+      const catCols = [...el.querySelectorAll<HTMLElement>("[data-cat-g]")];
 
       window.scrollTo(0, 0);
 
@@ -80,16 +89,27 @@ export function Explora({ data }: Props) {
         let wordCenters: number[] = [];
         let offsets: number[] = [];
         let tile = 1;
+        let leadTop = 0;
+        let leadH = 1;
+        let pinTop = 0;
+        let travel = 0;
         let dirty = true;
         const docTop = (node: HTMLElement, scroll: number) =>
           node.getBoundingClientRect().top + scroll;
         const measure = () => {
           vh = window.innerHeight;
+          // Recorrido horizontal medido: la sección fija mide vh + lo que se desplaza la pista.
+          travel = Math.max(0, track.scrollWidth - pin.clientWidth);
+          const pinHeight = `${Math.round(vh + travel)}px`;
+          if (pin.style.height !== pinHeight) pin.style.height = pinHeight;
           const scroll = window.scrollY;
           box.intro = [docTop(intro, scroll), intro.offsetHeight];
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
+          leadTop = docTop(lead, scroll);
+          leadH = lead.offsetHeight;
+          pinTop = docTop(pin, scroll);
           spacerTop = docTop(spacer, scroll);
           spacerH = spacer.offsetHeight;
           stageW = stage.clientWidth;
@@ -134,6 +154,7 @@ export function Explora({ data }: Props) {
           live(pop, box.pop[0], box.pop[1]);
           live(nv, box.nv[0], box.nv[1]);
           live(er, box.er[0] + vh, box.er[1]);
+          live(cat, leadTop - vh, leadH + pin.offsetHeight + vh);
 
           // §4.1 Intro: cada palabra se desplaza t²·0.4·vw según su distancia al centro.
           words.forEach((word, i) => {
@@ -214,6 +235,30 @@ export function Explora({ data }: Props) {
             shownNear = nearest;
             setNear(nearest);
           }
+
+          // §4.5 Catálogo: la línea baja, el título y las columnas aparecen y la pista se desplaza.
+          write(
+            catLine,
+            "transform",
+            `scaleY(${clamp01((vh - (leadTop - s)) / Math.max(1, leadH)).toFixed(4)})`,
+          );
+          const pinScreen = pinTop - s;
+          const kc = clamp01(1 - pinScreen / vh);
+          write(catH, "transform", `scaleX(${easeOutCubic(clamp01((kc - 0.4) / 0.6)).toFixed(4)})`);
+          catTexts.forEach((node, i) => {
+            const e = easeOutCubic(clamp01((kc - 0.55 - i * 0.08) / 0.35));
+            write(node, "opacity", e.toFixed(3));
+            write(node, "transform", `translateY(${((1 - e) * 14).toFixed(1)}px)`);
+          });
+          catCols.forEach((node, i) => {
+            write(
+              node,
+              "opacity",
+              easeOutCubic(clamp01((kc - 0.5 - Math.min(i, 3) * 0.08) / 0.4)).toFixed(3),
+            );
+          });
+          const along = travel > 0 ? clamp01(-pinScreen / travel) : 0;
+          write(track, "transform", `translateX(${(-along * travel).toFixed(1)}px)`);
         };
 
         const unsubscribe = subscribe(frame, el);
@@ -259,6 +304,7 @@ export function Explora({ data }: Props) {
       <Populares popular={popular} index={index} />
       <Novedades newest={newest} />
       <Emergentes brands={emergent} near={near} />
+      <Catalogo brands={emergent} />
 
       <ul className={styles.staticList} data-static>
         {popular.map((brand) => (

@@ -22,6 +22,8 @@ const geometry = (page: Page) =>
       nv: top("[data-nv]"),
       sp: top("[data-sp]"),
       er: top("[data-er]"),
+      lead: top("[data-cat-lead]"),
+      pin: top("[data-cat-pin]"),
       vh: window.innerHeight,
     };
   });
@@ -205,4 +207,98 @@ test("Emergentes: dos columnas en sentidos opuestos, marca activa por hover y si
   }, point);
   expect(under).toBeTruthy();
   await expect(page.locator("[data-er-info]")).toContainText(under as string);
+});
+
+test("Catálogo: la línea baja, el alto sale del recorrido medido y la pista se desplaza", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const g = await geometry(page);
+  const matrix = (selector: string) =>
+    page.locator(selector).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform));
+
+  await page.evaluate((y) => window.scrollTo(0, y), g.lead.top + 0.3 * g.lead.height);
+  await expect
+    .poll(async () => (await matrix("[data-cat-line]")).d, { timeout: 4000 })
+    .toBeLessThan(0.9);
+  await page.evaluate((y) => window.scrollTo(0, y), g.lead.top + g.lead.height);
+  await expect
+    .poll(async () => (await matrix("[data-cat-line]")).d, { timeout: 4000 })
+    .toBeCloseTo(1, 1);
+
+  // Alto de la sección = alto de pantalla + recorrido horizontal de la pista.
+  const travel = await page.evaluate(() => {
+    const track = document.querySelector<HTMLElement>("[data-cat-track]");
+    const pin = document.querySelector<HTMLElement>("[data-cat-pin]");
+    return track && pin ? track.scrollWidth - pin.clientWidth : 0;
+  });
+  expect(travel).toBeGreaterThan(0);
+  expect(Math.abs(g.pin.height - (g.vh + travel))).toBeLessThanOrEqual(1);
+
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.pin.height - g.vh);
+  await expect
+    .poll(async () => (await matrix("[data-cat-track]")).e, { timeout: 5000 })
+    .toBeCloseTo(-travel, -1);
+});
+
+test("Catálogo: hover con zoom, atenuado, miniaturas y «Ver marca ↗» sin cambiar el tamaño de las celdas", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * (g.pin.height - g.vh));
+  await page.waitForTimeout(1500);
+
+  const cells = page.locator("[data-cat] [data-cat-g] a");
+  const visible = async () => {
+    const boxes = await cells.evaluateAll((els) =>
+      els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          name: el.textContent,
+          x: r.x,
+          w: r.width,
+          h: r.height,
+          inView: r.right > 0 && r.left < innerWidth,
+        };
+      }),
+    );
+    return boxes.filter((b) => b.inView);
+  };
+  const before = await visible();
+  expect(before.length).toBeGreaterThan(2);
+
+  const index = await cells.evaluateAll((els) =>
+    els.findIndex((el) => {
+      const r = el.getBoundingClientRect();
+      return r.left > 200 && r.right < innerWidth - 100;
+    }),
+  );
+  expect(index).toBeGreaterThanOrEqual(0);
+  const cell = cells.nth(index);
+  await cell.hover();
+  await expect(cell).toHaveAttribute("data-on", "true");
+  await expect(cell.getByText("Ver marca ↗", { exact: true })).toHaveCSS("opacity", "1");
+  await expect(cell.locator("img").first()).toHaveCSS("transform", /matrix\(1\.05/);
+  const other = cells.nth(index === 0 ? 1 : 0);
+  await expect(other).toHaveCSS("opacity", "0.3");
+
+  const after = await visible();
+  expect(after.map(({ x, w, h }) => [x, w, h])).toEqual(before.map(({ x, w, h }) => [x, w, h]));
+  await page.mouse.move(5, 5);
+  await expect(cell).not.toHaveAttribute("data-on");
+});
+
+test("Catálogo: todas las marcas, sin repetir, y «Catálogo pronto» en las que no tienen piezas", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const names = await page
+    .locator("[data-cat] [data-cat-g] a")
+    .evaluateAll((els) => els.map((el) => el.querySelector("img")?.getAttribute("alt") ?? ""));
+  expect(new Set(names).size).toBe(names.length);
+  expect(names.length).toBe(10);
+  await expect(
+    page.locator("[data-cat] [data-cat-g] a", { hasText: "Catálogo pronto" }),
+  ).toHaveCount(1);
 });
