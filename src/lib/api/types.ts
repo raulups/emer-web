@@ -45,7 +45,8 @@ export type RawBrand = {
   img: string | null;
   logo: string | null;
   color: string | null;
-  is_emergent: boolean;
+  is_emergent?: boolean;
+  tags?: string[];
   created_at: string;
   store_locations: RawStoreLocation[];
   preview_products?: RawProductPreview[];
@@ -64,6 +65,7 @@ export type RawProductAttributes = {
 
 export type RawProductSize = {
   size_label: string;
+  size_normalized?: string;
   sku?: string;
   available?: boolean;
   stock_status?: string;
@@ -94,11 +96,29 @@ export type RawProduct = {
   thumbnail_image_url: string | null;
   image_urls: string[];
   color_name: string | null;
+  color_hex?: string | null;
   attributes?: RawProductAttributes;
   sizes?: RawProductSize[];
   price_history?: RawPriceHistory[];
   created_at?: string;
   updated_at?: string;
+};
+
+export type RawProductFacets = {
+  categories?: Array<{ id: string; name: string; count: number }>;
+  sizes?: Array<{ value: string; count: number }>;
+  colors?: Array<{ name: string; hex: string | null; count: number }>;
+  price_range?: { min: number; max: number } | null;
+};
+
+/** `GET /products` y `GET /brands/{id}/products`: `data` es una página con facetas. */
+export type RawProductsPage = {
+  products: RawProduct[];
+  page: number;
+  page_size: number;
+  total: number;
+  has_more: boolean;
+  filters?: RawProductFacets;
 };
 
 export type RawCategory = {
@@ -135,6 +155,7 @@ export type Brand = {
   logo: string | null;
   color: string | null;
   isEmergent: boolean;
+  tags: string[];
   createdAt: string;
   storeLocations: StoreLocation[];
   previewProducts: ProductPreview[];
@@ -147,6 +168,8 @@ export type Brand = {
 
 export type ProductSize = {
   label: string;
+  /** Talla normalizada por el backend (S, M, L, XL, ONE SIZE…). */
+  normalized: string;
   sku: string | null;
   available: boolean;
   stockStatus: string | null;
@@ -176,6 +199,7 @@ export type Product = {
   thumbnailUrl: string | null;
   imageUrls: string[];
   colorName: string | null;
+  colorHex: string | null;
   tags: string[];
   productType: string | null;
   vendor: string | null;
@@ -193,6 +217,23 @@ export type Category = {
   parentId: string | null;
 };
 
+export type ProductFacets = {
+  /** Recuento por categoría. El backend no aplica aquí el filtro de categoría. */
+  categories: Array<{ id: string; name: string; count: number }>;
+  sizes: Array<{ value: string; count: number }>;
+  colors: Array<{ name: string; hex: string | null; count: number }>;
+  priceRange: { min: number; max: number } | null;
+};
+
+export type ProductsPage = {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+  facets: ProductFacets;
+};
+
 // ---------- Filtros ----------
 
 export type PageParams = { limit?: number; offset?: number };
@@ -203,15 +244,21 @@ export type BrandsQuery = PageParams & {
   city?: string;
 };
 
-export type ProductSort = "newest" | "oldest" | "price_asc" | "price_desc";
+export type ProductSort = "newest" | "price_asc" | "price_desc";
 
-export type ProductsQuery = PageParams & {
-  brandIds?: string[];
+/** Parámetros reales de `/products` (snake_case en la URL; ver products.ts). */
+export type ProductsQuery = {
+  page?: number;
+  pageSize?: number;
+  brandIds?: readonly string[];
   categoryId?: string;
-  isOnSale?: boolean;
-  /** En /products el servidor aplica `true` por defecto; en /brands/{id}/products no filtra. */
-  available?: boolean;
+  /** Tallas normalizadas (S, M, L, XL, ONE SIZE…); cualquiera de ellas. */
+  sizes?: readonly string[];
+  /** Nombres de color de las facetas; cualquiera de ellos. */
+  colors?: readonly string[];
+  onSale?: boolean;
   minPrice?: number;
   maxPrice?: number;
   sort?: ProductSort;
+  q?: string;
 };

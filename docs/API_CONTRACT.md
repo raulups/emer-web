@@ -5,7 +5,18 @@ Documento para quien construya la web externa (Next.js). Se ha generado leyendo 
 Fuentes de verdad en el repo:
 
 | Qué | Dónde |
-|---|---|
+|> ⚠️ **Actualización 2026-10-13 (comprobado contra producción): `/products` y `/brands/{id}/products` cambiaron.**
+> - `data` ya no es un array: es `{ products, page, page_size, total, has_more, filters }`, sin `meta`.
+> - Paginación con `page` (desde 1) y `page_size` (24 por defecto). `limit`/`offset` se ignoran.
+> - Filtros en **snake_case**: `brand_id`, `category_id`, `on_sale`, `min_price`, `max_price`, `size`, `color`, `q`, `gender`, `sort` (`newest`, `price_asc`, `price_desc`). Los camelCase de las secciones 3.5 y 3.7 **ya se ignoran**.
+> - Varios valores repitiendo la clave (`size=M&size=L`); separados por comas, `size` y `color` devuelven 0.
+> - `filters`: `categories[{id,name,count}]` (no aplica el filtro de categoría), `sizes[{value,count}]`, `colors[{name,hex,count}]`, `genders`, `price_range{min,max}` (global salvo filtro de marca).
+> - Producto: nuevos `color_hex`, `gender`, `images[{src,width,height}]`, `min_price`, `max_price`, `published_at`. Detalle: `sizes[].size_normalized` y `price`.
+> - Marca: nuevo `tags`; `is_emergent` ya no se envía.
+>
+> El resto del documento describe la versión anterior de esos dos endpoints.
+
+---|---|
 | Arranque, CORS, rate limit, errores 500 | `server/src/main/kotlin/com/emer/server/Application.kt` |
 | Rutas | `server/.../routes/{Brand,Product,Category}Routes.kt` y `plugins/Routing.kt` |
 | Validación y paginación | `server/.../service/*.kt` |

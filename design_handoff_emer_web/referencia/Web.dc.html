@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@200..600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#fff;font-family:Inter,sans-serif;font-weight:300;color:#000}a{color:#000}a:hover{color:#3f3f3f}@media (pointer:fine){body,body *{cursor:none!important}}</style>
+</helmet>
+<div style="min-height:100vh;background:#fff;color:#000;display:flex;flex-direction:column;padding-top:76px;box-sizing:border-box">
+  <nav onMouseLeave="{{ hoverNone }}" style="position:fixed;left:50%;top:26px;transform:translateX(-50%);z-index:50;display:flex;align-items:flex-start;gap:44px;color:#000;isolation:isolate">
+    <div style="position:absolute;left:-110px;right:-110px;top:-40px;bottom:-34px;z-index:-1;pointer-events:none;background:rgba(255,255,255,.72);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);mask-composite:intersect"></div>
+    <div onClick="{{ goMarket }}" onMouseEnter="{{ hoverM }}" style="cursor:pointer;display:flex;flex-direction:column;gap:7px;padding:6px 0">
+      <div style="display:flex;font:300 11px/1 Inter;letter-spacing:.28em;text-transform:uppercase;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8)">
+        <span style="opacity:{{ mBr }};transform:translateX({{ mBrL }});margin-right:.5em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">[</span><sc-for list="{{ mL }}" as="l" hint-placeholder-count="11"><span style="opacity:{{ l.o }};transform:translateY({{ l.y }});transition:opacity .6s cubic-bezier(.16,1,.3,1) {{ l.d }},transform .7s cubic-bezier(.16,1,.3,1) {{ l.d }}">{{ l.c }}</span></sc-for><span style="opacity:{{ mBr }};transform:translateX({{ mBrR }});margin-left:.2em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">]</span>
+      </div>
+      <div style="height:1px;background:#000;box-shadow:0 0 6px rgba(255,255,255,.8);transform:scaleX({{ mLine }});transform-origin:{{ mOrigin }};transition:transform .8s cubic-bezier(.16,1,.3,1)"></div>
+    </div>
+    <div onClick="{{ goExplora }}" onMouseEnter="{{ hoverE }}" style="cursor:pointer;display:flex;flex-direction:column;gap:7px;padding:6px 0">
+      <div style="display:flex;font:300 11px/1 Inter;letter-spacing:.28em;text-transform:uppercase;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8)">
+        <span style="opacity:{{ eBr }};transform:translateX({{ eBrL }});margin-right:.5em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">[</span><sc-for list="{{ eL }}" as="l" hint-placeholder-count="7"><span style="opacity:{{ l.o }};transform:translateY({{ l.y }});transition:opacity .6s cubic-bezier(.16,1,.3,1) {{ l.d }},transform .7s cubic-bezier(.16,1,.3,1) {{ l.d }}">{{ l.c }}</span></sc-for><span style="opacity:{{ eBr }};transform:translateX({{ eBrR }});margin-left:.2em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">]</span>
+      </div>
+      <div style="height:1px;background:#000;box-shadow:0 0 6px rgba(255,255,255,.8);transform:scaleX({{ eLine }});transform-origin:{{ eOrigin }};transition:transform .8s cubic-bezier(.16,1,.3,1)"></div>
+    </div>
+  </nav>
+  <sc-if value="{{ isMarket }}" hint-placeholder-val="{{ true }}">
+    <dc-import name="Marketplace" hint-size="100%,900px"></dc-import>
+  </sc-if>
+  <sc-if value="{{ isExplora }}" hint-placeholder-val="{{ false }}">
+    <dc-import name="Explora" hint-size="100%,100vh" style="margin-top:-76px"></dc-import>
+  </sc-if>
+  <div id="emer-cur" style="position:fixed;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;mix-blend-mode:difference;pointer-events:none;z-index:9999;display:none"></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { view: 'market', hover: null, dir: 1 };
+  componentDidMount() {
+    if (!matchMedia('(pointer:fine)').matches) return;
+    this._m = e => { const c = document.getElementById('emer-cur'); if (c) { c.style.display = 'block'; c.style.transform = `translate(${e.clientX}px,${e.clientY}px)`; } };
+    window.addEventListener('mousemove', this._m);
+  }
+  componentWillUnmount() { window.removeEventListener('mousemove', this._m); }
+  renderVals() {
+    const { view, hover, dir } = this.state, m = view === 'market';
+    const go = v => () => v !== view && this.setState({ view: v, dir: v === 'explora' ? 1 : -1, hover: null });
+    const letters = (word, on, h) => [...word].map((c, i) => ({ c, o: on ? 1 : h ? 0.8 : 0.4, y: h && !on ? '-2px' : '0px', d: `${i * 28}ms` }));
+    return {
+      isMarket: m, isExplora: !m,
+      mL: letters('Marketplace', m, hover === 'market'), eL: letters('Explora', !m, hover === 'explora'),
+      mBr: m ? 1 : 0, eBr: m ? 0 : 1, mBrL: m ? '0px' : '8px', mBrR: m ? '0px' : '-8px', eBrL: m ? '8px' : '0px', eBrR: m ? '-8px' : '0px',
+      mLine: (hover || view) === 'market' ? 1 : 0, eLine: (hover || view) === 'explora' ? 1 : 0,
+      mOrigin: m ? 'right' : 'right', eOrigin: m ? 'left' : 'left',
+      goMarket: go('market'), goExplora: go('explora'),
+      hoverM: () => this.setState({ hover: 'market' }), hoverE: () => this.setState({ hover: 'explora' }), hoverNone: () => this.setState({ hover: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

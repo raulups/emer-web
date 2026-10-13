@@ -1,0 +1,22 @@
+.shell {
+  --shell-top: 76px;
+
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding-top: var(--shell-top);
+  background: var(--paper);
+  color: var(--black);
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* Explora es a sangre: ocupa también la franja del switch. */
+.bleed {
+  margin-top: calc(var(--shell-top) * -1);
+}

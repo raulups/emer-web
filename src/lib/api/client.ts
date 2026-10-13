@@ -72,13 +72,16 @@ export function baseUrl(): string {
 
 type QueryValue = string | number | boolean | undefined | null | readonly string[];
 
-/** Construye el query string omitiendo valores vacíos. Los arrays se envían separados por coma. */
+/**
+ * Construye el query string omitiendo valores vacíos. Los arrays se envían repitiendo la clave
+ * (`size=M&size=L`): el backend no separa por comas en `size` ni en `color`.
+ */
 export function toQuery(params: Record<string, QueryValue>): string {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null) continue;
     if (Array.isArray(value)) {
-      if (value.length > 0) search.set(key, value.join(","));
+      for (const item of value) search.append(key, item);
     } else {
       search.set(key, String(value));
     }

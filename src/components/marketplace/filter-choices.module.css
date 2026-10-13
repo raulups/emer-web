@@ -1,0 +1,119 @@
+.choice,
+.color {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  font-weight: var(--w-text);
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-align: left;
+  cursor: pointer;
+  transition: font-weight 0.5s var(--ease-out-expo);
+}
+
+.choice {
+  gap: 6px;
+}
+
+.color {
+  gap: 12px;
+  text-transform: uppercase;
+}
+
+.choice:hover,
+.color:hover,
+.choice[data-selected],
+.color[data-selected] {
+  font-weight: var(--w-active);
+}
+
+.choice:focus-visible,
+.color:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+/* Ancho reservado en negrita: el hover no mueve la etiqueta. */
+.label {
+  display: inline-flex;
+  flex-direction: column;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.label::after {
+  content: attr(data-text) / "";
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  font-weight: var(--w-active);
+  user-select: none;
+  pointer-events: none;
+}
+
+.choice:hover .label,
+.color:hover .label {
+  text-decoration-color: currentColor;
+}
+
+/* Corchetes: 0.45s de opacidad, 0.6s de desplazamiento (±7px → 0). */
+.open,
+.close {
+  display: inline-block;
+  opacity: 0;
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo);
+}
+
+.open {
+  transform: translateX(7px);
+}
+
+.close {
+  transform: translateX(-7px);
+}
+
+.choice[data-selected] .open,
+.choice[data-selected] .close {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.swatch {
+  flex: none;
+  box-sizing: border-box;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--swatch-border);
+  background: var(--swatch);
+  outline: 1px solid transparent;
+  outline-offset: 0;
+  transition:
+    outline-color 0.4s var(--ease-out-expo),
+    outline-offset 0.6s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo);
+}
+
+.color[data-selected] .swatch {
+  outline-color: var(--black);
+  outline-offset: 3px;
+  transform: scale(1.1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .choice,
+  .color,
+  .open,
+  .close,
+  .swatch {
+    transition-duration: 0.01ms;
+  }
+}

@@ -1,109 +1,37 @@
-import { expect, type Page, test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
-const heroHeight = (page: Page) =>
-  page.evaluate(() => document.getElementById("marcas")?.offsetHeight ?? 0);
+for (const path of ["/", "/web"]) {
+  test(`${path} responde y usa Inter`, async ({ page }) => {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await expect(page.locator("main")).toBeAttached();
 
-const scrollY = (page: Page) => page.evaluate(() => Math.round(window.scrollY));
-
-/** El hero hidrata aparte (Suspense): esperar a que esté registrado en el shell. */
-const heroReady = (page: Page) => expect(page.locator("#marcas[data-registered]")).toBeAttached();
-
-test.describe("00-shell", () => {
-  test("quita is-loading y no deja el scroll bloqueado", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.locator("html")).not.toHaveClass(/is-loading/);
-    await expect(page.locator("main#contenido section[data-section]")).toHaveCount(5);
+    const loaded = await page.evaluate(async () => {
+      await document.fonts.ready;
+      return document.fonts.check('300 16px "Inter"') && document.fonts.check('900 16px "Inter"');
+    });
+    expect(loaded).toBe(true);
+    expect(await page.evaluate(() => getComputedStyle(document.body).fontFamily)).toMatch(
+      /^"?Inter/,
+    );
   });
+}
 
-  test("snap del hero con la rueda (abajo y arriba)", async ({ page, isMobile }) => {
-    test.skip(isMobile, "La rueda solo aplica en escritorio");
-    await page.goto("/");
-    await expect(page.locator("html")).toHaveClass(/lenis/);
-    await heroReady(page);
-    const h = await heroHeight(page);
+test("cursor propio: sigue al ratón solo con pointer fine", async ({ page }, info) => {
+  await page.goto("/");
+  const dot = page.locator("[data-cursor]");
+  await expect(dot).toBeAttached();
 
-    await page.mouse.move(700, 400);
-    await page.mouse.wheel(0, 120);
-    await expect.poll(() => scrollY(page), { timeout: 3000 }).toBeGreaterThanOrEqual(h - 2);
-
-    await page.waitForTimeout(700); // enfriamiento del snap
-    await page.mouse.wheel(0, -120);
-    await expect.poll(() => scrollY(page), { timeout: 3000 }).toBeLessThanOrEqual(2);
-  });
-
-  test("una ráfaga de rueda (inercia de trackpad) no se pasa del snap", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "La rueda solo aplica en escritorio");
-    await page.goto("/");
-    await heroReady(page);
-    const h = await heroHeight(page);
-    await page.mouse.move(700, 400);
-    // ~2 s de eventos con delta decreciente, como la inercia de un trackpad
-    for (let i = 0; i < 60; i++) {
-      await page.mouse.wheel(0, Math.max(2, Math.round(60 * 0.94 ** i)));
-      await page.waitForTimeout(16);
-    }
-    await page.waitForTimeout(1500);
-    expect(Math.abs((await scrollY(page)) - h)).toBeLessThanOrEqual(2);
-  });
-
-  test("AvPág desde el hero hace snap", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Teclado de escritorio");
-    await page.goto("/");
-    await expect(page.locator("html")).toHaveClass(/lenis/); // hidratado
-    await heroReady(page);
-    const h = await heroHeight(page);
-    await page.keyboard.press("PageDown");
-    await expect.poll(() => scrollY(page), { timeout: 3000 }).toBeGreaterThanOrEqual(h - 2);
-  });
-
-  test("el snap sigue funcionando tras navegar en cliente desde la 404", async ({
-    page,
-    isMobile,
-  }) => {
-    test.skip(isMobile, "La rueda solo aplica en escritorio");
-    await page.goto("/no-existe");
-    await page.getByRole("link", { name: /volver al inicio/i }).click();
-    await expect(page).toHaveURL("/");
-    await heroReady(page);
-    const h = await heroHeight(page);
-    await page.mouse.move(700, 400);
-    await page.mouse.wheel(0, 120);
-    await expect.poll(() => scrollY(page), { timeout: 3000 }).toBeGreaterThanOrEqual(h - 2);
-  });
-
-  test("cursor propio: aparece y cambia a estado hero", async ({ page, isMobile }) => {
-    test.skip(isMobile, "Sin puntero fino");
-    await page.goto("/");
-    await expect(page.locator("html")).toHaveClass(/has-cursor/);
-    await page.mouse.move(400, 300);
-    await page.mouse.move(420, 320);
-    await expect(page.locator(".cursor")).toHaveCSS("opacity", "1");
-    await expect(page.locator(".cursor__label")).toHaveText("ARRASTRA");
-  });
-
-  test("sin cursor propio en táctil", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "Solo móvil");
-    await page.goto("/");
-    await expect(page.locator(".cursor")).toHaveCount(0);
+  if (info.project.name === "mobile") {
     await expect(page.locator("html")).not.toHaveClass(/has-cursor/);
-  });
+    await expect(dot).toBeHidden();
+    return;
+  }
 
-  test("movimiento reducido: sin Lenis ni cursor", async ({ browser }) => {
-    const context = await browser.newContext({ reducedMotion: "reduce" });
-    const page = await context.newPage();
-    await page.goto("/");
-    await expect(page.locator("html")).not.toHaveClass(/is-loading/);
-    await expect(page.locator("html")).not.toHaveClass(/lenis/);
-    await expect(page.locator(".cursor")).toHaveCount(0);
-    await context.close();
-  });
-
-  test("404 propia", async ({ page }) => {
-    const res = await page.goto("/no-existe");
-    expect(res?.status()).toBe(404);
-    await expect(page.getByRole("heading", { name: "ESTA PÁGINA NO EXISTE" })).toBeVisible();
-  });
+  await expect(page.locator("html")).toHaveClass(/has-cursor/);
+  await page.mouse.move(200, 150);
+  await expect(dot).toBeVisible();
+  await expect(dot).toHaveCSS("mix-blend-mode", "difference");
+  await expect(dot).toHaveCSS("width", "12px");
+  await expect(dot).toHaveCSS("transform", "matrix(1, 0, 0, 1, 200, 150)");
 });

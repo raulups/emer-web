@@ -1,0 +1,125 @@
+/* El menú se oculta encogiendo su ancho (260 → 0, 0.8s) para que el grid se ensanche. */
+.aside {
+  position: sticky;
+  top: 76px;
+  flex: 0 0 0px;
+  align-self: flex-start;
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition:
+    flex-basis 0.8s var(--ease-out-expo),
+    width 0.8s var(--ease-out-expo);
+}
+
+.aside[data-visible] {
+  flex-basis: 260px;
+  width: 260px;
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+  box-sizing: border-box;
+  width: 260px;
+  max-height: calc(100vh - 76px);
+  padding: 28px 24px 40px 48px;
+  overflow: hidden auto;
+  scrollbar-width: none;
+  opacity: 0;
+  transform: translateX(-40px);
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+}
+
+.inner::-webkit-scrollbar {
+  display: none;
+}
+
+.aside[data-visible] .inner {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 17px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.filtersButton,
+.clear {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  letter-spacing: 0.06em;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+
+.filtersButton {
+  font-weight: var(--w-text);
+  font-size: 12px;
+}
+
+.filtersButton:hover {
+  text-decoration-line: underline;
+}
+
+.clear {
+  color: var(--grey-text);
+  font-weight: var(--w-ui);
+  font-size: 11px;
+  text-decoration-line: underline;
+}
+
+.clear:hover {
+  color: var(--black);
+}
+
+.filtersButton:focus-visible,
+.clear:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+/* En móvil el menú abierto se superpone al grid como un panel a la izquierda. */
+@media (max-width: 760px) {
+  .aside {
+    position: fixed;
+    /* Bajo el botón [ MENÚ ], que en móvil va en una segunda fila. */
+    top: 100px;
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    background: var(--paper);
+  }
+
+  .aside[data-visible] {
+    border-right: var(--line) solid var(--black);
+  }
+
+  .inner {
+    max-height: calc(100vh - 100px);
+    padding-left: 34px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aside,
+  .inner {
+    transition-duration: 0.01ms;
+  }
+}

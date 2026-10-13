@@ -1,0 +1,255 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Enlace estirado: el nombre enlaza y su ::after cubre toda la tarjeta. */
+.link,
+.link:hover {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+.link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.link:focus-visible {
+  outline: none;
+}
+
+.link:focus-visible::after {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+.media {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+/* Carrusel: la pista se desplaza una foto entera (0.9s). */
+.track {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  transform: translateX(calc(var(--index) * -100%));
+  transition: transform 0.9s var(--ease-out-expo);
+}
+
+.frame {
+  flex: none;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease-out-expo);
+}
+
+.card[data-hovered] .image {
+  transform: scale(1.035);
+}
+
+.tag {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-shadow: var(--halo-text-shadow);
+}
+
+/* Franja de tallas: sube desde abajo con blur (0.6s). */
+.strip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 12px;
+  background: var(--halo-bg);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  transform: translateY(101%);
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.card[data-hovered] .strip {
+  transform: translateY(0);
+}
+
+.sizes {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 14px;
+  min-width: 0;
+  min-height: 1lh;
+}
+
+.size[data-soldout] {
+  color: #b0b0b0;
+  text-decoration: line-through;
+}
+
+.index {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.dot {
+  width: 6px;
+  height: 1px;
+  background: var(--black);
+  opacity: 0.35;
+  transition:
+    width 0.6s var(--ease-out-expo),
+    opacity 0.6s var(--ease-out-expo);
+}
+
+.dot[data-active] {
+  width: 18px;
+  opacity: 1;
+}
+
+.counter {
+  margin-left: 6px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+/* Flechas ‹ ›: aparecen en hover desde fuera (±8px). */
+.arrow {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  bottom: 44px;
+  z-index: 2;
+  width: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  font-weight: var(--w-ui);
+  font-size: 22px;
+  text-shadow: var(--halo-text-shadow);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo),
+    font-weight 0.3s var(--ease-out-expo);
+}
+
+.arrow[data-side="prev"] {
+  left: 0;
+  transform: translateX(-8px);
+}
+
+.arrow[data-side="next"] {
+  right: 0;
+  transform: translateX(8px);
+}
+
+.card[data-hovered] .arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.arrow:hover {
+  font-weight: 400;
+}
+
+.arrow:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: -6px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 2px;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.name {
+  min-width: 0;
+  margin: 0;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.card[data-hovered] .name {
+  text-decoration-color: currentColor;
+}
+
+.price {
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.brand {
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.original {
+  color: var(--grey-text);
+  font-weight: var(--w-ui);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .image,
+  .strip,
+  .dot,
+  .arrow {
+    transition-duration: 0.01ms;
+  }
+}

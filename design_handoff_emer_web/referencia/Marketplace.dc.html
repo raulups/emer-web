@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@200..600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#fff;font-family:Inter,sans-serif;font-weight:300;color:#000}a{color:#000}a:hover{color:#3f3f3f}</style>
+<script src="./emer-db.js"></script>
+</helmet>
+<div style="background:#fff;color:#000;font-family:Inter,sans-serif;min-height:100%">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-start">
+    <aside style="flex:0 0 {{ asW }};width:{{ asW }};min-width:0;overflow:hidden;position:sticky;top:76px;align-self:flex-start;transition:flex-basis .8s cubic-bezier(.16,1,.3,1),width .8s cubic-bezier(.16,1,.3,1)">
+      <div style="width:260px;box-sizing:border-box;padding:28px 24px 40px 48px;display:flex;flex-direction:column;gap:44px;max-height:calc(100vh - 76px);overflow-y:auto;overflow-x:hidden;scrollbar-width:none;opacity:{{ asO }};transform:translateX({{ asX }});transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)">
+      <div style="display:flex;flex-direction:column;gap:17px">
+        <sc-for list="{{ catRows }}" as="c" hint-placeholder-count="8">
+          <div onClick="{{ c.pick }}" style="cursor:pointer;display:flex;align-items:baseline;gap:10px;font-family:Inter;line-height:1;font-weight:{{ c.w }};font-size:{{ c.fs }};letter-spacing:.06em;text-transform:uppercase;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px">
+            <span style="flex:none;align-self:center;height:1px;background:#000;width:{{ c.lw }};transition:width .6s cubic-bezier(.16,1,.3,1)"></span>
+            <span style="min-width:0;line-height:1.3">{{ c.name }}</span>
+            <span style="display:inline-block;font:200 9px/1 Inter;letter-spacing:0;align-self:flex-start;margin-left:-6px">{{ c.n }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:17px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">MARCAS</span>
+        <div style="position:relative">
+        <div onScroll="{{ brScroll }}" style="display:flex;flex-direction:column;gap:17px;max-height:{{ brMaxH }};overflow-y:{{ brOv }};overflow-x:hidden;scrollbar-width:none;padding-right:14px;transition:max-height 1s cubic-bezier(.16,1,.3,1)">
+        <sc-for list="{{ brandRows }}" as="b" hint-placeholder-count="4">
+          <div onClick="{{ b.pick }}" onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" style="opacity:{{ b.ro }};transform:translateY({{ b.ry }});transition:opacity .6s cubic-bezier(.16,1,.3,1) {{ b.rd }},transform .8s cubic-bezier(.16,1,.3,1) {{ b.rd }},font-weight .5s cubic-bezier(.16,1,.3,1);cursor:pointer;display:flex;align-items:baseline;gap:10px;font-family:Inter;line-height:1;font-weight:{{ b.w }};font-size:{{ b.fs }};letter-spacing:.06em;text-transform:uppercase;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px">
+            <span style="flex:none;align-self:center;height:1px;background:#000;width:{{ b.lw }};transition:width .6s cubic-bezier(.16,1,.3,1)"></span>
+            <span data-bn="1" style="min-width:0;line-height:1.3">{{ b.name }}</span>
+            <span style="display:inline-block;font:200 9px/1 Inter;letter-spacing:0;align-self:flex-start;margin-left:-6px">{{ b.n }}</span>
+          </div>
+        </sc-for>
+        </div>
+          <div style="position:absolute;right:0;top:0;bottom:0;width:1px;pointer-events:none;opacity:{{ sbO }};transition:opacity .6s cubic-bezier(.16,1,.3,1) .3s">
+            <div style="position:absolute;left:0;width:1px;background:#000;height:{{ sbH }};top:{{ sbT }}"></div>
+          </div>
+        </div>
+        <sc-if value="{{ brMore }}" hint-placeholder-val="{{ false }}">
+          <span onClick="{{ brToggle }}" style="cursor:pointer;font:300 11px Inter;letter-spacing:.06em;color:#6b6b6b;text-transform:uppercase" style-hover="font-weight:500;color:#000;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px">{{ brMoreLbl }}</span>
+        </sc-if>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span onClick="{{ openF }}" style="cursor:pointer;font:300 12px Inter;letter-spacing:.06em" style-hover="text-decoration:underline;text-underline-offset:5px">FILTROS{{ fCount }}</span>
+        <sc-if value="{{ hasFilters }}" hint-placeholder-val="{{ false }}">
+          <span onClick="{{ clearAll }}" style="cursor:pointer;font:200 11px Inter;letter-spacing:.06em;color:#6b6b6b;text-decoration:underline;text-underline-offset:5px">BORRAR</span>
+        </sc-if>
+      </div>
+      <sc-if value="{{ hasBc }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px;margin-top:-16px">
+          <div style="position:relative;aspect-ratio:4/5;border:1px solid #000;overflow:hidden;background:#f2f2f2">
+            <img src="{{ bcImg }}" alt="{{ bcName }}" onError="{{ bcErr }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block">
+            <div style="position:absolute;left:10px;bottom:10px;width:64px;height:40px;box-sizing:border-box;border:1px solid #000;background:#fff;display:flex;align-items:center;justify-content:center;padding:6px">
+              <img src="{{ bcLogo }}" alt="" style="max-width:100%;max-height:100%;object-fit:contain;display:block">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+            <span style="font:500 12px Inter;letter-spacing:.06em;text-transform:uppercase">{{ bcName }}</span>
+            <span style="font:200 10px Inter;letter-spacing:.06em;color:#6b6b6b">{{ bcMeta }}</span>
+          </div>
+        </div>
+      </sc-if>
+      </div>
+    </aside>
+    <div onClick="{{ toggleAside }}" onMouseEnter="{{ tgIn }}" onMouseLeave="{{ tgOut }}" style="position:fixed;left:48px;top:26px;z-index:50;cursor:pointer;isolation:isolate;padding:6px 0;display:flex;flex-direction:column;gap:7px">
+      <div style="position:absolute;left:-90px;right:-90px;top:-40px;bottom:-34px;z-index:-1;pointer-events:none;background:rgba(255,255,255,.72);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);-webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent,#000 22%,#000 78%,transparent),linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent);mask-composite:intersect"></div>
+      <div style="display:flex;font:300 11px/1 Inter;letter-spacing:.28em;text-transform:uppercase;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8)">
+        <span style="opacity:{{ tgBr }};transform:translateX({{ tgBrL }});margin-right:.5em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">[</span><sc-for list="{{ tgL }}" as="l" hint-placeholder-count="4"><span style="opacity:{{ l.o }};transform:translateY({{ l.y }});transition:opacity .6s cubic-bezier(.16,1,.3,1) {{ l.d }},transform .7s cubic-bezier(.16,1,.3,1) {{ l.d }}">{{ l.c }}</span></sc-for><span style="opacity:{{ tgBr }};transform:translateX({{ tgBrR }});margin-left:.2em;transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)">]</span>
+      </div>
+      <div style="height:1px;background:#000;box-shadow:0 0 6px rgba(255,255,255,.8);transform:scaleX({{ tgLine }});transform-origin:left;transition:transform .8s cubic-bezier(.16,1,.3,1)"></div>
+    </div>
+    <div onClick="{{ closeF }}" style="position:fixed;inset:0;z-index:70;background:rgba(255,255,255,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:{{ ovO }};pointer-events:{{ ovPE }};transition:opacity .6s cubic-bezier(.16,1,.3,1)"></div>
+    <div style="position:fixed;top:0;right:0;bottom:0;z-index:71;width:min(420px,100vw);box-sizing:border-box;background:#fff;border-left:1px solid #000;overflow-y:auto;padding:28px 32px 48px;display:flex;flex-direction:column;gap:52px;transform:translateX({{ drX }});transition:transform .8s cubic-bezier(.16,1,.3,1)">
+      <div style="display:flex;justify-content:flex-end"><span onClick="{{ closeF }}" style="cursor:pointer;font:200 26px/1 Inter;transition:transform .5s cubic-bezier(.16,1,.3,1)" style-hover="transform:rotate(90deg)">×</span></div>
+      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:0 20px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">ORDENAR POR</span>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-for list="{{ sorts }}" as="s" hint-placeholder-count="3"><span onClick="{{ s.pick }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;font-family:Inter;font-weight:{{ s.w }};font-size:{{ s.fs }};letter-spacing:.04em;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px"><span style="flex:none;height:1px;background:#000;width:{{ s.lw }};transition:width .6s cubic-bezier(.16,1,.3,1)"></span>{{ s.label }}</span></sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:0 20px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">TALLA</span>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-for list="{{ sizeRows }}" as="z" hint-placeholder-count="5"><span onClick="{{ z.toggle }}" style="cursor:pointer;font-family:Inter;font-weight:{{ z.w }};font-size:{{ z.fs }};letter-spacing:.04em;display:flex;gap:6px;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px"><span style="display:inline-block;opacity:{{ z.br }};transform:translateX({{ z.brL }});transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)">[</span>{{ z.label }}<span style="display:inline-block;opacity:{{ z.br }};transform:translateX({{ z.brR }});transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)">]</span></span></sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:0 20px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">PRECIO</span>
+        <div style="display:flex;flex-direction:column;gap:18px;padding-top:4px">
+          <div ref="{{ trackRef }}" onPointerDown="{{ trackDown }}" style="position:relative;height:14px;cursor:pointer;touch-action:none">
+            <div style="position:absolute;left:0;right:0;top:6px;height:1px;background:#c8c8c8"></div>
+            <div style="position:absolute;top:6px;height:1px;background:#000;left:{{ loPct }};right:{{ hiRight }}"></div>
+            <div style="position:absolute;top:2px;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:#000;left:{{ loPct }}"></div>
+            <div style="position:absolute;top:2px;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:#000;left:{{ hiPct }}"></div>
+          </div>
+          <span style="font:300 12px Inter;letter-spacing:.04em">{{ priceLbl }}</span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:0 20px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">COLOR</span>
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <sc-for list="{{ colorRows }}" as="k" hint-placeholder-count="5"><div onClick="{{ k.toggle }}" style="cursor:pointer;display:flex;align-items:center;gap:12px;font-family:Inter;font-weight:{{ k.w }};font-size:{{ k.fs }};letter-spacing:.04em;text-transform:uppercase;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px"><span style="flex:none;width:10px;height:10px;box-sizing:border-box;border:1px solid {{ k.bd }};background:{{ k.hex }};outline:{{ k.ol }};outline-offset:{{ k.oo }};transform:scale({{ k.sc }});transition:outline-color .4s cubic-bezier(.16,1,.3,1),outline-offset .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)"></span>{{ k.name }}</div></sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:120px minmax(0,1fr);gap:0 20px">
+        <span style="font:300 10px Inter;letter-spacing:.28em;color:#6b6b6b">OFERTAS</span>
+        <span onClick="{{ toggleSale }}" style="cursor:pointer;font-family:Inter;font-weight:{{ saleW }};font-size:{{ saleFs }};letter-spacing:.04em;display:flex;gap:6px;transition:font-weight .5s cubic-bezier(.16,1,.3,1),font-size .5s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px"><span style="display:inline-block;opacity:{{ saleBr }};transform:translateX({{ saleBrL }});transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)">[</span>SOLO OFERTAS · {{ saleN }}<span style="display:inline-block;opacity:{{ saleBr }};transform:translateX({{ saleBrR }});transition:opacity .45s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)">]</span></span>
+      </div>
+      <div style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center">
+        <span onClick="{{ clearAll }}" style="cursor:pointer;height:48px;box-sizing:border-box;border:1px solid #000;display:flex;align-items:center;justify-content:center;font:300 11px Inter;letter-spacing:.2em;background:#fff;color:#000;transition:background .4s cubic-bezier(.16,1,.3,1),color .4s cubic-bezier(.16,1,.3,1)" style-hover="background:#000;color:#fff">BORRAR</span>
+        <span onClick="{{ closeF }}" style="cursor:pointer;height:48px;display:flex;align-items:center;justify-content:center;font:400 11px Inter;letter-spacing:.2em;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:6px;transition:text-underline-offset .5s cubic-bezier(.16,1,.3,1)" style-hover="text-underline-offset:10px">VER {{ shownN }}</span>
+      </div>
+    </div>
+
+    <main style="flex:1 1 560px;min-width:0;padding:28px 48px 72px {{ mainPL }};box-sizing:border-box;transition:padding .8s cubic-bezier(.16,1,.3,1)">
+      <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+        <div style="padding:80px 0;display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+          <span style="font:400 56px/0.95 Anton">SIN RESULTADOS</span>
+          <span style="font:200 15px Inter;color:#3f3f3f">Prueba con otra talla o quita algún filtro.</span>
+        </div>
+      </sc-if>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:48px 16px">
+        <sc-for list="{{ items }}" as="p" hint-placeholder-count="8">
+          <a href="{{ p.url }}" target="_blank" onMouseEnter="{{ p.enter }}" onMouseLeave="{{ p.leave }}" style="text-decoration:none;color:#000;display:flex;flex-direction:column;gap:14px">
+            <div style="position:relative;aspect-ratio:3/4;overflow:hidden;background:#f3f3f1">
+              <div style="position:absolute;inset:0;display:flex;transform:translateX({{ p.tx }});transition:transform .9s cubic-bezier(.16,1,.3,1)">
+                <sc-for list="{{ p.gal }}" as="g" hint-placeholder-count="1">
+                  <div style="flex:none;width:100%;height:100%;overflow:hidden"><img src="{{ g.src }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;display:block;transform:scale({{ p.sc }});transition:transform 1.2s cubic-bezier(.16,1,.3,1)"></div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ p.multi }}" hint-placeholder-val="{{ false }}">
+                <span onClick="{{ p.prev }}" style="position:absolute;left:0;top:0;bottom:44px;width:44px;display:flex;align-items:center;justify-content:center;font:200 22px Inter;color:#000;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8);opacity:{{ p.arO }};transform:translateX({{ p.arL }});transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:400">‹</span>
+                <span onClick="{{ p.next }}" style="position:absolute;right:0;top:0;bottom:44px;width:44px;display:flex;align-items:center;justify-content:center;font:200 22px Inter;color:#000;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8);opacity:{{ p.arO }};transform:translateX({{ p.arR }});transition:opacity .5s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)" style-hover="font-weight:400">›</span>
+              </sc-if>
+              <sc-if value="{{ p.isSale }}" hint-placeholder-val="{{ false }}">
+                <span style="position:absolute;right:12px;top:12px;font:400 10px Inter;letter-spacing:.12em;color:#000;text-shadow:0 0 1px rgba(255,255,255,.9),0 0 8px rgba(255,255,255,.8)">{{ p.tag }}</span>
+              </sc-if>
+              <div style="position:absolute;left:0;right:0;bottom:0;padding:14px 12px;display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font:300 11px Inter;letter-spacing:.08em;transform:translateY({{ p.szY }});transition:transform .6s cubic-bezier(.16,1,.3,1)">
+                <div style="display:flex;gap:14px;flex-wrap:wrap;flex:1;min-width:0">
+                <sc-for list="{{ p.sizes }}" as="s" hint-placeholder-count="4">
+                  <span style="color:{{ s.c }};text-decoration:{{ s.u }}">{{ s.l }}</span>
+                </sc-for>
+                </div>
+                <sc-if value="{{ p.multi }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:4px;align-items:center;flex:none">
+                    <sc-for list="{{ p.dots }}" as="d" hint-placeholder-count="2"><span style="height:1px;background:#000;width:{{ d.w }};opacity:{{ d.o }};transition:width .6s cubic-bezier(.16,1,.3,1),opacity .6s cubic-bezier(.16,1,.3,1)"></span></sc-for>
+                    <span style="margin-left:6px;font:300 10px Inter;letter-spacing:.06em">{{ p.idxLbl }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;padding:0 2px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                <span style="font:400 11px/1.35 Inter;letter-spacing:.06em;text-transform:uppercase;min-width:0;text-decoration:{{ p.ul }};text-decoration-thickness:1px;text-underline-offset:4px">{{ p.name }}</span>
+                <span style="font:400 11px Inter;letter-spacing:.04em;white-space:nowrap">{{ p.price }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+                <span style="font:300 10px Inter;letter-spacing:.2em;color:#6b6b6b">{{ p.brand }}</span>
+                <sc-if value="{{ p.isSale }}" hint-placeholder-val="{{ false }}">
+                  <span style="font:200 10px Inter;letter-spacing:.04em;color:#6b6b6b;text-decoration:line-through;white-space:nowrap">{{ p.orig }}</span>
+                </sc-if>
+              </div>
+            </div>
+          </a>
+        </sc-for>
+      </div>
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { brOpen: false, gi: {}, hp: null, side: true, bad: {}, lg: null, brands: [], cat: null, sizes: [], colors: [], sale: false, sort: 'new', lo: null, hi: null, open: false, tick: 0 };
+  trackRef = React.createRef();
+  componentDidMount() {
+    if (!window.EMERDB) { this._t = setInterval(() => { if (window.EMERDB) { clearInterval(this._t); this.setState({ tick: 1 }); } }, 60); }
+    this._k = e => e.key === 'Escape' && this.setState({ open: false });
+    window.addEventListener('keydown', this._k);
+  }
+  componentWillUnmount() { clearInterval(this._t); window.removeEventListener('keydown', this._k); }
+  tg(k, v) { this.setState(s => ({ [k]: s[k].includes(v) ? s[k].filter(x => x !== v) : [...s[k], v] })); }
+  renderVals() {
+    const D = window.EMERDB;
+    const st = this.state, open = st.open;
+    const sd = st.side;
+    const base = { asW: sd ? '260px' : '0px', asO: sd ? 1 : 0, asX: sd ? '0px' : '-40px', mainPL: sd ? '24px' : '48px', tgL: [...'Menú'].map((c, i) => ({ c, o: sd || st.tgH ? 1 : 0.4, y: st.tgH ? '-2px' : '0px', d: `${i * 28}ms` })), tgBr: sd ? 1 : 0, tgBrL: sd ? '0px' : '8px', tgBrR: sd ? '0px' : '-8px', tgLine: st.tgH ? 1 : 0, tgIn: () => this.setState({ tgH: true }), tgOut: () => this.setState({ tgH: false }), toggleAside: () => this.setState(s => ({ side: !s.side })), drX: open ? '0%' : '100%', ovO: open ? 1 : 0, ovPE: open ? 'auto' : 'none', openF: () => this.setState({ open: true }), closeF: () => this.setState({ open: false }), trackRef: this.trackRef };
+    if (!D) return { ...base, brMore: false, brMoreLbl: '', brMaxH: '181px', brOv: 'hidden', brToggle() {}, sbO: 0, sbH: '0%', sbT: '0%', brScroll() {}, hasBc: false, bcImg: '', bcErr() {}, bcLogo: '', bcName: '', bcMeta: '', catRows: [], brandRows: [], sorts: [], sizeRows: [], colorRows: [], items: [], fCount: '', hasFilters: false, isEmpty: false, priceLbl: '', loPct: '0%', hiPct: '100%', hiRight: '0%', saleN: '', shownN: '', toggleSale() {}, clearAll() {}, trackDown() {} };
+    const all = D.products, sizesOf = p => D.sizesOf(p.id);
+    const prices = all.map(p => p.current_price), pMin = Math.floor(Math.min(...prices)), pMax = Math.ceil(Math.max(...prices));
+    const lo = st.lo ?? pMin, hi = st.hi ?? pMax;
+    const match = (p, skip) => (skip === 'b' || !st.brands.length || st.brands.includes(p.brand_id))
+      && (skip === 'c' || !st.cat || st.cat === p.category_id)
+      && (!st.sizes.length || sizesOf(p).some(s => s.available && st.sizes.includes(s.size_normalized)))
+      && (!st.colors.length || st.colors.includes(p.color_name))
+      && (p.current_price >= lo && p.current_price <= hi)
+      && (skip === 's' || !st.sale || p.is_on_sale);
+    let list = all.filter(p => match(p));
+    if (st.sort === 'asc') list = [...list].sort((a, b) => a.current_price - b.current_price);
+    else if (st.sort === 'desc') list = [...list].sort((a, b) => b.current_price - a.current_price);
+    else list = [...list].sort((a, b) => b.created_at.localeCompare(a.created_at));
+    const num = i => String(i + 1).padStart(2, '0');
+    const cats = D.categories.filter(c => all.some(p => p.category_id === c.id));
+    const catRows = [{ id: null, name: 'Ver todo' }, ...cats].map((c, i) => { const on = st.cat === c.id; return { name: c.name, n: all.filter(p => (c.id == null || p.category_id === c.id) && match(p, 'c')).length, w: on ? 500 : 300, fs: '12px', lw: on ? '18px' : '0px', pick: () => this.setState({ cat: c.id }) }; });
+    // SAMPLE: marcas inventadas para probar "Ver más" — quitar
+    const SAMPLE = ['Norte Studio','Ocre','Basalto','Lumen Wear','Marea','Atelier Vidal','Halcón','Sombra','Pliegue','Dúo','Eira','Corte Seco','Ventisca','Nácar','Tinta','Raíz','Origen 09','Brisa','Hierro','Mota','Siena','Carbón','Lino & Co','Pátina','Faro','Arcilla','Grano','Niebla','Tramo','Vela','Cobalto','Duna','Fibra','Muelle','Ámbar','Tiza','Caliza'];
+    const sampleRows = SAMPLE.map((name, i) => ({ id: 'sample-' + i, name, logo: '' }));
+    const brandRows = [...D.brands, ...sampleRows].map((b, i) => { const on = st.brands.includes(b.id); return { enter: e => { this.setState({ lg: b.id }); }, leave: () => this.setState({ lg: null }), name: b.name, n: all.filter(p => p.brand_id === b.id && match(p, 'b')).length, w: on ? 500 : 300, fs: '12px', lw: on ? '18px' : '0px', pick: () => this.tg('brands', b.id) }; });
+    const sorts = [['new', 'NOVEDADES'], ['asc', 'PRECIO ASCENDENTE'], ['desc', 'PRECIO DESCENDENTE']].map(([k, label]) => ({ label, w: st.sort === k ? 500 : 300, fs: '12px', lw: st.sort === k ? '18px' : '0px', pick: () => this.setState({ sort: k }) }));
+    const sizeRows = ['S', 'M', 'L', 'XL', 'U'].map(l => { const on = st.sizes.includes(l); return { label: l === 'U' ? 'ÚNICA' : l, w: on ? 500 : 300, fs: '12px', br: on ? 1 : 0, brL: on ? '0px' : '7px', brR: on ? '0px' : '-7px', toggle: () => this.tg('sizes', l) }; });
+    const cmap = {}; all.forEach(p => { if (p.color_name && !cmap[p.color_name]) cmap[p.color_name] = p.color_hex || '#fff'; });
+    const colorRows = Object.entries(cmap).map(([name, hex]) => { const on = st.colors.includes(name); const light = /^#?(f|e)/i.test(hex.replace('#', '')); return { name, hex, bd: light ? '#000' : hex, ol: on ? '1px solid #000' : '1px solid transparent', oo: on ? '3px' : '0px', sc: on ? 1.1 : 1, w: on ? 500 : 300, fs: '12px', toggle: () => this.tg('colors', name) }; });
+    const pct = v => `${((v - pMin) / (pMax - pMin || 1)) * 100}%`;
+    const trackDown = e => {
+      const el = this.trackRef.current; if (!el) return;
+      const val = x => { const r = el.getBoundingClientRect(); return Math.round(pMin + Math.min(1, Math.max(0, (x - r.left) / r.width)) * (pMax - pMin)); };
+      const v0 = val(e.clientX), cur = { lo, hi }, which = Math.abs(v0 - cur.lo) <= Math.abs(v0 - cur.hi) ? 'lo' : 'hi';
+      const set = x => { const v = val(x); this.setState(s => { const L = s.lo ?? pMin, H = s.hi ?? pMax; return which === 'lo' ? { lo: Math.min(v, H) } : { hi: Math.max(v, L) }; }); };
+      set(e.clientX);
+      const mv = ev => set(ev.clientX), up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); };
+      window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+    };
+    const items = list.map(p => {
+      const b = D.byId[p.brand_id], d = D.discount(p);
+      return {
+        ...(() => {
+          let srcs = (p.image_urls || [p.main_image_url]).filter(Boolean);
+          if (srcs.length < 2) srcs = [...srcs, ...all.filter(q => q.brand_id === p.brand_id && q.id !== p.id).map(q => q.main_image_url)].slice(0, 3);
+          const n = srcs.length, i = Math.min(st.gi[p.id] || 0, n - 1), hov = st.hp === p.id;
+          const go = dlt => ev => { ev.preventDefault(); ev.stopPropagation(); this.setState(s => ({ gi: { ...s.gi, [p.id]: ((s.gi[p.id] || 0) + dlt + n) % n } })); };
+          return { gal: srcs.map(src => ({ src })), multi: n > 1, tx: `-${i * 100}%`, prev: go(-1), next: go(1), arO: hov ? 1 : 0, arL: hov ? '0px' : '-8px', arR: hov ? '0px' : '8px',
+            dots: srcs.map((_, k) => ({ w: k === i ? '18px' : '6px', o: k === i ? 1 : 0.35 })), idxLbl: `${i + 1}/${n}` };
+        })(),
+        url: p.product_url, img: p.main_image_url, isSale: !!d, sc: st.hp === p.id ? 1.035 : 1, szY: st.hp === p.id ? '0%' : '101%', ul: st.hp === p.id ? 'underline' : 'none', enter: () => this.setState(s => ({ hp: p.id, gi: { ...s.gi, [p.id]: s.gi[p.id] ? s.gi[p.id] : 1 } })), leave: () => this.setState(s => ({ hp: null, gi: { ...s.gi, [p.id]: 0 } })), name: p.name, brand: b.name.toUpperCase(), price: D.price(p.current_price), orig: D.price(p.original_price),
+        tag: d ? `−${d}%` : '', tagShow: d ? 'block' : 'none', tagBg: '#000', tagFg: '#fff',
+        sizes: sizesOf(p).map(s => ({ l: s.size_label, c: s.available ? '#000' : '#b0b0b0', u: s.available ? 'none' : 'line-through' })),
+      };
+    });
+    const fN = st.sizes.length + st.colors.length + (st.sale ? 1 : 0) + (st.lo != null || st.hi != null ? 1 : 0);
+    const bcB = D.byId[st.lg] || D.byId[st.brands[0]];
+    return {
+      ...base, hasBc: !!bcB, bcImg: bcB ? (st.bad[bcB.id] ? ((all.find(p => p.brand_id === bcB.id) || {}).main_image_url || '') : bcB.img) : '', bcErr: () => bcB && !st.bad[bcB.id] && this.setState(s => ({ bad: { ...s.bad, [bcB.id]: 1 } })), bcLogo: bcB ? bcB.logo : '', bcName: bcB ? bcB.name : '', bcMeta: bcB ? [bcB.style, bcB.founded_year].filter(Boolean).join(' · ') : '', catRows, sorts, sizeRows, colorRows, items, trackDown,
+      brandRows: brandRows.map((r, i) => ({ ...r, ro: st.brOpen || i < 6 ? 1 : 0, ry: st.brOpen || i < 6 ? '0px' : '10px', rd: st.brOpen && i >= 6 ? `${Math.min(i - 6, 12) * 35}ms` : '0ms' })),
+      sbO: st.brOpen ? 1 : 0, sbH: `${(st.sb || {}).h ?? 30}%`, sbT: `${(st.sb || {}).t ?? 0}%`,
+      brScroll: e => { const el = e.currentTarget, hh = el.clientHeight / el.scrollHeight * 100, t = el.scrollTop / el.scrollHeight * 100; this.setState({ sb: { h: hh, t } }); }, brMore: brandRows.length > 6, brMoreLbl: st.brOpen ? 'Ver menos' : `Ver más · ${brandRows.length - 6}`, brMaxH: st.brOpen ? '300px' : '181px', brOv: st.brOpen ? 'auto' : 'hidden', brToggle: e => { const w = e && e.currentTarget && e.currentTarget.previousElementSibling, sc = w && w.firstElementChild; if (sc && st.brOpen) sc.scrollTo({ top: 0, behavior: 'smooth' }); this.setState(s => ({ brOpen: !s.brOpen, sb: { h: s.brOpen ? 30 : 300 / (brandRows.length * 33) * 100, t: 0 } })); },
+      fCount: fN ? ` (${fN})` : '', shownN: items.length,
+      hasFilters: !!(st.brands.length || st.cat || fN), isEmpty: !items.length,
+      loPct: pct(lo), hiPct: pct(hi), hiRight: `calc(100% - ${pct(hi)})`,
+      priceLbl: `${D.price(lo)} - ${D.price(hi)}`,
+      saleW: st.sale ? 500 : 300, saleFs: '12px', saleBr: st.sale ? 1 : 0, saleBrL: st.sale ? '0px' : '7px', saleBrR: st.sale ? '0px' : '-7px', saleN: all.filter(p => p.is_on_sale && match(p, 's')).length,
+      toggleSale: () => this.setState(s => ({ sale: !s.sale })),
+      clearAll: () => this.setState({ brands: [], cat: null, sizes: [], colors: [], sale: false, lo: null, hi: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

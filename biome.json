@@ -14,7 +14,7 @@
       "!playwright-report",
       "!test-results",
       "!.lighthouseci",
-      "!design"
+      "!design_handoff_emer_web"
     ]
   },
   "formatter": {
