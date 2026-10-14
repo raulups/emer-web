@@ -3,6 +3,7 @@
 import { type CSSProperties, useState } from "react";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
+import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
 
@@ -58,7 +59,7 @@ export function Catalogo({ brands }: Props) {
       className={styles.cat}
       data-cat
       onMouseLeave={() => setHovered(null)}
-      aria-label="Catálogo"
+      aria-label="Emergentes"
     >
       <div className={styles.lead} data-cat-lead>
         <span className={styles.lineV} data-cat-line aria-hidden="true" />
@@ -69,10 +70,10 @@ export function Catalogo({ brands }: Props) {
             <div className={styles.panel}>
               <span className={styles.lineH} data-cat-h aria-hidden="true" />
               <h2 className={styles.title} data-cat-t>
-                CATÁLOGO
+                EMERGENTES
               </h2>
               <p className={styles.text} data-cat-t>
-                Todas las marcas de EMER. Baja para recorrerlas.
+                Marcas que acaban de nacer. Baja para recorrerlas.
               </p>
               <p className={styles.count} data-cat-t>
                 {brands.length} marcas
@@ -89,16 +90,15 @@ export function Catalogo({ brands }: Props) {
                   const on = hovered === brand.id;
                   const dim = hovered !== null && !on;
                   return (
-                    <a
+                    // biome-ignore lint/a11y/noStaticElementInteractions: el hover solo es visual; el foco llega de sus botones
+                    <div
                       key={brand.id}
                       className={styles.cell}
+                      data-cat-cell
                       style={{ "--grow": height } as CSSProperties}
                       data-first={first || undefined}
                       data-on={on || undefined}
                       data-dim={dim || undefined}
-                      href={brand.url ?? undefined}
-                      target="_blank"
-                      rel="noopener"
                       onMouseEnter={() => setHovered(brand.id)}
                       onMouseLeave={() => setHovered(null)}
                       onFocus={() => setHovered(brand.id)}
@@ -115,7 +115,7 @@ export function Catalogo({ brands }: Props) {
                         />
                         <span className={styles.labels}>
                           <span className={styles.name}>{brand.name}</span>
-                          <span className={styles.cta}>Ver marca ↗</span>
+                          <BrandActions brand={brand} tone="overlay" className={styles.cta} />
                         </span>
                         <span className={styles.thumbs}>
                           {brand.products.slice(0, 3).map((product, j) => (
@@ -140,7 +140,7 @@ export function Catalogo({ brands }: Props) {
                           )}
                         </span>
                       </span>
-                    </a>
+                    </div>
                   );
                 })}
               </div>

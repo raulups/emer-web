@@ -1,12 +1,30 @@
 import { expect, type Page, test } from "@playwright/test";
 
-/** Fixtures: las 6 marcas con más piezas, de más a menos. */
-const POPULAR = ["Satenier", "Scuffers", "Nocturna", "Solar Club", "Ruido", "Calma"];
+/**
+ * Fixtures (`TAGS` en src/lib/api/fixtures.ts). Por posición: 1.ª Destacados (tag «destacada», por
+ * nº de piezas), 2.ª Populares («popular»), 3.ª Novedades («novedad») y 4.ª Emergentes
+ * («emergente» o sin tags, por año de fundación).
+ */
+const DESTACADOS = ["Scuffers", "Nocturna", "Solar Club"];
+const POPULARES = ["Satenier", "Nocturna", "Ruido"];
+const NOVEDADES = [
+  "Satenier",
+  "Scuffers",
+  "Nocturna",
+  "Imagen Rota",
+  "Bajo Cero",
+  "Solar Club",
+  "Ruido",
+  "Marea",
+];
+const EMERGENTES = ["Bajo Cero", "Imagen Rota", "Tinta", "Marea", "Calma", "Satenier"];
 
 async function openExplora(page: Page) {
   await page.goto("/web");
   await page.getByRole("button", { name: "Explora" }).click();
   await expect(page.locator("[data-intro]")).toBeVisible();
+  // El slide Marketplace → Explora (View Transition) captura el puntero mientras dura.
+  await expect(page.locator("html")).not.toHaveAttribute("data-slide");
 }
 
 const geometry = (page: Page) =>
@@ -29,7 +47,7 @@ const geometry = (page: Page) =>
   });
 
 const counter = (page: Page) =>
-  page.getByRole("region", { name: "Marcas populares" }).locator("p[aria-live]");
+  page.getByRole("region", { name: "Marcas destacadas" }).locator("p[aria-live]");
 const wordX = (page: Page, index: number) =>
   page
     .locator("[data-pw]")
@@ -52,28 +70,30 @@ test("intro: las palabras suben en escalera y se alinean al cruzar el centro", a
   await expect.poll(() => wordX(page, 3), { timeout: 4000 }).toBeLessThan(2);
 });
 
-test("Populares: nombres, descripción, 2 piezas y contador de la marca activa", async ({
-  page,
-}) => {
+test("Destacados: nombres, descripción, piezas y contador de la marca activa", async ({ page }) => {
   await openExplora(page);
   const g = await geometry(page);
   const at = (p: number) => g.pop.top + p * (g.pop.height - g.vh);
 
   await page.evaluate((y) => window.scrollTo(0, y), at(0));
-  await expect(counter(page)).toContainText(POPULAR[0] as string);
+  await expect(counter(page)).toContainText(DESTACADOS[0] as string);
   await expect(counter(page)).toContainText("01");
-  await expect(counter(page)).toContainText("06");
-  const pop = page.getByRole("region", { name: "Marcas populares" });
-  await expect(pop.getByRole("link", { name: /Ver marca · 12 piezas/ })).toBeVisible();
+  await expect(counter(page)).toContainText("03");
+  // Los nombres de la pista son exactamente las marcas con el tag, en orden.
+  expect(await page.locator("[data-nm-base] [data-nm]").allTextContents()).toEqual(DESTACADOS);
+  const pop = page.getByRole("region", { name: "Marcas destacadas" });
+  // La descripción no enseña los tags de sección.
+  await expect(pop.locator("p").first()).not.toContainText(/destacad|popular|novedad|emergente/i);
+  await expect(pop.getByRole("link", { name: "Ver marca", exact: true })).toBeVisible();
   await expect(pop.locator("ul a")).toHaveCount(3);
   await expect(pop.locator("ul a").first()).toContainText("€");
 
   await page.evaluate((y) => window.scrollTo(0, y), at(1));
-  await expect(counter(page)).toContainText(POPULAR[5] as string, { timeout: 4000 });
-  await expect(counter(page)).toContainText("06");
+  await expect(counter(page)).toContainText(DESTACADOS[2] as string, { timeout: 4000 });
+  await expect(counter(page)).toContainText("03");
 });
 
-test("Populares: la copia negra de los nombres se recorta a la ventana 50–75 %", async ({
+test("Destacados: la copia negra de los nombres se recorta a la ventana 50–75 %", async ({
   page,
 }) => {
   await openExplora(page);
@@ -96,22 +116,22 @@ test("Populares: la copia negra de los nombres se recorta a la ventana 50–75 %
 test("sin movimiento: lista estática en lugar del recorrido", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await openExplora(page);
-  await expect(page.getByRole("region", { name: "Marcas populares" })).toBeHidden();
-  await expect(page.locator("[data-static]").getByText("Satenier")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Marcas destacadas" })).toBeHidden();
+  await expect(page.locator("[data-static]").getByText("Scuffers", { exact: true })).toBeVisible();
 });
 
 for (const size of [
   { width: 1440, height: 900 },
   { width: 924, height: 540 },
 ]) {
-  test(`Populares ${size.width}×${size.height}: las piezas caben sin pisar la descripción`, async ({
+  test(`Destacados ${size.width}×${size.height}: las piezas caben sin pisar la descripción`, async ({
     page,
   }) => {
     await page.setViewportSize(size);
     await openExplora(page);
     const g = await geometry(page);
     await page.evaluate((y) => window.scrollTo(0, y), g.pop.top);
-    const pop = page.getByRole("region", { name: "Marcas populares" });
+    const pop = page.getByRole("region", { name: "Marcas destacadas" });
     await expect(pop.locator("ul a").first()).toBeVisible();
     const link = await pop.getByRole("link", { name: /Ver marca/ }).boundingBox();
     const list = await pop.locator("ul").boundingBox();
@@ -123,14 +143,16 @@ for (const size of [
   });
 }
 
-test("Novedades: filas ordenadas por llegada, opacidad por distancia y foto en hover sin animación", async ({
+test("Populares (2.ª sección): marcas con el tag, opacidad por distancia y foto en hover sin animación", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
   await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + g.vh * 0.6);
   const rows = page.locator("[data-nv-row]");
-  await expect(rows.first()).toContainText("Satenier");
+  await expect(page.locator("[data-nv] h2")).toHaveText("POPULARES");
+  await expect(rows).toHaveCount(POPULARES.length);
+  for (const [i, name] of POPULARES.entries()) await expect(rows.nth(i)).toContainText(name);
   await expect(rows.first()).toContainText("Llegó el 01.09.26");
   // La fila más cercana al centro es la más opaca; las lejanas, más tenues (mínimo .22).
   await expect
@@ -140,7 +162,7 @@ test("Novedades: filas ordenadas por llegada, opacidad por distancia y foto en h
       );
       return Math.max(...opacities) - Math.min(...opacities);
     })
-    .toBeGreaterThan(0.3);
+    .toBeGreaterThan(0.2);
 
   const preview = page.locator("[data-nv] [data-on]");
   await expect(preview).toHaveCount(0);
@@ -151,7 +173,7 @@ test("Novedades: filas ordenadas por llegada, opacidad por distancia y foto en h
   await expect(preview).toHaveCount(0);
 });
 
-test("transición Novedades → Emergentes: línea que gira, máscara conic y sin saltos al final", async ({
+test("transición Populares → Novedades: línea que gira, máscara conic y sin saltos al final", async ({
   page,
 }) => {
   await openExplora(page);
@@ -173,7 +195,34 @@ test("transición Novedades → Emergentes: línea que gira, máscara conic y si
   await expect(page.locator("[data-sl]")).toHaveCSS("visibility", "hidden");
 });
 
-test("Emergentes: dos columnas en sentidos opuestos, marca activa por hover y sin repetidas", async ({
+test("[ SALTAR ]: scroll animado al final de la sección y controles en blanco sobre Populares", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const skip = page.getByRole("button", { name: "Saltar al final de Destacados" });
+  const option = page.getByRole("button", { name: "Marketplace" });
+  await expect(skip).toBeVisible();
+  await expect(option).toHaveAttribute("data-tone", "light");
+
+  const g = await geometry(page);
+  await skip.click();
+  // No es un salto seco: a mitad del recorrido el scroll aún no ha llegado.
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(g.nv.top - 50);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeCloseTo(g.nv.top, -1);
+
+  await expect(page.getByRole("button", { name: "Saltar al final de Populares" })).toBeVisible();
+  await expect(option).toHaveAttribute("data-tone", "dark", { timeout: 4000 });
+  await expect(option).toHaveCSS("color", "rgb(242, 242, 242)");
+
+  // Al volver a Marketplace no queda ningún tono puesto.
+  await option.click();
+  await expect(option).not.toHaveAttribute("data-tone", /.*/);
+});
+
+test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa por hover y sin repetidas", async ({
   page,
 }) => {
   await openExplora(page);
@@ -195,6 +244,8 @@ test("Emergentes: dos columnas en sentidos opuestos, marca activa por hover y si
     els.map((el) => el.querySelectorAll("span")[2]?.textContent),
   );
   expect(new Set(names).size).toBe(names.length);
+  expect(names.toSorted()).toEqual(NOVEDADES.toSorted());
+  await expect(page.locator("[data-er] h2")).toHaveText("NOVEDADES");
 
   // Hover: la tarjeta bajo el ratón pasa a ser la marca activa.
   await page.evaluate((v) => window.scrollTo(0, v), y(0.5));
@@ -241,7 +292,7 @@ test("Catálogo: la línea baja, el alto sale del recorrido medido y la pista se
     .toBeCloseTo(-travel, -1);
 });
 
-test("Catálogo: hover con zoom, atenuado, miniaturas y «Ver marca ↗» sin cambiar el tamaño de las celdas", async ({
+test("Catálogo: hover con zoom, atenuado, miniaturas y botones sin cambiar el tamaño de las celdas", async ({
   page,
 }) => {
   await openExplora(page);
@@ -249,7 +300,7 @@ test("Catálogo: hover con zoom, atenuado, miniaturas y «Ver marca ↗» sin ca
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * (g.pin.height - g.vh));
   await page.waitForTimeout(1500);
 
-  const cells = page.locator("[data-cat] [data-cat-g] a");
+  const cells = page.locator("[data-cat] [data-cat-cell]");
   const visible = async () => {
     const boxes = await cells.evaluateAll((els) =>
       els.map((el) => {
@@ -278,7 +329,7 @@ test("Catálogo: hover con zoom, atenuado, miniaturas y «Ver marca ↗» sin ca
   const cell = cells.nth(index);
   await cell.hover();
   await expect(cell).toHaveAttribute("data-on", "true");
-  await expect(cell.getByText("Ver marca ↗", { exact: true })).toHaveCSS("opacity", "1");
+  await expect(cell.locator("[data-tone]")).toHaveCSS("opacity", "1");
   await expect(cell.locator("img").first()).toHaveCSS("transform", /matrix\(1\.05/);
   const other = cells.nth(index === 0 ? 1 : 0);
   await expect(other).toHaveCSS("opacity", "0.3");
@@ -289,17 +340,17 @@ test("Catálogo: hover con zoom, atenuado, miniaturas y «Ver marca ↗» sin ca
   await expect(cell).not.toHaveAttribute("data-on");
 });
 
-test("Catálogo: todas las marcas, sin repetir, y «Catálogo pronto» en las que no tienen piezas", async ({
+test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y «Catálogo pronto» sin piezas", async ({
   page,
 }) => {
   await openExplora(page);
   const names = await page
-    .locator("[data-cat] [data-cat-g] a")
+    .locator("[data-cat] [data-cat-cell]")
     .evaluateAll((els) => els.map((el) => el.querySelector("img")?.getAttribute("alt") ?? ""));
-  expect(new Set(names).size).toBe(names.length);
-  expect(names.length).toBe(10);
+  expect(names).toEqual(EMERGENTES);
+  await expect(page.locator("[data-cat] h2")).toHaveText("EMERGENTES");
   await expect(
-    page.locator("[data-cat] [data-cat-g] a", { hasText: "Catálogo pronto" }),
+    page.locator("[data-cat] [data-cat-cell]", { hasText: "Catálogo pronto" }),
   ).toHaveCount(1);
 });
 
@@ -314,4 +365,164 @@ test("imágenes rotas: Catálogo y Emergentes usan la foto del primer producto",
       })
       .toBe(true);
   }
+});
+
+/** Transform Y de un nodo escrito por el bucle (`translateY(calc(-50% + Npx))`). */
+const writtenY = (page: Page, selector: string) =>
+  page
+    .locator(selector)
+    .first()
+    .evaluate((el) => Number((el as HTMLElement).style.transform.match(/([-\d.]+)px/)?.[1] ?? NaN));
+
+test("Sugerir marca: arranca en blanco y las filas suben sin saltos hasta el slot", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const sg = page.locator("#sugerir-marca");
+  const { top, height, vh } = await sg.evaluate((el) => ({
+    top: el.getBoundingClientRect().top + window.scrollY,
+    height: (el as HTMLElement).offsetHeight,
+    vh: window.innerHeight,
+  }));
+  expect(height).toBeCloseTo(vh * 3.8, -1);
+
+  // q ≈ 0.05: espacio en blanco (la lista aún está por debajo de la pantalla).
+  await page.evaluate((y) => window.scrollTo(0, y), top - vh + height * 0.05);
+  await expect.poll(() => writtenY(page, "[data-slot]")).toBeGreaterThan(vh);
+  await expect(page.locator('[data-sr="5"]')).toHaveCSS("opacity", "0");
+
+  // Scroll continuo: el slot baja de forma monótona, sin saltos grandes por frame.
+  const ys = await page.evaluate(
+    async ({ from, to }) => {
+      const slot = document.querySelector<HTMLElement>("[data-slot]");
+      // [y del slot, ms desde el frame anterior]
+      const out: [number, number][] = [];
+      let last = performance.now();
+      for (let y = from; y <= to; y += 30) {
+        window.scrollTo(0, y);
+        await new Promise((r) => requestAnimationFrame(r));
+        const now = performance.now();
+        out.push([Number(slot?.style.transform.match(/([-\d.]+)px/)?.[1]), now - last]);
+        last = now;
+      }
+      return out;
+    },
+    { from: top - vh + height * 0.05, to: top - vh + height * 0.6 },
+  );
+  for (let i = 1; i < ys.length; i++) {
+    const [y = 0, ms = 16.7] = ys[i] ?? [];
+    const [prev = 0] = ys[i - 1] ?? [];
+    expect(y).toBeLessThanOrEqual(prev + 0.5);
+    // Sin saltos: menos de 80 px por frame de 60 Hz (normalizado si el navegador pierde frames).
+    expect((Math.abs(y - prev) * 16.7) / Math.max(16.7, ms)).toBeLessThan(80);
+  }
+
+  // q = 0.9: slot centrado, filas fuera y formulario activo.
+  await page.evaluate((y) => window.scrollTo(0, y), top - vh + height * 0.9);
+  await expect.poll(() => writtenY(page, "[data-slot]")).toBeLessThan(1);
+  await expect(page.locator('input[name="name"]')).toHaveCSS("pointer-events", "auto");
+});
+
+test("Sugerir marca: validación, error conservando datos y estado enviado", async ({ page }) => {
+  await openExplora(page);
+  await page.locator("footer").getByRole("link", { name: "Sugerir marca" }).click();
+  const sg = page.locator("#sugerir-marca");
+  const name = sg.locator('input[name="name"]');
+  const ig = sg.locator('input[name="instagram"]');
+  const submit = sg.getByRole("button", { name: "Enviar sugerencia" });
+  await expect(name).toHaveCSS("pointer-events", "auto");
+
+  await expect(submit).toHaveAttribute("aria-disabled", "true");
+  await ig.fill(" @Mi.Marca ");
+  await expect(ig).toHaveValue("Mi.Marca");
+
+  // El nombre «ERROR» fuerza el fallo en las fixtures.
+  await name.fill("ERROR");
+  await expect(submit).toHaveAttribute("aria-disabled", "false");
+  await submit.click();
+  await expect(sg.getByRole("alert")).toHaveText("No se pudo enviar. Inténtalo de nuevo.");
+  await expect(name).toHaveValue("ERROR");
+
+  await name.fill("Nueva marca");
+  await submit.click();
+  await expect(sg.getByRole("status")).toHaveText("En revisión · Gracias");
+  await expect(sg.locator("[data-sv]").first()).toHaveText("Nueva marca");
+
+  await sg.getByRole("button", { name: "Sugerir otra" }).click();
+  await expect(name).toBeFocused();
+  await expect(name).toHaveValue("");
+});
+
+test("Footer: Ofertas abre el Marketplace con el filtro de ofertas", async ({ page }) => {
+  await openExplora(page);
+  await page.locator("footer").getByRole("link", { name: "Ofertas" }).click();
+  await expect(page.locator("main")).toHaveAttribute("data-view", "market");
+  await expect(page.locator("button", { hasText: "SOLO OFERTAS" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+const SATENIER_ID = "0208bdca-c705-491b-82fa-76123232670b";
+
+test("botones de marca: «Ver marca» solo con productos, «Ir a la tienda» externo y mismo alto", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const cell = (name: string) =>
+    page
+      .locator("[data-cat] [data-cat-cell]")
+      .filter({ has: page.getByAltText(name, { exact: true }) });
+
+  // Con productos: «Ver marca» (principal, interno) + «Ir a la tienda» (secundario, externo).
+  const satenier = cell("Satenier");
+  const market = satenier.getByRole("link", { name: "Ver marca", exact: true });
+  const store = satenier.getByRole("link", { name: /Ir a la tienda/ });
+  await expect(market).toHaveAttribute("href", `/marketplace?brand=${SATENIER_ID}`);
+  await expect(market).toHaveAttribute("data-primary", "true");
+  await expect(store).toHaveAttribute("target", "_blank");
+  await expect(store).toHaveAttribute("rel", "noopener noreferrer");
+  await expect(store).not.toHaveAttribute("data-primary");
+
+  // Sin productos (Bajo Cero): solo «Ir a la tienda», que pasa a ser el principal.
+  const bajoCero = cell("Bajo Cero");
+  await expect(bajoCero.getByRole("link", { name: "Ver marca", exact: true })).toHaveCount(0);
+  await expect(bajoCero.getByRole("link", { name: /Ir a la tienda/ })).toHaveAttribute(
+    "data-primary",
+    "true",
+  );
+
+  // Mismo alto con uno o dos botones.
+  const height = (loc: typeof satenier) =>
+    loc.locator("[data-tone]").evaluate((el) => el.getBoundingClientRect().height);
+  expect(await height(bajoCero)).toBe(await height(satenier));
+});
+
+test("«Ver marca» abre el Marketplace filtrado por la marca", async ({ page }) => {
+  await openExplora(page);
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pop.top);
+  const pop = page.getByRole("region", { name: "Marcas destacadas" });
+  const link = pop.getByRole("link", { name: "Ver marca", exact: true });
+  // La marca activa es la del enlace que se pulsa.
+  const href = (await link.getAttribute("href")) ?? "";
+  const id = new URL(href, "http://x").searchParams.get("brand");
+  await link.click();
+  await expect(page.locator("main")).toHaveAttribute("data-view", "market");
+  await expect
+    .poll(() => new URL(page.url()).pathname + new URL(page.url()).search)
+    .toBe(`/web?brand=${id}`);
+  // Filtro de marca activo en el menú y solo productos de esa marca.
+  const selected = page
+    .getByRole("complementary", { name: "Menú del catálogo" })
+    .locator('button[aria-pressed="true"]');
+  await expect(selected).toHaveCount(1);
+  const brand = ((await selected.textContent()) ?? "").split(",")[0]?.trim() ?? "";
+  const cards = page.getByRole("region", { name: "Productos" }).locator("article");
+  await expect
+    .poll(async () => {
+      const texts = await cards.allTextContents();
+      return texts.length > 0 && texts.every((t) => t.includes(brand));
+    })
+    .toBe(true);
 });

@@ -86,6 +86,7 @@ export function FilterPanel(props: Props) {
       <div
         ref={drawer}
         className={styles.drawer}
+        data-lenis-prevent
         data-open={open || undefined}
         role="dialog"
         aria-modal="true"

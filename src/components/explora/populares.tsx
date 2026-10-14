@@ -2,8 +2,10 @@
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import type { ExploraBrand } from "@/lib/explora-data";
+import { isSectionTag } from "@/lib/explora-tags";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
+import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./explora.module.css";
 
@@ -13,7 +15,8 @@ export function describe(brand: ExploraBrand): string {
   return [
     brand.style && `${brand.style}.`,
     brand.tags
-      .filter((tag) => tag.toLowerCase() !== style)
+      // Los tags de sección (destacada, popular…) no describen la marca.
+      .filter((tag) => tag.toLowerCase() !== style && !isSectionTag(tag))
       .slice(0, 3)
       .join(", "),
     brand.foundedYear && `Desde ${brand.foundedYear}.`,
@@ -102,7 +105,7 @@ export function Populares({ popular, index }: Props) {
       className={styles.pop}
       data-pop
       style={{ height: `${total * 100}vh` }}
-      aria-label="Marcas populares"
+      aria-label="Marcas destacadas"
     >
       <div ref={stage} className={styles.stage} data-pop-stage>
         <span className={styles.lineV} aria-hidden="true" />
@@ -146,12 +149,7 @@ export function Populares({ popular, index }: Props) {
 
         <div ref={info} className={styles.info}>
           <p className={styles.desc}>{describe(current)}</p>
-          {current.url && (
-            <a className={styles.brandLink} href={current.url} target="_blank" rel="noopener">
-              <span>Ver marca · {current.count} piezas</span>
-              <span className={styles.brandLine} aria-hidden="true" />
-            </a>
-          )}
+          <BrandActions brand={current} />
         </div>
 
         <ul

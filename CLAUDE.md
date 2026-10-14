@@ -23,12 +23,12 @@ Web de marketing/descubrimiento de **Emer** (marketplace de marcas de streetwear
 
 ```
 src/
-  app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora)
+  app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí)
   app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
   components/          componentes; cursor.tsx = cursor propio global (layout)
     shell/             Shell + switch MARKETPLACE / EXPLORA
     landing/           Landing: `landing.tsx` (un bucle por scroll), túnel de marcas (servidor + Suspense)
-    explora/           Explora: `explora.tsx` (un bucle por scroll: intro + Populares), sección de servidor + datos
+    explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
     marketplace/       sección de servidor (datos) + cliente (filtros, menú, panel, grid, tarjeta)
     ui/                halo, bracket-label (letras + corchetes + línea)
   fonts/Inter.woff2    única fuente (variable 100–900, subconjunto latino)
@@ -39,9 +39,9 @@ src/
     data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
     format.ts          reglas puras: price, discount, órdenes de marcas, fallback de imagen
     marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
-    explora-data.ts    Explora: Populares, Novedades y Emergentes con sus piezas (solo servidor)
+    explora-data.ts    Explora: Destacados, Populares, Novedades y Emergentes por tag de marca (`explora-tags.ts`), con sus piezas (solo servidor)
     marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
-    motion/            `ticker.ts` (único reloj), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings)
+    motion/            `ticker.ts` (único reloj), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings), `scroll.ts` (Lenis: `SMOOTH_SCROLL`, `scrollToY`, `lockScroll`; todo scroll programático pasa por aquí)
     api/               cliente tipado del backend KMP (solo servidor)
 ```
 

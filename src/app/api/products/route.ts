@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, data: null, error: parsed.error }, { status: 400 });
   }
 
-  const result = await getMarketplacePage(parsed.filters, parsed.page);
+  const result = await getMarketplacePage(parsed.filters, parsed.page, parsed.cursor);
   if (!result.ok) {
     console.error("[api/products]", result.error);
     return NextResponse.json(

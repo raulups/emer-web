@@ -1,12 +1,25 @@
 import { getBrands } from "@/lib/data";
-import { EMPTY_FILTERS } from "@/lib/marketplace";
+import { BRAND_PARAM, brandsFromParam, EMPTY_FILTERS, type Filters } from "@/lib/marketplace";
 import { getMarketplacePage } from "@/lib/marketplace-data";
 import { Marketplace } from "./marketplace";
 import styles from "./marketplace-section.module.css";
 
-/** Servidor: marcas y primera página de productos. El cliente sigue desde aquí. */
-export async function MarketplaceSection() {
-  const [brands, initial] = await Promise.all([getBrands(), getMarketplacePage(EMPTY_FILTERS)]);
+type Props = Pick<PageProps<"/web">, "searchParams">;
+
+/**
+ * Servidor: marcas y primera página de productos. El cliente sigue desde aquí. `?brand=<uuid>`
+ * abre con esas marcas seleccionadas (si existen en `/brands`; si no, se ignora).
+ */
+export async function MarketplaceSection({ searchParams }: Props) {
+  const requested = (await searchParams)[BRAND_PARAM];
+  const brands = await getBrands();
+  const filters: Filters = brands.ok
+    ? {
+        ...EMPTY_FILTERS,
+        brands: brandsFromParam(requested, new Set(brands.data.map((b) => b.id))),
+      }
+    : EMPTY_FILTERS;
+  const initial = await getMarketplacePage(filters.brands.length > 0 ? filters : EMPTY_FILTERS);
 
   if (!brands.ok || !initial.ok) {
     return (
@@ -19,7 +32,7 @@ export async function MarketplaceSection() {
     );
   }
 
-  return <Marketplace brands={brands.data} initial={initial.data} />;
+  return <Marketplace brands={brands.data} initial={initial.data} initialFilters={filters} />;
 }
 
 /** Misma geometría que el Marketplace mientras llegan los datos (sin CLS). */

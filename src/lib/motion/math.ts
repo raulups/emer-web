@@ -18,4 +18,13 @@ export function lerpTo(current: number, target: number, deltaMs: number): number
   return Math.abs(target - next) < 0.05 ? target : next;
 }
 
+/** `current += (target − current) · factor` por frame a 60 Hz, normalizado con el tiempo. */
+export function lerpBy(current: number, target: number, factor: number, deltaMs: number): number {
+  return (
+    current + (target - current) * (1 - (1 - factor) ** (Math.min(deltaMs, 100) / (1000 / 60)))
+  );
+}
+
+export const easeOutCubic = (t: number): number => 1 - (1 - t) ** 3;
+
 export const pad = (value: number, size: number): string => String(value).padStart(size, "0");

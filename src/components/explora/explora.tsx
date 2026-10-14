@@ -4,43 +4,57 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
 import type { ExploraData } from "@/lib/explora-data";
-import { clamp01, lerpTo } from "@/lib/motion/math";
+import { clamp01, easeInOutQuad, lerpTo } from "@/lib/motion/math";
+import { getLenis, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write } from "@/lib/motion/write";
+import { BrandActions } from "./brand-actions";
 import { Catalogo } from "./catalogo";
 import { Emergentes } from "./emergentes";
 import styles from "./explora.module.css";
+import { Footer } from "./footer";
 import { Novedades } from "./novedades";
 import { describe, Populares } from "./populares";
+import { SkipButton } from "./skip-button";
+import { SuggestBrand } from "./suggest-brand";
 
 gsap.registerPlugin(useGSAP);
 
-const INTRO_WORDS = ["PO", "PU", "LA", "RES"] as const;
+const INTRO_WORDS = ["DES", "TA", "CA", "DOS"] as const;
+
+/**
+ * Secciones que [ SALTAR ] lleva a su final, en orden de scroll (por posición: 1.ª `Populares`,
+ * 2.ª `Novedades`, 3.ª `Emergentes` y 4.ª `Catalogo` como componentes).
+ */
+const SECTIONS = ["Destacados", "Populares", "Novedades", "Emergentes"] as const;
 
 type Props = { data: ExploraData };
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
 /**
- * Explora §4.1–§4.5: intro, Populares, Novedades, Emergentes (con la transición entre las dos
- * últimas) y Catálogo. Un único bucle (`gsap.ticker`) suaviza el scroll con lerp 0.14 (`s`) y escribe estilos
+ * Explora §4.1–§4.5: intro y cuatro secciones filtradas por tag (`lib/explora-data.ts`). Los
+ * componentes conservan el nombre de su posición original: `Populares` pinta Destacados,
+ * `Novedades` pinta Populares, `Emergentes` pinta Novedades (con la transición entre estas dos) y
+ * `Catalogo` pinta Emergentes. Una sección sin marcas no se pinta. Un único bucle (`gsap.ticker`) suaviza el scroll con lerp 0.14 (`s`) y escribe estilos
  * en los nodos con geometría medida; React solo guarda las marcas activas.
  */
 export function Explora({ data }: Props) {
-  const { popular, newest, emergent } = data;
+  const { destacados, populares, novedades, emergentes, todas } = data;
   const root = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [near, setNear] = useState(0);
+  const [section, setSection] = useState(0);
 
   useGSAP(
     () => {
       const el = root.current;
       if (!el) return;
-      const one = <T extends HTMLElement>(name: string) => {
-        const node = el.querySelector<T>(`[data-${name}]`);
-        if (!node) throw new Error(`Explora: falta [data-${name}]`);
-        return node;
-      };
+      // Una sección sin marcas no se pinta: sus nodos se sustituyen por uno suelto (lo que se
+      // escribe en él no tiene efecto y mide 0), así el bucle sigue igual para las demás.
+      const one = <T extends HTMLElement>(name: string) =>
+        el.querySelector<T>(`[data-${name}]`) ??
+        (document.createElement("div") as HTMLElement as T);
       const intro = one("intro");
       const pop = one("pop");
       const stage = one("pop-stage");
@@ -70,13 +84,15 @@ export function Explora({ data }: Props) {
       const catH = one("cat-h");
       const catTexts = [...el.querySelectorAll<HTMLElement>("[data-cat-t]")];
       const catCols = [...el.querySelectorAll<HTMLElement>("[data-cat-g]")];
+      const skip = one("skip");
 
-      window.scrollTo(0, 0);
+      scrollToY(0, { immediate: true });
 
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // ---- Geometría: se mide al montar, al cargar la fuente y al cambiar el tamaño ----
         let vh = 0;
+        let vw = 0;
         let stageW = 0;
         let winW = 0;
         const box = { intro: [0, 0], pop: [0, 1], nv: [0, 0], er: [0, 1] } as Record<
@@ -93,11 +109,16 @@ export function Explora({ data }: Props) {
         let leadH = 1;
         let pinTop = 0;
         let travel = 0;
+        // Final de cada sección de SECTIONS (scrollY en el que termina).
+        let ends: number[] = [];
+        // Controles fijos (switch del Shell, [ SALTAR ]) y su centro en pantalla, para su tono.
+        let probes: { node: HTMLElement; x: number; y: number }[] = [];
         let dirty = true;
         const docTop = (node: HTMLElement, scroll: number) =>
           node.getBoundingClientRect().top + scroll;
         const measure = () => {
           vh = window.innerHeight;
+          vw = window.innerWidth;
           // Recorrido horizontal medido: la sección fija mide vh + lo que se desplaza la pista.
           travel = Math.max(0, track.scrollWidth - pin.clientWidth);
           const pinHeight = `${Math.round(vh + travel)}px`;
@@ -129,6 +150,20 @@ export function Explora({ data }: Props) {
           offsets = [...nmBase.querySelectorAll<HTMLElement>("[data-nm]")].map(
             (name) => name.getBoundingClientRect().left - base,
           );
+          // Populares acaba cuando Novedades llega arriba; Novedades, con la transición completa
+          // (q = 1); Emergentes, al soltarse su escena fija; Catálogo, al acabar su pista.
+          const last = document.documentElement.scrollHeight - vh;
+          const catEnd = pinTop + travel;
+          ends = [box.nv[0], spacerTop + spacerH - vh, box.er[0] + box.er[1] - vh, catEnd].reduce<
+            number[]
+          >((acc, end) => {
+            acc.push(Math.min(last, Math.max(end, acc.at(-1) ?? 0)));
+            return acc;
+          }, []);
+          probes = [...document.querySelectorAll<HTMLElement>("[data-tone-probe]")].map((node) => {
+            const rect = node.getBoundingClientRect();
+            return { node, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+          });
           dirty = true;
         };
         measure();
@@ -141,6 +176,53 @@ export function Explora({ data }: Props) {
         let s = window.scrollY;
         let shownIndex = 0;
         let shownNear = 0;
+        let shownSection = 0;
+        let target: number | undefined;
+
+        // ---- [ SALTAR ]: scroll animado hasta el final de la sección actual ----
+        let tween: gsap.core.Tween | null = null;
+        const stop = () => {
+          tween?.kill();
+          tween = null;
+        };
+        const jump = () => {
+          if (target === undefined) return;
+          stop();
+          const from = window.scrollY;
+          const duration = Math.min(2.2, 0.6 + (0.12 * Math.abs(target - from)) / Math.max(1, vh));
+          // Con Lenis, el salto es suyo (la rueda del usuario lo interrumpe sola).
+          const lenis = getLenis();
+          if (lenis) {
+            lenis.scrollTo(target, { duration, easing: easeInOutQuad, force: true });
+            return;
+          }
+          const proxy = { y: from };
+          tween = gsap.to(proxy, {
+            y: target,
+            duration,
+            ease: "power2.inOut",
+            onUpdate: () => window.scrollTo(0, proxy.y),
+            onComplete: () => {
+              tween = null;
+            },
+          });
+        };
+        skip.addEventListener("click", jump);
+        // Si el usuario toma el control a mitad del salto, se lo devolvemos.
+        const takeOver = ["wheel", "touchstart", "keydown"] as const;
+        for (const type of takeOver) window.addEventListener(type, stop, { passive: true });
+
+        // ---- Tono: ¿el punto (x, y) de la pantalla está sobre el negro de Novedades? ----
+        const darkAt = (x: number, y: number, on: boolean, q: number, angle: number) => {
+          const top = box.nv[0] - s;
+          if (y < top || y >= top + box.nv[1]) return false;
+          if (!on || q <= 0) return true;
+          if (q >= 1) return false;
+          // La máscara conic deja ver Emergentes en [0, angle) y [180, 180 + angle).
+          const p = (Math.atan2(x - vw / 2, vh / 2 - y) * 180) / Math.PI;
+          const deg = p < 0 ? p + 360 : p;
+          return !(deg < angle || (deg >= 180 && deg < 180 + angle));
+        };
         const live = (node: HTMLElement, from: number, height: number) =>
           node.toggleAttribute("data-live", s > from - vh && s < from + height);
 
@@ -208,6 +290,22 @@ export function Explora({ data }: Props) {
           write(er, "visibility", on ? "visible" : "hidden");
           write(ediv, "opacity", q >= 1 ? "1" : "0");
 
+          // Tono de cada control fijo según lo que tiene justo debajo de su centro.
+          for (const { node, x, y } of probes) {
+            const tone = darkAt(x, y, on, q, angle) ? "dark" : "light";
+            if (node.dataset.tone !== tone) node.dataset.tone = tone;
+          }
+
+          // [ SALTAR ]: la primera sección cuyo final aún queda por delante (scroll real).
+          const y = window.scrollY;
+          const current = ends.findIndex((end) => end - y > 2);
+          target = ends[current];
+          skip.toggleAttribute("data-on", current >= 0);
+          if (current >= 0 && current !== shownSection) {
+            shownSection = current;
+            setSection(current);
+          }
+
           // §4.4 Emergentes: el carrusel y la info entran con el scroll (fade + translate).
           const erScreen = box.er[0] - s;
           const k = clamp01(-erScreen / (vh * 0.45));
@@ -264,6 +362,10 @@ export function Explora({ data }: Props) {
         const unsubscribe = subscribe(frame, el);
         return () => {
           unsubscribe();
+          stop();
+          skip.removeEventListener("click", jump);
+          for (const type of takeOver) window.removeEventListener(type, stop);
+          for (const { node } of probes) delete node.dataset.tone;
           observer.disconnect();
           window.removeEventListener("resize", measure);
         };
@@ -273,63 +375,69 @@ export function Explora({ data }: Props) {
     { scope: root },
   );
 
-  if (popular.length === 0 || newest.length === 0 || emergent.length === 0) return null;
+  if (destacados.length + populares.length + novedades.length + emergentes.length === 0)
+    return null;
 
   return (
     <div ref={root} className={styles.root}>
       <h1 className="sr-only">Explora</h1>
 
-      <section className={styles.intro} data-intro aria-label="Populares">
-        <div className={styles.grid} aria-hidden="true">
-          <span className={styles.gridV} />
-          <span className={styles.gridH} />
-        </div>
-        <div className={styles.introRow}>
-          <div className={styles.introLeft}>
-            <div className={styles.introSticky}>
-              <span className={styles.introTitle}>MARCAS</span>
-              <span className={styles.introSub}>Populares</span>
+      {destacados.length > 0 && (
+        <section className={styles.intro} data-intro aria-label="Destacados">
+          <div className={styles.grid} aria-hidden="true">
+            <span className={styles.gridV} />
+            <span className={styles.gridH} />
+          </div>
+          <div className={styles.introRow}>
+            <div className={styles.introLeft}>
+              <div className={styles.introSticky}>
+                <span className={styles.introTitle}>MARCAS</span>
+                <span className={styles.introSub}>Destacados</span>
+              </div>
+            </div>
+            <div className={styles.introWords} aria-hidden="true">
+              {INTRO_WORDS.map((word) => (
+                <span key={word} className={styles.introWord} data-pw>
+                  {word}
+                </span>
+              ))}
             </div>
           </div>
-          <div className={styles.introWords} aria-hidden="true">
-            {INTRO_WORDS.map((word) => (
-              <span key={word} className={styles.introWord} data-pw>
-                {word}
+        </section>
+      )}
+
+      {destacados.length > 0 && <Populares popular={destacados} index={index} />}
+      {populares.length > 0 && <Novedades newest={populares} />}
+      {novedades.length > 0 && <Emergentes brands={novedades} near={near} />}
+      {emergentes.length > 0 && <Catalogo brands={emergentes} />}
+      <SkipButton section={SECTIONS[section] ?? SECTIONS[0]} />
+
+      {destacados.length > 0 && (
+        <ul className={styles.staticList} data-static aria-label="Destacados">
+          {destacados.map((brand) => (
+            <li key={brand.id} className={styles.staticItem}>
+              <span className={styles.staticName}>{brand.name}</span>
+              <span className={styles.desc}>{describe(brand)}</span>
+              <BrandActions brand={brand} />
+            </li>
+          ))}
+        </ul>
+      )}
+      {novedades.length > 0 && (
+        <ul className={styles.staticList} data-static-emergent aria-label="Novedades">
+          {novedades.map((brand) => (
+            <li key={brand.id} className={styles.staticItem}>
+              <span className={styles.staticName}>{brand.name}</span>
+              <span className={styles.desc}>
+                Desde {brand.foundedYear ?? "—"} · {brand.count} piezas
               </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <Populares popular={popular} index={index} />
-      <Novedades newest={newest} />
-      <Emergentes brands={emergent} near={near} />
-      <Catalogo brands={emergent} />
-
-      <ul className={styles.staticList} data-static>
-        {popular.map((brand) => (
-          <li key={brand.id} className={styles.staticItem}>
-            <span className={styles.staticName}>{brand.name}</span>
-            <span className={styles.desc}>{describe(brand)}</span>
-            {brand.url && (
-              <a className={styles.brandLink} href={brand.url} target="_blank" rel="noopener">
-                <span>Ver marca · {brand.count} piezas</span>
-                <span className={styles.brandLine} aria-hidden="true" />
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
-      <ul className={styles.staticList} data-static-emergent aria-label="Emergentes">
-        {emergent.map((brand) => (
-          <li key={brand.id} className={styles.staticItem}>
-            <span className={styles.staticName}>{brand.name}</span>
-            <span className={styles.desc}>
-              Desde {brand.foundedYear ?? "—"} · {brand.count} piezas
-            </span>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+      {/* Tras Emergentes en pantalla: las listas de arriba solo se ven con «reducir movimiento». */}
+      <SuggestBrand brands={todas} />
+      <Footer />
     </div>
   );
 }

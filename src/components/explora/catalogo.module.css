@@ -126,7 +126,7 @@
   opacity: 0.3;
 }
 
-.cell:focus-visible {
+.cell:has(:focus-visible) {
   outline: 1px solid var(--ink);
   outline-offset: -4px;
 }
@@ -157,14 +157,16 @@
   right: 8px;
   bottom: 8px;
   left: 8px;
+  /* Los botones de marca se adaptan al ancho de la celda (container query). */
+  container-type: inline-size;
   display: flex;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
   align-items: flex-end;
   justify-content: space-between;
 }
 
 .name,
-.cta,
 .soon {
   background: var(--paper);
   padding: 6px 8px;
@@ -176,14 +178,18 @@
   font-size: 13px;
 }
 
+/* Botones de la marca (encima del nombre): solo con hover o con el foco dentro de la celda. */
 .cta {
-  font-size: 11px;
+  flex: 1 1 100%;
+  order: -1;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.4s var(--ease-out-expo);
 }
 
 .cell[data-on] .cta {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .thumbs {

@@ -39,7 +39,7 @@ export function SideMenu(props: Props) {
       aria-label="Menú del catálogo"
       inert={!visible}
     >
-      <div className={styles.inner}>
+      <div className={styles.inner} data-lenis-prevent>
         <nav className={styles.group} aria-label="Categorías">
           <OptionRow
             label="Ver todo"

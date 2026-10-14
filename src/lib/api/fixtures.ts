@@ -152,6 +152,23 @@ const RAW_PRODUCTS: RawProduct[] = BRANDS.flatMap((brand, b) =>
   }),
 );
 
+/**
+ * Tags con el formato real de `/brands` (minúsculas y singular: destacada, popular, novedad,
+ * emergente), más variantes para probar la normalización. `undefined`: la API omite el campo.
+ */
+const TAGS: Record<string, string[] | undefined> = {
+  Satenier: ["popular", "emergente", "novedad"],
+  Scuffers: ["destacada", "novedad"],
+  Nocturna: ["destacada", "popular", "novedad"],
+  "Imagen Rota": ["Novedad ", "Emergénte"],
+  "Bajo Cero": ["emergente", "novedad"],
+  "Solar Club": ["DESTACADA", "novedad"],
+  Ruido: ["popular", "novedad"],
+  Calma: [],
+  Marea: ["novedad", "emergente"],
+  Tinta: undefined,
+};
+
 const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
   const products = RAW_PRODUCTS.filter((p) => p.brand_id === brand.id);
   return {
@@ -161,7 +178,7 @@ const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
     img: brand.img,
     logo: b % 3 === 0 ? image(b + 2) : null,
     color: null,
-    tags: b % 2 === 0 ? ["streetwear", "gráfico"] : ["skate"],
+    ...(TAGS[brand.name] ? { tags: TAGS[brand.name] } : {}),
     founded_year: 2018 + (b % 7),
     style: b % 2 === 0 ? "Streetwear" : "Skate",
     created_at: `2026-0${9 - (b % 9)}-01T10:00:00.000000Z`,

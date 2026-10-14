@@ -253,31 +253,6 @@
   text-wrap: pretty;
 }
 
-.brandLink {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-self: flex-start;
-  color: var(--ink);
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
-}
-
-.brandLine {
-  height: 1px;
-  background: var(--ink);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.7s var(--ease-out-expo);
-}
-
-.brandLink:hover .brandLine,
-.brandLink:focus-visible .brandLine {
-  transform: scaleX(1);
-}
-
-.brandLink:focus-visible,
 .product:focus-visible {
   outline: 1px solid var(--ink);
   outline-offset: 4px;

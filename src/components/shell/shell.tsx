@@ -1,7 +1,9 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
+import { bus } from "@/lib/bus";
+import { scrollToY } from "@/lib/motion/scroll";
 import styles from "./shell.module.css";
 import { type View, ViewSwitch } from "./view-switch";
 
@@ -43,10 +45,18 @@ export function Shell({ marketplace, explora }: Props) {
     const change = () => {
       setView(next);
       setHover(null);
-      window.scrollTo(0, 0);
+      scrollToY(0, { immediate: true });
     };
     slide(next === "explora" ? "forward" : "back", change);
   };
+
+  // Enlaces de otras secciones (footer): cambian de vista o, en la misma, suben al principio.
+  useEffect(() =>
+    bus.on("view", (next) => {
+      if (next !== view) select(next);
+      else scrollToY(0);
+    }),
+  );
 
   return (
     <div className={styles.shell}>

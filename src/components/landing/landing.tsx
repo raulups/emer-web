@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { Halo } from "@/components/ui/halo";
 import { clamp01, easeInOutCubic, lerpTo, pad } from "@/lib/motion/math";
+import { lockScroll, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write, writeText } from "@/lib/motion/write";
 import {
@@ -83,7 +84,7 @@ export function Landing({ tunnel }: Props) {
       const exitFill = one("exit-fill");
 
       history.scrollRestoration = "manual";
-      window.scrollTo(0, 0);
+      scrollToY(0, { immediate: true });
 
       const mm = gsap.matchMedia();
       mm.add(
@@ -97,6 +98,9 @@ export function Landing({ tunnel }: Props) {
             setReady(true);
             return;
           }
+
+          // El loader fija el scroll arriba: Lenis no debe acumular rueda mientras tanto.
+          lockScroll(true);
 
           // ---- Geometría (se mide al montar y al cambiar el tamaño, nunca por frame) ----
           let vh = 0;
@@ -253,6 +257,7 @@ export function Landing({ tunnel }: Props) {
               if (k >= 1 && readyAt < 0) readyAt = time;
               if (readyAt >= 0 && time - readyAt >= INTRO_HOLD_S) {
                 phase = "live";
+                lockScroll(false);
                 setReady(true);
                 router.prefetch("/web");
               }
@@ -369,6 +374,7 @@ export function Landing({ tunnel }: Props) {
           const unsubscribe = subscribe(frame);
           return () => {
             unsubscribe();
+            lockScroll(false);
             tunnelObserver.disconnect();
             window.removeEventListener("resize", measure);
             for (const type of inputs) window.removeEventListener(type, onUserInput);

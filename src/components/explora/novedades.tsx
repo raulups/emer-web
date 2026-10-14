@@ -28,14 +28,14 @@ export function Novedades({ newest }: Props) {
       className={styles.nv}
       data-nv
       onMouseLeave={() => setHovered(null)}
-      aria-label="Novedades"
+      aria-label="Populares"
     >
       <div className={styles.left}>
         <div className={styles.stk} data-stk>
           <div className={styles.panel}>
             <span className={styles.vline} aria-hidden="true" />
             <span className={styles.hline} aria-hidden="true" />
-            <h2 className={styles.title}>NOVEDADES</h2>
+            <h2 className={styles.title}>POPULARES</h2>
             <p className={styles.text}>
               Las últimas marcas en llegar a EMER. Pasa por encima de un nombre para verla.
             </p>

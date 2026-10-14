@@ -45,7 +45,7 @@ export function BracketLabel({ label, bracketed, level, raised, lined, origin }:
             style={{ "--delay": `${i * LETTER_STAGGER_MS}ms` } as CSSProperties}
             aria-hidden="true"
           >
-            {char}
+            {char === " " ? " " : char}
           </span>
         ))}
         <span className={styles.close} aria-hidden="true">

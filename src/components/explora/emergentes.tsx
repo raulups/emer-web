@@ -4,6 +4,7 @@ import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
+import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./emergentes.module.css";
 
@@ -113,7 +114,7 @@ export function Emergentes({ brands, near }: Props) {
       className={styles.er}
       data-er
       style={{ height: `${100 + brands.length * 70}vh` }}
-      aria-label="Emergentes"
+      aria-label="Novedades"
     >
       <div className={styles.stage}>
         <span className={styles.divider} data-ediv aria-hidden="true" />
@@ -148,10 +149,10 @@ export function Emergentes({ brands, near }: Props) {
           </div>
         </div>
 
-        <h2 className={styles.title}>EMERGENTES</h2>
+        <h2 className={styles.title}>NOVEDADES</h2>
         <div ref={block} className={styles.block}>
           <p ref={text} className={styles.text}>
-            Marcas que acaban de nacer. Baja para recorrerlas.
+            Las últimas marcas en llegar a EMER. Baja para recorrerlas.
           </p>
           <div ref={info} className={styles.info} data-er-info>
             <span className={styles.name}>{active.name}</span>
@@ -183,12 +184,7 @@ export function Emergentes({ brands, near }: Props) {
                 <span className={styles.soon}>Catálogo pronto</span>
               ) : null}
             </div>
-            {active.url && (
-              <a className={styles.link} href={active.url} target="_blank" rel="noopener">
-                <span>Ver marca ↗</span>
-                <span className={styles.linkLine} aria-hidden="true" />
-              </a>
-            )}
+            <BrandActions brand={active} />
           </div>
           <p className={styles.count} aria-live="polite">
             {pad(activeNumber, 2)} / {pad(brands.length, 2)}

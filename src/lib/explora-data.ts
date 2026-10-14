@@ -1,11 +1,8 @@
 import { type Brand, getBrandProducts, getBrands } from "@/lib/data";
+import { type ExploraSection, sectionsOf } from "@/lib/explora-tags";
 import { emergentBrands, newestBrands, popularBrands } from "@/lib/format";
 
-/** Marcas que recorre Populares (README §4.2). */
-export const POPULAR_SIZE = 6;
-/** Últimas marcas en llegar que lista Novedades (README §4.3). */
-export const NEWEST_SIZE = 12;
-/** Piezas por marca: Populares elige cuántas caben; Novedades y Emergentes enseñan hasta 3. */
+/** Piezas por marca: Destacados elige cuántas caben; las demás secciones enseñan hasta 3. */
 export const BRAND_PRODUCTS = 3;
 
 export type ExploraProduct = {
@@ -32,10 +29,18 @@ export type ExploraBrand = {
   products: ExploraProduct[];
 };
 
+/** Marcas de cada sección, en el orden en que se pintan (por posición en la pantalla). */
 export type ExploraData = {
-  popular: ExploraBrand[];
-  newest: ExploraBrand[];
-  emergent: ExploraBrand[];
+  /** 1.ª sección (componente `Populares`). */
+  destacados: ExploraBrand[];
+  /** 2.ª sección (componente `Novedades`). */
+  populares: ExploraBrand[];
+  /** 3.ª sección (componente `Emergentes`). */
+  novedades: ExploraBrand[];
+  /** 4.ª sección (componente `Catalogo`). */
+  emergentes: ExploraBrand[];
+  /** Todas las marcas (filas de Sugerir marca). */
+  todas: ExploraBrand[];
 };
 
 function fromPreview(brand: Brand): ExploraBrand {
@@ -61,48 +66,55 @@ function fromPreview(brand: Brand): ExploraBrand {
 }
 
 /**
- * Datos de Explora. Populares (por nº de piezas), Novedades (`created_at` desc.) y Emergentes
- * (`founded_year` desc.), con las marcas reales, sin repetir. Populares y Novedades piden sus
- * piezas con nombre y enlace (una petición por marca, en caché); Emergentes usa las vistas previas.
- * Solo servidor.
+ * Datos de Explora: una sola lectura de `/brands?limit=100` (en caché) repartida por tag entre las
+ * cuatro secciones (`sectionsOf`); una marca con varios tags sale en varias. Orden: Destacados y
+ * Populares por nº de piezas, Novedades por `created_at` desc. y Emergentes por `founded_year` desc.
+ * Las dos primeras piden sus piezas con nombre y enlace (una petición por marca, en caché); las
+ * otras usan las vistas previas. Solo servidor.
  */
 export async function getExploraData(): Promise<ExploraData | null> {
   const result = await getBrands();
   if (!result.ok) return null;
   const brands = result.data;
+  const tagged = (section: ExploraSection) =>
+    brands.filter((brand) => sectionsOf(brand.tags).has(section));
 
-  const popular = popularBrands(brands.filter((b) => b.product_count > 0)).slice(0, POPULAR_SIZE);
-  const newest = newestBrands(brands).slice(0, NEWEST_SIZE);
+  const destacados = popularBrands(tagged("destacados"));
+  const populares = popularBrands(tagged("populares"));
 
   const detailed = new Map<string, ExploraBrand>();
   await Promise.all(
-    [...new Map([...popular, ...newest].map((b) => [b.id, b])).values()].map(async (brand) => {
-      const base = fromPreview(brand);
-      if (brand.product_count === 0) {
-        detailed.set(brand.id, base);
-        return;
-      }
-      const page = await getBrandProducts(brand.id, { pageSize: BRAND_PRODUCTS });
-      detailed.set(brand.id, {
-        ...base,
-        products: page.ok
-          ? page.data.items.slice(0, BRAND_PRODUCTS).map((product) => ({
-              id: product.id,
-              name: product.name,
-              url: product.product_url,
-              image: product.main_image_url,
-              price: product.current_price,
-            }))
-          : base.products,
-      });
-    }),
+    [...new Map([...destacados, ...populares].map((b) => [b.id, b])).values()].map(
+      async (brand) => {
+        const base = fromPreview(brand);
+        if (brand.product_count === 0) {
+          detailed.set(brand.id, base);
+          return;
+        }
+        const page = await getBrandProducts(brand.id, { pageSize: BRAND_PRODUCTS });
+        detailed.set(brand.id, {
+          ...base,
+          products: page.ok
+            ? page.data.items.slice(0, BRAND_PRODUCTS).map((product) => ({
+                id: product.id,
+                name: product.name,
+                url: product.product_url,
+                image: product.main_image_url,
+                price: product.current_price,
+              }))
+            : base.products,
+        });
+      },
+    ),
   );
 
   const pick = (list: readonly Brand[]) =>
     list.map((brand) => detailed.get(brand.id) ?? fromPreview(brand));
   return {
-    popular: pick(popular),
-    newest: pick(newest),
-    emergent: emergentBrands(brands).map(fromPreview),
+    destacados: pick(destacados),
+    populares: pick(populares),
+    novedades: newestBrands(tagged("novedades")).map(fromPreview),
+    emergentes: emergentBrands(tagged("emergentes")).map(fromPreview),
+    todas: emergentBrands(brands).map(fromPreview),
   };
 }

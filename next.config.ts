@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   // Con datos de ejemplo se compila en otra carpeta: así nunca pueden acabar en el build real.
   distDir: process.env.EMER_API_FIXTURES === "1" ? ".next-fixtures" : ".next",
   cacheComponents: true,
+  // El Marketplace vive en `/web`; `/marketplace?brand=<uuid>` lleva ahí conservando la query.
+  async redirects() {
+    return [{ source: "/marketplace", destination: "/web", permanent: false }];
+  },
   partialPrefetching: true,
   images: {
     remotePatterns: [

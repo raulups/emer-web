@@ -90,6 +90,7 @@ export function ExpandableList<T>({
         <ul
           ref={scroller}
           className={styles.list}
+          data-lenis-prevent
           data-inset={inset || undefined}
           aria-labelledby={heading ? headingId : undefined}
           aria-label={heading ? undefined : label}

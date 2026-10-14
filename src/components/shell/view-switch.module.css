@@ -6,23 +6,24 @@
   display: flex;
   align-items: flex-start;
   gap: 44px;
-  color: var(--black);
+  color: var(--chrome-fg);
   transform: translateX(-50%);
-  isolation: isolate;
   /* El switch no se desliza con la vista: su propio grupo de la View Transition. */
   view-transition-name: view-switch;
 }
 
 .option {
+  position: relative;
   padding: 6px 0;
   border: 0;
   background: none;
-  color: inherit;
+  color: var(--chrome-fg);
   font: inherit;
   cursor: pointer;
+  isolation: isolate;
 }
 
 .option:focus-visible {
-  outline: 1px solid var(--black);
+  outline: 1px solid currentColor;
   outline-offset: 6px;
 }
