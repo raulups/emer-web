@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@200..600&display=swap" rel="stylesheet">
+<script src="./emer-db.js"></script>
+<style>a{color:#0f0f0f;text-decoration:none}a:hover{color:#3f3f3f}</style>
+</helmet>
+<div style="background:#fff;color:#000;position:relative">
+  <section ref="{{ introRef }}" data-screen-label="Explora · Populares intro" style="position:relative;background:#fff;color:#0f0f0f;overflow-x:clip">
+    <div style="position:sticky;top:0;height:100vh;margin-bottom:-100vh;pointer-events:none;z-index:0">
+      <span style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#e4e4e4"></span>
+      <span style="position:absolute;top:50%;left:0;right:0;height:1px;background:#e4e4e4"></span>
+    </div>
+    <div style="position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);font:500 min(9vw,30vh)/0.84 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.045em">
+      <div style="position:relative">
+        <div style="position:sticky;top:50%;transform:translateY(-50%);display:flex;align-items:center;padding:0 1vw">
+          <span style="white-space:nowrap">MARCAS</span>
+          <span style="position:absolute;left:1vw;top:calc(100% + 18px);font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.01em;white-space:nowrap">Populares</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.12em;padding:100vh 0 .42em 1vw;white-space:nowrap">
+        <span data-pw="" style="display:block;will-change:transform">PO</span>
+        <span data-pw="" style="display:block;will-change:transform">PU</span>
+        <span data-pw="" style="display:block;will-change:transform">LA</span>
+        <span data-pw="" style="display:block;will-change:transform">RES</span>
+      </div>
+    </div>
+  </section>
+
+  <section ref="{{ popRef }}" data-screen-label="Explora · Populares" style="position:relative;height:{{ popH }};background:#fff">
+    <div style="position:sticky;top:0;height:100vh;overflow:hidden;color:#0f0f0f;font-family:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">
+      <span style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#e4e4e4;z-index:3"></span>
+      <span style="position:absolute;left:0;right:0;top:47%;height:1px;background:#e4e4e4;z-index:3"></span>
+
+      <div style="position:absolute;left:0;right:0;bottom:53%;padding-bottom:3vh;font:400 min(5.6vw,12vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.04em;white-space:nowrap">
+        <div ref="{{ nmBase }}" style="display:flex;color:#d6d6d6;will-change:transform">
+          <sc-for list="{{ items }}" as="it" hint-placeholder-count="6"><span data-nm="" style="flex:none;padding-right:8vw">{{ it.name }}</span></sc-for>
+        </div>
+        <div style="position:absolute;inset:0;padding-bottom:3vh;display:flex;align-items:flex-end;clip-path:inset(0 25% 0 50%)">
+          <div ref="{{ nmTop }}" style="display:flex;color:#0f0f0f;will-change:transform">
+            <sc-for list="{{ items }}" as="it" hint-placeholder-count="6"><span data-nm="" style="flex:none;padding-right:8vw">{{ it.name }}</span></sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:50%;width:25%;top:47%;bottom:0;overflow:hidden;z-index:2">
+        <div ref="{{ imTrack }}" style="display:flex;height:100%;will-change:transform">
+          <sc-for list="{{ items }}" as="it" hint-placeholder-count="6">
+            <a href="{{ it.url }}" target="_blank" style="flex:none;width:25vw;height:100%;overflow:hidden;background:#f3f3f1;display:block"><img src="{{ it.img }}" alt="{{ it.name }}" style="width:100%;height:100%;object-fit:cover;display:block"></a>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="position:absolute;left:2.2vw;top:calc(47% + 12px);max-width:min(30vw,420px);display:flex;flex-direction:column;gap:18px">
+        <span style="font:400 clamp(15px,1.3vw,20px)/1.3 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.01em;text-wrap:pretty">{{ desc }}</span>
+        <a href="{{ curUrl }}" target="_blank" style="align-self:flex-start;display:flex;flex-direction:column;gap:6px;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0f0f0f">
+          <span>Ver marca · {{ curCount }} piezas</span>
+          <span style="height:1px;background:#0f0f0f;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.16,1,.3,1)" style-hover="transform:scaleX(1)"></span>
+        </a>
+      </div>
+
+      <div style="position:absolute;left:2.2vw;bottom:22px;display:flex;gap:12px;align-items:flex-end">
+        <sc-for list="{{ curProds }}" as="p" hint-placeholder-count="2">
+          <a href="{{ p.url }}" target="_blank" style="width:min(9vw,17vh,140px);display:flex;flex-direction:column;gap:8px;color:#0f0f0f">
+            <div style="aspect-ratio:3/4;overflow:hidden;background:#f3f3f1"><img src="{{ p.img }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;display:block;transition:transform 1.2s cubic-bezier(.16,1,.3,1)" style-hover="transform:scale(1.05)"></div>
+            <span style="font:400 11px/1.3 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+            <span style="font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#6b6b6b;margin-top:-4px">{{ p.price }}</span>
+          </a>
+        </sc-for>
+      </div>
+
+      <div style="position:absolute;right:1.6vw;bottom:22px;display:flex;align-items:center;gap:14px;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">
+        <span>{{ curName }}</span>
+        <span style="display:flex;align-items:center;gap:8px"><span>{{ curNum }}</span><span style="width:1px;height:12px;background:#c8c8c8"></span><span>{{ total }}</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section ref="{{ nvRef }}" data-screen-label="Explora · Novedades" onMouseLeave="{{ nvOut }}" style="position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);background:#0f0f0f;color:#f2f2f2;font-family:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;border-top:1px solid #262626">
+    <div style="position:relative">
+      <div ref="{{ stkRef }}" style="position:sticky;top:0;height:100vh;width:200%;z-index:5;pointer-events:none">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:50%;overflow:hidden;z-index:1">
+        <span style="position:absolute;right:0;top:0;bottom:0;width:1px;background:#2e2e2e;z-index:3"></span>
+        <span style="position:absolute;left:0;right:0;top:50%;height:1px;background:#262626"></span>
+        <span style="position:absolute;left:2vw;bottom:calc(50% + 2.4vh);opacity:{{ nvO }};transform:translateY({{ nvY }});transition:opacity 1.6s cubic-bezier(.16,1,.3,1),transform 1.8s cubic-bezier(.16,1,.3,1);font:500 min(7vw,16vh)/0.84 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.045em">NOVEDADES</span>
+        <span style="position:absolute;left:2vw;top:calc(50% + 12px);max-width:240px;opacity:{{ nvO }};transition:opacity 1.6s cubic-bezier(.16,1,.3,1) .25s;font:400 13px/1.35 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">Las últimas marcas en llegar a EMER. Pasa por encima de un nombre para verla.</span>
+
+        <div style="position:absolute;inset:0;z-index:2;clip-path:{{ hvClip }}">
+          <img src="{{ hvImg }}" alt="{{ hvName }}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;">
+          <div style="position:absolute;left:2vw;right:2vw;bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
+            <div style="display:flex;gap:10px;align-items:flex-end">
+              <sc-for list="{{ hvProds }}" as="p" hint-placeholder-count="3">
+                <div style="width:min(8vw,15vh,120px);display:flex;flex-direction:column;background:#fff;opacity:{{ p.o }}">
+                  <div style="aspect-ratio:3/4;overflow:hidden;background:#f3f3f1"><img src="{{ p.img }}" alt="{{ p.name }}" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+                  <div style="display:flex;flex-direction:column;gap:3px;padding:6px 7px 8px">
+                    <span style="font:400 10px/1.25 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ p.name }}</span>
+                    <span style="font:400 10px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#6b6b6b">{{ p.price }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        </div>
+        <div ref="{{ swRef }}" style="position:absolute;inset:0;background:#0f0f0f;display:none;z-index:0"></div>
+      </div>
+      <div ref="{{ slRef }}" style="position:sticky;top:0;height:100vh;margin-top:-100vh;width:200%;z-index:6;pointer-events:none;overflow:hidden;visibility:hidden">
+        <span data-sl="" style="position:absolute;left:50%;top:50%;width:1px;height:160vmax;margin:-80vmax 0 0 -1px;background:#8a8a8a"></span>
+        </div>
+    </div>
+    <div style="display:flex;flex-direction:column;padding:calc(50vh - 11vh) 0 0">
+      <sc-for list="{{ nvRows }}" as="r" hint-placeholder-count="6">
+        <div style="opacity:{{ r.o }};transform:translateY({{ r.y }});transition:opacity 1.4s cubic-bezier(.16,1,.3,1) {{ r.d }},transform 1.6s cubic-bezier(.16,1,.3,1) {{ r.d }}">
+        <a data-nv="" href="{{ r.url }}" target="_blank" onMouseEnter="{{ r.enter }}" onMouseLeave="{{ nvOut }}" style="min-height:22vh;box-sizing:border-box;border-top:1px solid #262626;padding:3vh 2vw 3vh 1.4vw;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 20px;align-content:start;color:#f2f2f2;will-change:opacity">
+          <span style="font:400 min(4vw,8vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.035em;text-wrap:balance">{{ r.name }}</span>
+          <span style="font:200 min(2.6vw,5vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;transform:rotate({{ r.rot }});transition:transform .6s cubic-bezier(.16,1,.3,1)">+</span>
+          <span style="grid-column:1;font:400 12px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#8a8a8a;margin-top:10px">{{ r.meta }}</span>
+        </a>
+        </div>
+      </sc-for>
+      <div style="border-top:1px solid #262626"></div>
+      <div ref="{{ spRef }}" style="height:200vh"></div>
+    </div>
+  </section>
+  <section ref="{{ erRef }}" data-screen-label="Explora · Emergentes" style="visibility:{{ erVis }};position:relative;margin-top:-200vh;height:{{ erH }};background:#fff;color:#0f0f0f;font-family:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">
+    <div style="position:sticky;top:0;height:100vh;overflow:hidden">
+      <span data-ediv="" style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#d9d9d9;opacity:0"></span>
+      <span style="position:absolute;left:50%;right:0;top:50%;height:1px;background:#e4e4e4"></span>
+
+      <div ref="{{ erCar }}" style="position:absolute;left:0;top:0;width:50%;height:100%;overflow:hidden;opacity:0;will-change:opacity,transform">
+        <span style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:#e4e4e4;z-index:1"></span>
+        <div ref="{{ erColA }}" style="position:absolute;left:0;top:0;width:50%;display:flex;flex-direction:column;will-change:transform">
+          <sc-for list="{{ erCards }}" as="c" hint-placeholder-count="0">
+            <a data-ea="" href="{{ c.url }}" target="_blank" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ c.leave }}" style="display:flex;flex-direction:column;gap:10px;padding:1.2vw 1.2vw 2.4vw;color:#0f0f0f;border-bottom:1px solid #e4e4e4">
+              <div style="aspect-ratio:3/4;overflow:hidden;background:#f3f3f1"><img src="{{ c.img }}" alt="{{ c.name }}" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+              <div style="display:flex;justify-content:space-between;gap:10px;font:400 12px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:{{ c.fg }};transition:color .4s"><span>{{ c.name }}</span><span>{{ c.num }}</span></div>
+            </a>
+          </sc-for>
+        </div>
+        <div ref="{{ erColB }}" style="position:absolute;left:50%;top:0;width:50%;display:flex;flex-direction:column;will-change:transform">
+          <sc-for list="{{ erCardsB }}" as="c" hint-placeholder-count="0">
+            <a href="{{ c.url }}" target="_blank" onMouseEnter="{{ c.enter }}" onMouseLeave="{{ c.leave }}" style="display:flex;flex-direction:column;gap:10px;padding:1.2vw 1.2vw 2.4vw;color:{{ c.fg }};border-bottom:1px solid #e4e4e4">
+              <div style="aspect-ratio:3/4;overflow:hidden;background:#f3f3f1"><img src="{{ c.img }}" alt="{{ c.name }}" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+              <div style="display:flex;justify-content:space-between;gap:10px;font:400 12px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif"><span>{{ c.name }}</span><span>{{ c.num }}</span></div>
+            </a>
+          </sc-for>
+        </div>
+      </div>
+
+      <span style="position:absolute;left:calc(50% + 1.4vw);bottom:calc(50% + 2.4vh);font:500 min(7vw,16vh)/0.84 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.045em">EMERGENTES</span>
+      <div style="position:absolute;left:calc(50% + 1.4vw);right:2vw;top:calc(50% + 12px);bottom:24px;display:flex;flex-direction:column;justify-content:space-between;gap:20px">
+        <span style="font:400 13px/1.35 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;max-width:260px">Marcas que acaban de nacer. Baja para recorrerlas.</span>
+        <div ref="{{ erInfo }}" style="display:flex;flex-direction:column;gap:14px;opacity:0;will-change:opacity,transform">
+          <div style="overflow:hidden"><span ref="{{ erNameRef }}" style="display:block;font:400 min(4vw,8vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.035em">{{ erName }}</span></div>
+          <span style="font:400 12px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#6b6b6b">{{ erMeta }}</span>
+          <div style="display:flex;gap:10px;align-items:flex-end;min-height:20px">
+            <sc-for list="{{ erProds }}" as="p" hint-placeholder-count="0">
+              <div style="width:min(6vw,12vh,92px);display:flex;flex-direction:column;gap:5px">
+                <div style="aspect-ratio:3/4;overflow:hidden;background:#f3f3f1"><img src="{{ p.img }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+                <span style="font:400 10px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">{{ p.price }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ erNoProds }}" hint-placeholder-val="{{ false }}"><span style="font:400 12px/1.3 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#6b6b6b">Catálogo pronto</span></sc-if>
+          </div>
+          <a href="{{ erUrl }}" target="_blank" style="align-self:flex-start;display:flex;flex-direction:column;gap:6px;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#0f0f0f">
+            <span>Ver marca ↗</span>
+            <span style="height:1px;background:#0f0f0f;transform:scaleX(0);transform-origin:left;transition:transform .7s cubic-bezier(.16,1,.3,1)" style-hover="transform:scaleX(1)"></span>
+          </a>
+        </div>
+        <span style="position:absolute;right:0;bottom:0;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">{{ erCount }}</span>
+      </div>
+    </div>
+  </section>
+
+
+  <section ref="{{ emRef }}" data-screen-label="Explora · Catálogo" onMouseLeave="{{ emOut }}" style="position:relative;background:#fff;color:#0f0f0f;font-family:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">
+    <div ref="{{ catLead }}" style="position:relative;height:70vh">
+      <span data-cv="" style="position:absolute;left:50%;top:0;height:100%;width:1px;margin-left:-1px;background:#d9d9d9;transform-origin:top;transform:scaleY(0)"></span>
+    </div>
+    <div ref="{{ catPin }}" style="position:relative;height:300vh">
+      <div style="position:sticky;top:0;height:100vh;overflow:hidden">
+        <div ref="{{ catTrack }}" style="display:flex;height:100%;will-change:transform">
+          <div style="flex:none;width:50vw;height:100%;position:relative">
+            <span data-ch="" style="position:absolute;left:0;right:0;top:50%;height:1px;background:#e4e4e4;transform-origin:right;transform:scaleX(0)"></span>
+            <span data-ct="" style="position:absolute;left:2vw;bottom:calc(50% + 2.4vh);font:500 min(7vw,16vh)/0.84 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.045em;opacity:0">CATÁLOGO</span>
+            <span data-ct="" style="position:absolute;left:2vw;top:calc(50% + 12px);max-width:240px;font:400 13px/1.35 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;opacity:0">Todas las marcas de EMER. Baja para recorrerlas.</span>
+            <span data-ct="" style="position:absolute;left:2vw;bottom:24px;white-space:nowrap;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;opacity:0">{{ catCount }} marcas</span>
+          </div>
+          <sc-for list="{{ catCols }}" as="col" hint-placeholder-count="0">
+            <div data-cg="" style="flex:none;width:{{ col.w }};height:100%;display:flex;flex-direction:column;border-left:1px solid #d9d9d9;opacity:0">
+              <sc-for list="{{ col.cells }}" as="c" hint-placeholder-count="0">
+                <a href="{{ c.url }}" target="_blank" onMouseEnter="{{ c.enter }}" style="flex:{{ c.f }} 1 0px;min-height:0;position:relative;display:block;padding:12px;color:#0f0f0f;border-top:1px solid {{ c.bt }};opacity:{{ c.o }};transition:opacity .45s cubic-bezier(.16,1,.3,1)">
+                  <div style="position:relative;width:100%;height:100%;overflow:hidden;background:#f3f3f1">
+                    <img src="{{ c.img }}" alt="{{ c.name }}" style="width:100%;height:100%;object-fit:cover;display:block;transform:scale({{ c.sc }});transition:transform 1.2s cubic-bezier(.16,1,.3,1)">
+                    <div style="position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px">
+                      <span style="font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;padding:6px 8px">{{ c.name }}</span>
+                      <span style="font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;padding:6px 8px;opacity:{{ c.ctaO }};transition:opacity .4s cubic-bezier(.16,1,.3,1)">Ver marca ↗</span>
+                    </div>
+                    <div style="position:absolute;top:8px;right:8px;display:flex;gap:6px">
+                      <sc-for list="{{ c.prods }}" as="p" hint-placeholder-count="0">
+                        <div style="width:min(5.4vw,11vh,84px);aspect-ratio:3/4;overflow:hidden;background:#fff;outline:1px solid #fff;opacity:{{ p.o }};transform:translateY({{ p.y }});transition:opacity .45s cubic-bezier(.16,1,.3,1) {{ p.d }},transform .7s cubic-bezier(.16,1,.3,1) {{ p.d }}"><img src="{{ p.img }}" alt="" style="width:100%;height:100%;object-fit:cover;display:block"></div>
+                      </sc-for>
+                      <sc-if value="{{ c.noProds }}" hint-placeholder-val="{{ false }}"><span style="background:#fff;padding:6px 8px;font:400 11px/1.3 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;opacity:{{ c.ctaO }};transition:opacity .4s cubic-bezier(.16,1,.3,1)">Catálogo pronto</span></sc-if>
+                    </div>
+                  </div>
+                </a>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section ref="{{ sgRef }}" data-screen-label="Explora · Sugerir marca" style="position:relative;height:380vh;background:#fff;color:#0f0f0f;font-family:'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif">
+    <form onSubmit="{{ onSgSubmit }}" style="position:sticky;top:0;height:100vh;overflow:hidden;margin:0">
+      <span data-slab="" style="position:absolute;left:2vw;top:2vw;font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:0">Sugerir marca</span>
+      <span data-slab="" style="position:absolute;right:2vw;top:2vw;font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:0">Falta una</span>
+      <sc-for list="{{ sgRows }}" as="row" hint-placeholder-count="0">
+        <div data-sr="{{ row.i }}" style="position:absolute;left:0;right:0;top:50%;text-align:center;font:500 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.05em;white-space:nowrap;pointer-events:none;opacity:0;will-change:transform,opacity">{{ row.name }}</div>
+      </sc-for>
+      <div data-slot="" style="position:absolute;left:0;right:0;top:50%;height:min(10vw,17vh);transform:translateY(-50%);opacity:0;will-change:transform,opacity">
+        <sc-if value="{{ sgForm }}" hint-placeholder-val="{{ true }}"><span data-sf="0" style="position:absolute;left:0;right:0;bottom:calc(100% + 5vh);text-align:center;font:400 13px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.28em;text-transform:uppercase;opacity:0">Ayúdanos a encontrar marcas</span></sc-if>
+        <span data-bl="" style="position:absolute;left:50%;top:50%;font:200 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;transform:translate(-100%,-50%)">[</span>
+        <span data-br="" style="position:absolute;left:50%;top:50%;font:200 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;transform:translate(0,-50%)">]</span>
+        <span data-cur="" style="position:absolute;left:50%;top:50%;width:2px;height:58%;background:#0f0f0f;transform:translateY(-50%);pointer-events:none"></span>
+        <span data-smir="" aria-hidden="true" style="position:absolute;left:0;top:0;visibility:hidden;white-space:pre;font:500 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.05em;text-transform:uppercase;pointer-events:none">{{ sgName }}</span>
+        <sc-if value="{{ sgForm }}" hint-placeholder-val="{{ true }}">
+          <input data-sf="0" data-spe="" type="text" value="{{ sgName }}" onChange="{{ onSgName }}" maxLength="40" style="all:unset;box-sizing:border-box;position:absolute;left:12vw;right:12vw;top:0;height:100%;text-align:center;font:500 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.05em;text-transform:uppercase;color:#0f0f0f;caret-color:transparent;opacity:0;pointer-events:none">
+        </sc-if>
+        <sc-if value="{{ sgSent }}" hint-placeholder-val="{{ false }}">
+          <div data-sv="" style="position:absolute;left:0;right:0;top:0;height:100%;display:flex;justify-content:center;align-items:center;opacity:0">
+            <span data-sname="" style="font:500 min(10vw,17vh)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.05em;white-space:nowrap">{{ sgSentNameU }}</span>
+          </div>
+        </sc-if>
+      </div>
+      <div style="position:absolute;left:50%;top:calc(50% + min(5vw,8.5vh) + 5vh);width:min(520px,84vw);transform:translateX(-50%)">
+        <sc-if value="{{ sgForm }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <label data-sf="1" data-spe="" style="display:flex;align-items:baseline;gap:6px;padding:14px 0;border-bottom:1px solid #0f0f0f;opacity:0;pointer-events:none">
+              <span style="font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;flex:none;width:110px">Instagram</span>
+              <span style="font:500 24px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;color:#9a9a9a">@</span>
+              <input type="text" value="{{ sgIg }}" onChange="{{ onSgIg }}" placeholder="usuario" maxLength="31" autoCapitalize="off" spellCheck="false" style="all:unset;flex:1;min-width:0;font:500 24px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.02em;color:#0f0f0f">
+            </label>
+            <button data-sf="2" data-spe="" type="submit" style="all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border:1px solid #0f0f0f;background:{{ sgBtnBg }};color:{{ sgBtnFg }};cursor:{{ sgBtnCur }};font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;opacity:0;pointer-events:none;transition:background .45s cubic-bezier(.16,1,.3,1),color .45s cubic-bezier(.16,1,.3,1)">
+              <span>Enviar sugerencia</span><span style="position:relative;flex:none;width:96px;height:1px"><span style="position:absolute;inset:0;background:currentColor;opacity:.25"></span><span style="position:absolute;inset:0;background:currentColor;transform-origin:left;transform:scaleX({{ sgFill }});transition:transform .8s cubic-bezier(.16,1,.3,1)"></span></span>
+            </button>
+          </div>
+        </sc-if>
+        <sc-if value="{{ sgSent }}" hint-placeholder-val="{{ false }}">
+          <div data-sv="" style="display:flex;flex-direction:column;align-items:center;gap:22px;opacity:0">
+            <span style="font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase">En revisión · Gracias</span>
+            <button type="button" onClick="{{ onSgReset }}" style="all:unset;cursor:pointer;padding:14px 18px;border:1px solid #0f0f0f;font:400 11px/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase" style-hover="background:#0f0f0f;color:#fff">Sugerir otra</button>
+          </div>
+        </sc-if>
+      </div>
+    </form>
+  </section>
+  <footer data-screen-label="Footer" style="position:relative;background:#fff;color:#0f0f0f;padding-top:12vh;overflow:hidden">
+    <div style="position:relative;width:100%;aspect-ratio:2119/611">
+      <img src="assets/footer-car-2.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;display:block">
+      <div style="position:absolute;left:9%;top:54%;width:11%;height:24%;display:flex;flex-direction:column;justify-content:space-between">
+        <span style="font:800 clamp(18px,2.6vw,46px)/.9 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:-.04em;color:#fff">EMER</span>
+        <span style="font:400 clamp(7px,.62vw,11px)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;color:#8a8a8a">© 2026</span>
+      </div>
+      <div style="position:absolute;left:37.5%;top:52%;width:34%;height:30%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.4vw">
+        <div style="display:flex;flex-direction:column;min-width:0"><span style="font:300 clamp(7px,.62vw,11px)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#8a8a8a;margin-bottom:.9em">Explorar</span><a href="#" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Marketplace</a><a href="#" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Explora</a><a href="#" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Ofertas</a></div>
+        <div style="display:flex;flex-direction:column;min-width:0"><span style="font:300 clamp(7px,.62vw,11px)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#8a8a8a;margin-bottom:.9em">EMER</span><a href="Info.dc.html#sobre" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Sobre EMER</a><a href="#" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Sugerir marca</a><a href="Info.dc.html#contacto" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Contacto</a></div>
+        <div style="display:flex;flex-direction:column;min-width:0"><span style="font:300 clamp(7px,.62vw,11px)/1 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.24em;text-transform:uppercase;color:#8a8a8a;margin-bottom:.9em">Legal</span><a href="Info.dc.html#privacidad" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Privacidad</a><a href="Info.dc.html#terminos" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Términos</a><a href="Info.dc.html#cookies" style="font:400 clamp(8px,.78vw,13px)/1.6 'Helvetica Now Display','Helvetica Neue',Helvetica,Arial,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:#fff" style-hover="color:#9a9a9a">Cookies</a></div>
+      </div>
+      <div style="position:absolute;left:85%;top:60%;width:10%;height:20%;display:flex;align-items:center;gap:clamp(10px,1.2vw,20px)">
+        <a href="#" aria-label="Instagram" style="display:flex;color:#fff;transition:opacity .4s cubic-bezier(.16,1,.3,1)" style-hover="opacity:.55"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:clamp(14px,1.6vw,26px);height:clamp(14px,1.6vw,26px)"><rect x="3" y="3" width="18" height="18" rx="5"></rect><circle cx="12" cy="12" r="4.2"></circle><circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none"></circle></svg></a>
+        <a href="#" aria-label="TikTok" style="display:flex;color:#fff;transition:opacity .4s cubic-bezier(.16,1,.3,1)" style-hover="opacity:.55"><svg viewBox="0 0 24 24" fill="currentColor" style="width:clamp(14px,1.6vw,26px);height:clamp(14px,1.6vw,26px)"><path d="M16.6 2h-3.3v13.3a2.9 2.9 0 1 1-2.9-2.9c.3 0 .6 0 .9.1V9.1a6.3 6.3 0 1 0 5.3 6.2V8.6a7.6 7.6 0 0 0 4.4 1.4V6.7a4.4 4.4 0 0 1-4.4-4.7z"></path></svg></a>
+      </div>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;carrusel&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Inverso&quot;,&quot;Normal&quot;],&quot;default&quot;:&quot;Inverso&quot;,&quot;tsType&quot;:&quot;'Inverso' | 'Normal'&quot;,&quot;section&quot;:&quot;Emergentes&quot;}}">
+class Component extends DCLogic {
+  state = { idx: 0, ok: {}, tick: 0, hv: null, nvIn: false, er: 0, eh: null, eo: false, ec: false };
+  introRef = React.createRef(); popRef = React.createRef();
+  nvRef = React.createRef(); erRef = React.createRef(); swRef = React.createRef(); stkRef = React.createRef(); slRef = React.createRef(); spRef = React.createRef(); erNameRef = React.createRef(); catTrack = React.createRef(); catLead = React.createRef(); catPin = React.createRef(); erColA = React.createRef(); erColB = React.createRef(); erCar = React.createRef(); erInfo = React.createRef(); emRef = React.createRef(); nmBase = React.createRef(); nmTop = React.createRef(); imTrack = React.createRef();
+  sp = 0;
+  componentDidMount() {
+    const chk = () => { window.EMERDB.brands.forEach(b => { const im = new Image(); im.onload = () => this.setState(s => ({ ok: { ...s.ok, [b.id]: 1 } })); im.src = b.img; }); this.setState({ tick: 1 }); };
+    if (window.EMERDB) chk(); else this._t = setInterval(() => { if (window.EMERDB) { clearInterval(this._t); chk(); } }, 60);
+    const loop = () => { this.raf = requestAnimationFrame(loop); try { this.frame(); } catch (e) {} try { this.sgFrame(); } catch (e) {} };
+    this.raf = requestAnimationFrame(loop);
+  }
+  sgRef = React.createRef();
+  sgFrame() {
+    const el = this.sgRef.current; if (!el) return;
+    const vh = innerHeight, vw = innerWidth, r = el.getBoundingClientRect();
+    if (r.bottom < -vh || r.top > vh * 1.5) { this._sq = null; return; }
+    const C = x => Math.max(0, Math.min(1, x)), E = x => 1 - Math.pow(1 - x, 3), sent = !!this.state.sgSent;
+    const qr = C((vh - r.top) / r.height); this._sq = this._sq == null ? qr : this._sq + (qr - this._sq) * 0.085;
+    const q = this._sq, F = Math.min(vw * 0.1, vh * 0.17);
+    const off = (1 - E(C((q - 0.08) / 0.5))) * 10, s = E(C((q - 0.56) / 0.16)), t = E(C((q - 0.64) / 0.16));
+    this._ss = (this._ss ?? 0) + ((sent ? 0 : s) - (this._ss ?? 0)) * 0.1;
+    this._sv = (this._sv ?? 0) + ((sent ? 1 : 0) - (this._sv ?? 0)) * 0.1;
+    const S = this._ss, SV = this._sv, foc = y => Math.pow(C(1 - Math.abs(y) / (vh * 0.62)), 1.6);
+    el.querySelectorAll('[data-sr]').forEach(n => {
+      const d = +n.dataset.sr - 6, y = (d + off) * F + Math.sign(d) * S * vh * 0.7;
+      n.style.opacity = (Math.max(0.06, foc(y)) * (y > vh * 0.62 ? 0 : 1) * (1 - S)).toFixed(3); n.style.transform = `translateY(calc(-50% + ${y.toFixed(1)}px))`;
+    });
+    const sy = off * F, so = foc(sy);
+    const sl = el.querySelector('[data-slot]'); if (sl) { sl.style.opacity = so.toFixed(3); sl.style.transform = `translateY(calc(-50% + ${sy.toFixed(1)}px))`; }
+    const mr = el.querySelector('[data-smir]'), nm = el.querySelector('[data-sname]'), base = F * 0.3;
+    const w = mr ? mr.offsetWidth : 0, hug = Math.min(vw * 0.47, Math.max(base, w / 2 + F * 0.14));
+    const gt = sent && nm ? Math.min(vw * 0.47, nm.offsetWidth / 2 + F * 0.14) : hug;
+    this._sg = (this._sg ?? base) + (gt - (this._sg ?? base)) * 0.2; const g = this._sg;
+    const bl = el.querySelector('[data-bl]'), br = el.querySelector('[data-br]');
+    if (bl) bl.style.transform = `translate(calc(-100% - ${g.toFixed(1)}px),-50%)`;
+    if (br) br.style.transform = `translate(${g.toFixed(1)}px,-50%)`;
+    const cu = el.querySelector('[data-cur]'); if (cu) { cu.style.opacity = (Date.now() % 1000 < 520 ? 1 : 0) * (1 - SV); cu.style.transform = `translate(${(w / 2 + F * 0.04).toFixed(1)}px,-50%)`; }
+    el.querySelectorAll('[data-sf]').forEach(f => { const k = +f.dataset.sf, v = E(C((q - 0.64 - k * 0.035) / 0.16)) * (1 - SV); f.style.opacity = v.toFixed(3); f.style.transform = `translateY(${((1 - v) * 40).toFixed(1)}px)`; });
+    el.querySelectorAll('[data-sv]').forEach(f => { f.style.opacity = SV.toFixed(3); f.style.transform = `translateY(${((1 - SV) * 30).toFixed(1)}px)`; });
+    el.querySelectorAll('[data-slab]').forEach(lb => lb.style.opacity = E(C((q - 0.3) / 0.2)).toFixed(3));
+    el.querySelectorAll('[data-spe]').forEach(f => f.style.pointerEvents = t > 0.5 && !sent ? 'auto' : 'none');
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearInterval(this._t); }
+  openLens(i) {
+    clearTimeout(this._lzT);
+    this.setState({ eh: i, eo: false, ec: false });
+    cancelAnimationFrame(this._lzR);
+    this._lzR = requestAnimationFrame(() => { this._lzR = requestAnimationFrame(() => this.setState({ eo: true })); });
+  }
+  closeLens() {
+    clearTimeout(this._lzT);
+    this.setState({ eo: false, ec: true });
+    this._lzT = setTimeout(() => this.setState({ eh: null, ec: false }), 450);
+  }
+  brands() {
+    const D = window.EMERDB; if (!D || !D.brands.length) return [];
+    const cnt = b => D.products.filter(p => p.brand_id === b.id).length;
+    const sorted = [...D.brands].sort((a, b) => cnt(b) - cnt(a));
+    // SAMPLE: solo hay 4 marcas de prueba; se repiten hasta 6 — quitar con datos reales
+    return Array.from({ length: 6 }, (_, i) => sorted[i % sorted.length]);
+  }
+  frame() {
+    const vh = innerHeight, vw = innerWidth;
+    const ir = this.introRef.current;
+    if (ir) ir.querySelectorAll('[data-pw]').forEach(w => {
+      const r = w.getBoundingClientRect(), t = Math.max(0, Math.min(1.4, (r.top + r.height / 2 - vh / 2) / (vh / 2)));
+      w.style.transform = `translateX(${(t * t * vw * 0.4).toFixed(1)}px)`;
+    });
+    const nv = this.nvRef.current;
+    if (nv && !this.state.nvIn && nv.getBoundingClientRect().top < vh * 0.75) this.setState({ nvIn: true });
+    if (nv) nv.querySelectorAll('[data-nv]').forEach(r => {
+      const b = r.getBoundingClientRect(), d = Math.abs(b.top + b.height / 2 - vh / 2) / (vh / 2);
+      r.style.opacity = Math.max(0.22, 1 - d * 0.85).toFixed(3);
+    });
+    const sw = this.swRef.current, sp = this.spRef.current, stk = this.stkRef.current, sl = this.slRef.current;
+    if (sw && sp && stk && sl) {
+      const r = sp.getBoundingClientRect(), on = r.top <= 0, q = Math.max(0, Math.min(1, -r.top / (r.height - vh)));
+      sw.style.display = on ? 'block' : 'none';
+      const A = q * 180;
+      const m = on && q > 0 ? `conic-gradient(from 0deg at 50% 50%, transparent 0deg ${A}deg, #000 ${A}deg 180deg, transparent 180deg ${180 + A}deg, #000 ${180 + A}deg)` : 'none';
+      stk.style.webkitMaskImage = m; stk.style.maskImage = m;
+      stk.style.visibility = q >= 1 ? 'hidden' : 'visible';
+      sl.style.visibility = on && q < 1 ? 'visible' : 'hidden';
+      const ln = sl.querySelector('[data-sl]'); if (ln) ln.style.transform = `rotate(${A.toFixed(2)}deg)`;
+      if (on !== this.state.erShow) this.setState({ erShow: on });
+      const ed = this.erRef.current && this.erRef.current.querySelector('[data-ediv]'); if (ed) ed.style.opacity = q >= 1 ? 1 : 0;
+    }
+    const erEl = this.erRef.current;
+    if (erEl) {
+      const A = this.erColA.current, B = this.erColB.current;
+      const k = Math.max(0, Math.min(1, -erEl.getBoundingClientRect().top / (vh * 0.45))), ke = 1 - Math.pow(1 - k, 3);
+      const car = this.erCar.current, inf = this.erInfo.current;
+      if (car) { car.style.opacity = ke.toFixed(3); car.style.transform = `translateY(${((1 - ke) * 6).toFixed(2)}vh)`; }
+      if (inf) { const k2 = Math.max(0, Math.min(1, (k - 0.25) / 0.75)), e2 = 1 - Math.pow(1 - k2, 3); inf.style.opacity = e2.toFixed(3); inf.style.transform = `translateY(${((1 - e2) * 18).toFixed(1)}px)`; }
+      if (A && B) {
+        const t = Math.max(0, Math.min(1, -erEl.getBoundingClientRect().top / Math.max(1, erEl.offsetHeight - vh)));
+        this.spE = (this.spE ?? t) + (t - (this.spE ?? t)) * 0.14;
+        const inv = (this.props.carrusel || 'Inverso') === 'Inverso';
+        const tile = A.firstElementChild ? A.firstElementChild.offsetHeight : vh, nT = Math.min(A.children.length, B.children.length);
+        const kT = Math.ceil(vh / Math.max(1, tile)), D = Math.max(0, nT - kT) * tile;
+        const yA = inv ? -D * (1 - this.spE) : -D * this.spE, yB = inv ? -D * this.spE : -D * (1 - this.spE);
+        A.style.transform = `translateY(${yA.toFixed(1)}px)`; B.style.transform = `translateY(${yB.toFixed(1)}px)`;
+        let best = 0, bd = 1e9;
+        A.querySelectorAll('[data-ea]').forEach((c, i) => { const r = c.getBoundingClientRect(), d = Math.abs(r.top + r.height / 2 - vh / 2); if (d < bd) { bd = d; best = i; } });
+        if (best !== this.state.er) this.setState({ er: best });
+      }
+    }
+    const lead = this.catLead.current, pinEl = this.catPin.current, tr = this.catTrack.current;
+    if (lead && pinEl && tr) {
+      const ez = t => 1 - Math.pow(1 - t, 3), cl = v => Math.max(0, Math.min(1, v));
+      const lr = lead.getBoundingClientRect(), cv = lead.querySelector('[data-cv]');
+      if (cv) cv.style.transform = `scaleY(${cl((vh - lr.top) / lr.height).toFixed(4)})`;
+      const pt = pinEl.getBoundingClientRect().top, k = cl(1 - pt / vh);
+      const ch = tr.querySelector('[data-ch]'); if (ch) ch.style.transform = `scaleX(${ez(cl((k - 0.4) / 0.6)).toFixed(4)})`;
+      tr.querySelectorAll('[data-ct]').forEach((t, i) => { const e = ez(cl((k - 0.55 - i * 0.08) / 0.35)); t.style.opacity = e.toFixed(3); t.style.transform = `translateY(${((1 - e) * 14).toFixed(1)}px)`; });
+      tr.querySelectorAll('[data-cg]').forEach((g, i) => { const e = ez(cl((k - 0.5 - Math.min(i, 3) * 0.08) / 0.4)); g.style.opacity = e.toFixed(3); });
+      const travel = Math.max(0, tr.scrollWidth - innerWidth);
+      const want = Math.round(vh + travel) + 'px'; if (pinEl.style.height !== want) pinEl.style.height = want;
+      const t = cl(-pt / Math.max(1, travel));
+      this.spC = (this.spC ?? t) + (t - (this.spC ?? t)) * 0.14;
+      tr.style.transform = `translateX(${(-this.spC * travel).toFixed(1)}px)`;
+    }
+    const el = this.popRef.current, N = this.brands().length; if (!el || !N) return;
+    const t = Math.max(0, Math.min(1, -el.getBoundingClientRect().top / Math.max(1, el.offsetHeight - vh)));
+    this.sp += (t - this.sp) * 0.14; if (Math.abs(t - this.sp) < 0.0003) this.sp = t;
+    const p = this.sp * (N - 1);
+    const spans = this.nmBase.current ? this.nmBase.current.querySelectorAll('[data-nm]') : [];
+    let off = p * vw * 0.3;
+    if (spans.length) { const a = Math.floor(p), b = Math.min(spans.length - 1, a + 1), f = p - a; const oa = spans[a] ? spans[a].offsetLeft : 0, ob = spans[b] ? spans[b].offsetLeft : oa; off = oa + (ob - oa) * f; }
+    const nx = `translateX(${(vw * 0.5 - off).toFixed(1)}px)`;
+    if (this.nmBase.current) this.nmBase.current.style.transform = nx;
+    if (this.nmTop.current) this.nmTop.current.style.transform = nx;
+    if (this.imTrack.current) this.imTrack.current.style.transform = `translateX(${(-p * vw * 0.25).toFixed(1)}px)`;
+    const idx = Math.max(0, Math.min(N - 1, Math.round(p)));
+    if (idx !== this.state.idx) this.setState({ idx });
+  }
+  renderVals() {
+    const D = window.EMERDB, st = this.state, L = this.brands(), N = L.length;
+    const prodsOf = b => D.products.filter(p => p.brand_id === b.id);
+    const cb = L[st.idx], cp = cb ? prodsOf(cb) : [];
+    const pad = n => String(n).padStart(2, '0');
+    const desc = cb ? [cb.style && `${cb.style}.`, (cb.tags || []).filter(t => t.toLowerCase() !== (cb.style || '').toLowerCase()).slice(0, 3).join(', '), cb.founded_year && `Desde ${cb.founded_year}.`].filter(Boolean).join(' ') : '';
+    const nvList = (() => { if (!D || !D.brands.length) return []; const s = [...D.brands].sort((a, b) => (b.created_at || '').localeCompare(a.created_at || '')); return Array.from({ length: 6 }, (_, i) => s[i % s.length]); })(); // SAMPLE: repetidas hasta 6
+    const fd = d => d ? `${d.slice(8, 10)}.${d.slice(5, 7)}.${d.slice(2, 4)}` : '';
+    const hb = st.hv != null ? nvList[st.hv] : null, hp = hb ? prodsOf(hb) : [];
+    const BL = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+    const erList = (() => {
+      if (!D || !D.brands.length) return [];
+      const real = [...D.brands].sort((a, b) => (b.founded_year || 0) - (a.founded_year || 0)).map(b => ({ id: b.id, name: b.name, url: b.url, year: b.founded_year, img: st.ok[b.id] ? b.img : ((prodsOf(b)[0] || {}).main_image_url || BL), prods: prodsOf(b) }));
+      // SAMPLE: marcas inventadas con fotos de producto para probar el carrusel — quitar con datos reales
+      const SN = ['Norte Studio', 'Ocre', 'Basalto', 'Marea', 'Pliegue', 'Nácar', 'Tinta', 'Duna'];
+      const used = new Set(real.map(r => r.img)), imgs = D.products.map(p => p.main_image_url).filter(u => u && !used.has(u));
+      return [...real, ...SN.map((name, k) => ({ id: 's' + k, name, url: '#', year: 2025 - (k % 2), img: imgs[k % imgs.length] || BL, prods: [] }))];
+    })();
+    const erA = erList.filter((_, i) => i % 2 === 0), erB = erList.filter((_, i) => i % 2 === 1);
+    const eb = st.erH ? erList.find(x => x.id === st.erH) : erA[st.er], ep = eb ? eb.prods : [];
+    const sgN = (st.sgName || '').trim(), sgI = (st.sgIg || '').trim().replace(/^@+/, ''), sgOk = sgN.length > 1 && /^[a-zA-Z0-9._]{2,30}$/.test(sgI);
+    return {
+      sgRef: this.sgRef, sgRows: (() => { const B = D && D.brands.length ? D.brands : []; if (!B.length) return []; return Array.from({ length: 13 }, (_, i) => i).filter(i => i !== 6).map((i, k) => ({ i, name: B[k % B.length].name.toUpperCase() })); })() /* SAMPLE: 4 marcas repetidas */, sgName: st.sgName || '', sgIg: st.sgIg || '', sgSent: !!st.sgSent, sgForm: !st.sgSent, sgSentName: st.sgSentName || '', sgSentNameU: (st.sgSentName || '').toUpperCase(),
+      sgFill: (sgN.length > 1 ? 0.5 : 0) + (/^[a-zA-Z0-9._]{2,30}$/.test(sgI) ? 0.5 : 0), sgBtnBg: sgOk ? '#0f0f0f' : '#fff', sgBtnFg: sgOk ? '#fff' : '#9a9a9a', sgBtnCur: sgOk ? 'pointer' : 'default',
+      onSgName: e => this.setState({ sgName: e.target.value }),
+      onSgIg: e => this.setState({ sgIg: e.target.value.replace(/\s/g, '') }),
+      onSgSubmit: e => { e.preventDefault(); if (!sgOk) return; // TODO: insertar en Supabase (tabla brand_suggestions: name, instagram, created_at)
+        this.setState({ sgSent: true, sgSentName: sgN, sgName: '', sgIg: '' }); },
+      onSgReset: () => this.setState({ sgSent: false }),
+      erRef: this.erRef, swRef: this.swRef, stkRef: this.stkRef, slRef: this.slRef, spRef: this.spRef, erNameRef: this.erNameRef, erH: `${100 + erList.length * 70}vh`,
+      erColA: this.erColA, erColB: this.erColB, erCar: this.erCar, erInfo: this.erInfo,
+      erVis: st.erShow ? 'visible' : 'hidden',
+      erCardsB: erB.map(b => ({ url: b.url, name: b.name, num: String(erList.indexOf(b) + 1).padStart(2, '0'), img: b.img, fg: eb && eb.id === b.id ? '#0f0f0f' : '#9a9a9a', enter: () => this.setState({ erH: b.id }), leave: () => this.setState({ erH: null }) })),
+      erCards: erA.map(b => ({ url: b.url, name: b.name, num: String(erList.indexOf(b) + 1).padStart(2, '0'), img: b.img, fg: eb && eb.id === b.id ? '#0f0f0f' : '#9a9a9a', enter: () => this.setState({ erH: b.id }), leave: () => this.setState({ erH: null }) })),
+      erName: eb ? eb.name : '', erMeta: eb ? `Desde ${eb.year || '—'} · ${ep.length} piezas` : '', erUrl: eb ? eb.url : '#',
+      erProds: ep.slice(0, 3).map(p => ({ img: p.main_image_url, price: D.price(p.current_price) })), erNoProds: !!eb && ep.length === 0,
+      erCount: `${String(eb ? erList.indexOf(eb) + 1 : 1).padStart(2, '0')} / ${String(erList.length).padStart(2, '0')}`,
+      catTrack: this.catTrack, catLead: this.catLead, catPin: this.catPin, catCount: erList.length,
+      catCols: (() => {
+        const LAY = [['26vw', [1]], ['20vw', [.62, .38]], ['32vw', [.45, .55]], ['18vw', [1, 1, 1]], ['28vw', [1]], ['22vw', [.5, .5]], ['30vw', [.7, .3]]];
+        let bi = 0; const cols = [];
+        for (let ci = 0; bi < erList.length; ci++) { const [w, fs] = LAY[ci % LAY.length]; const cells = fs.slice(0, erList.length - bi).map((f, k) => ({ f, b: erList[bi++], k })); cols.push({ w, cells }); }
+        return cols.map(col => ({ w: col.w, cells: col.cells.map(({ f, b, k }) => { const on = st.eh === b.id, dim = st.eh != null && !on; return { f, bt: k > 0 ? '#e4e4e4' : 'transparent', url: b.url, name: b.name, img: b.img, o: dim ? 0.3 : 1, sc: on ? 1.05 : 1, ctaO: on ? 1 : 0, noProds: b.prods.length === 0, prods: b.prods.slice(0, 3).map((p, j) => ({ img: p.main_image_url, o: on ? 1 : 0, y: on ? '0px' : '10px', d: on ? `${120 + j * 70}ms` : '0ms' })), enter: () => this.state.eh !== b.id && this.setState({ eh: b.id }) }; }) }));
+      })(),
+      emRef: this.emRef, emOut: () => this.setState({ eh: null }),
+
+      nvRef: this.nvRef, nvO: st.nvIn ? 1 : 0, nvY: st.nvIn ? '0px' : '16px', nvOut: () => this.setState({ hv: null }),
+      nvRows: nvList.map((b, i) => ({ name: b.name, url: b.url, meta: `Llegó el ${fd(b.created_at)} · ${prodsOf(b).length} piezas`, rot: st.hv === i ? '45deg' : '0deg', o: st.nvIn ? 1 : 0, y: st.nvIn ? '0px' : '14px', d: `${300 + i * 110}ms`, enter: () => this.setState({ hv: i }) })),
+      hvClip: hb ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)', hvScale: hb ? 1 : 1.08, hvName: hb ? hb.name : '',
+      hvImg: hb ? (st.ok[hb.id] ? hb.img : ((hp[0] || {}).main_image_url || BL)) : BL,
+      hvProds: [0, 1, 2].map(k => { const p = hp[k] || {}; return { img: p.main_image_url || BL, name: p.name || '', price: p.current_price != null ? D.price(p.current_price) : '', o: hb ? 1 : 0, y: hb ? '0px' : '24px', d: hb ? `${250 + k * 90}ms` : '0ms' }; }),
+      introRef: this.introRef, popRef: this.popRef, nmBase: this.nmBase, nmTop: this.nmTop, imTrack: this.imTrack,
+      popH: `${N * 100}vh`,
+      items: L.map(b => ({ name: b.name, url: b.url, img: st.ok[b.id] ? b.img : ((prodsOf(b)[0] || {}).main_image_url || '') })),
+      curProds: cp.slice(0, 2).map(p => ({ url: p.product_url, img: p.main_image_url, name: p.name, price: D.price(p.current_price) })),
+      desc, curName: cb ? cb.name : '', curUrl: cb ? cb.url : '#', curCount: cp.length, curNum: pad(st.idx + 1), total: pad(N),
+    };
+  }
+}
+</script>
+</body>
+</html>

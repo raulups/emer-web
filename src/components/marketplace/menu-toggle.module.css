@@ -6,14 +6,14 @@
   padding: 6px 0;
   border: 0;
   background: none;
-  color: var(--black);
+  color: var(--chrome-fg);
   font: inherit;
   cursor: pointer;
   isolation: isolate;
 }
 
 .toggle:focus-visible {
-  outline: 1px solid var(--black);
+  outline: 1px solid currentColor;
   outline-offset: 6px;
 }
 

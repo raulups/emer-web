@@ -1,0 +1,267 @@
+.cat {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Entrada: 70vh en blanco donde la línea vertical del 50 % baja dibujándose con el scroll (la misma
+   línea que la división de Emergentes y que el borde de la primera columna: mismo x). */
+.lead {
+  position: relative;
+  height: 70vh;
+}
+
+.lineV {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 100%;
+  background: var(--hairline-strong);
+  transform: scaleY(0);
+  transform-origin: top;
+}
+
+/* El alto (vh + recorrido medido) lo fija `explora.tsx` al medir. */
+.pin {
+  position: relative;
+  height: 300vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  height: 100%;
+}
+
+.cat[data-live] .track {
+  will-change: transform;
+}
+
+.panel {
+  position: relative;
+  flex: none;
+  width: 50%;
+  height: 100%;
+}
+
+.lineH {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--hairline);
+  transform: scaleX(0);
+  transform-origin: right;
+}
+
+.title {
+  position: absolute;
+  bottom: calc(50% + 2.4vh);
+  left: 2vw;
+  margin: 0;
+  font-weight: var(--w-title);
+  font-size: min(6vw, 15vh);
+  line-height: var(--lh-title);
+  letter-spacing: var(--track-title);
+  opacity: 0;
+}
+
+.text {
+  position: absolute;
+  top: calc(50% + 12px);
+  left: 2vw;
+  max-width: 240px;
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0;
+}
+
+.count {
+  position: absolute;
+  bottom: 24px;
+  left: 2vw;
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+}
+
+.column {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  height: 100%;
+  border-left: 1px solid var(--hairline-strong);
+  opacity: 0;
+}
+
+/* Celdas de tamaño fijo (`flex-grow` según LAY): el hover nunca las redimensiona. */
+.cell {
+  position: relative;
+  display: block;
+  flex: var(--grow) 1 0;
+  min-height: 0;
+  padding: 12px;
+  color: var(--ink);
+  transition: opacity 0.45s var(--ease-out-expo);
+}
+
+.cell:not([data-first]) {
+  border-top: 1px solid var(--hairline);
+}
+
+.cell[data-dim] {
+  opacity: 0.3;
+}
+
+.cell:has(:focus-visible) {
+  outline: 1px solid var(--ink);
+  outline-offset: -4px;
+}
+
+.frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s var(--ease-out-expo);
+}
+
+.cell[data-on] .photo {
+  transform: scale(1.05);
+}
+
+.labels {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  /* Los botones de marca se adaptan al ancho de la celda (container query). */
+  container-type: inline-size;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.name,
+.soon {
+  background: var(--paper);
+  padding: 6px 8px;
+  font-weight: var(--w-text);
+  line-height: 1;
+}
+
+.name {
+  font-size: 13px;
+}
+
+/* Botones de la marca (encima del nombre): solo con hover o con el foco dentro de la celda. */
+.cta {
+  flex: 1 1 100%;
+  order: -1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease-out-expo);
+}
+
+.cell[data-on] .cta {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.thumbs {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.thumb {
+  display: block;
+  width: min(5.4vw, 11vh, 84px);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--paper);
+  outline: 1px solid var(--paper);
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.cell[data-on] .thumb {
+  opacity: 1;
+  transform: none;
+  transition-delay: var(--delay);
+}
+
+.thumbImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.soon {
+  font-size: 11px;
+  line-height: 1.3;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out-expo);
+}
+
+.cell[data-on] .soon {
+  opacity: 1;
+}
+
+/* Sin movimiento: sin entrada ni pista sticky; el grid se recorre con scroll horizontal nativo. */
+@media (prefers-reduced-motion: reduce) {
+  .lead {
+    display: none;
+  }
+
+  .pin {
+    height: auto;
+  }
+
+  .stage {
+    position: relative;
+    height: 100vh;
+    overflow-x: auto;
+  }
+
+  .lineH {
+    transform: none;
+  }
+
+  .title,
+  .text,
+  .count,
+  .column {
+    opacity: 1;
+  }
+}

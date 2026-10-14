@@ -57,7 +57,7 @@
   background: none;
   color: var(--black);
   font-family: var(--font);
-  font-weight: 400;
+  font-weight: var(--w-text);
   font-size: 11px;
   letter-spacing: 0.2em;
   text-decoration: underline;

@@ -1,7 +1,12 @@
 .group {
+  --closed: calc(var(--rows) * 15.6px + (var(--rows) - 1) * var(--gap) + 3px);
+  --opened: calc(var(--open-rows) * 15.6px + (var(--open-rows) - 1) * var(--gap) + 3px);
+
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  flex-shrink: 0;
+  align-self: stretch;
+  gap: 14px;
 }
 
 .heading {
@@ -11,35 +16,47 @@
   letter-spacing: 0.28em;
 }
 
+/* Cinco filas de 15.6px + sus separaciones + 3px para el subrayado de la última. */
 .frame {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: var(--closed);
 }
 
 .list {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: 17px;
-  max-height: 181px;
+  gap: var(--gap);
+  box-sizing: border-box;
+  min-height: 0;
+  max-height: var(--closed);
   margin: 0;
-  /* Hueco para la línea de selección (la fila se desplaza −18px sin seleccionar). */
-  padding: 0 14px 0 18px;
-  margin-left: -18px;
+  padding: 0 14px 3px 0;
   overflow: hidden;
   scrollbar-width: none;
   list-style: none;
   transition: max-height 1s var(--ease-out-expo);
 }
 
+/* Hueco para la línea de selección (la fila se desplaza −18px sin seleccionar). */
+.list[data-inset] {
+  margin-left: -18px;
+  padding-left: 18px;
+}
+
 .list::-webkit-scrollbar {
   display: none;
 }
 
-.frame[data-open] .list {
-  max-height: 300px;
+.group[data-open] .list {
+  max-height: var(--opened);
   overflow-y: auto;
 }
 
 .item {
+  flex: none;
   transition:
     opacity 0.6s var(--ease-out-expo) var(--delay),
     transform 0.8s var(--ease-out-expo) var(--delay);
@@ -63,7 +80,7 @@
   transition: opacity 0.6s var(--ease-out-expo) 0.3s;
 }
 
-.frame[data-open] .track {
+.group[data-open] .track {
   opacity: 1;
 }
 

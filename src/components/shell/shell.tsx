@@ -1,8 +1,31 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { flushSync } from "react-dom";
+import { bus } from "@/lib/bus";
+import { scrollToY } from "@/lib/motion/scroll";
 import styles from "./shell.module.css";
 import { type View, ViewSwitch } from "./view-switch";
+
+type Direction = "forward" | "back";
+
+/**
+ * Cambio de vista con slide horizontal: View Transitions (el navegador anima las capturas de la
+ * vista saliente y la entrante con transform). Sin soporte o con «reducir movimiento», cambia sin
+ * animar. Las reglas del slide están en `globals.css` (`html[data-slide]`).
+ */
+function slide(direction: Direction, change: () => void) {
+  const root = document.documentElement;
+  const transition = document.startViewTransition?.bind(document);
+  if (!transition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    change();
+    return;
+  }
+  root.dataset.slide = direction;
+  transition(() => flushSync(change)).finished.finally(() => {
+    delete root.dataset.slide;
+  });
+}
 
 type Props = {
   marketplace: ReactNode;
@@ -19,9 +42,21 @@ export function Shell({ marketplace, explora }: Props) {
 
   const select = (next: View) => {
     if (next === view) return;
-    setView(next);
-    setHover(null);
+    const change = () => {
+      setView(next);
+      setHover(null);
+      scrollToY(0, { immediate: true });
+    };
+    slide(next === "explora" ? "forward" : "back", change);
   };
+
+  // Enlaces de otras secciones (footer): cambian de vista o, en la misma, suben al principio.
+  useEffect(() =>
+    bus.on("view", (next) => {
+      if (next !== view) select(next);
+      else scrollToY(0);
+    }),
+  );
 
   return (
     <div className={styles.shell}>

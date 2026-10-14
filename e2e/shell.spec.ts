@@ -35,3 +35,31 @@ test("cursor propio: sigue al ratón solo con pointer fine", async ({ page }, in
   await expect(dot).toHaveCSS("width", "12px");
   await expect(dot).toHaveCSS("transform", "matrix(1, 0, 0, 1, 200, 150)");
 });
+
+test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni solo Inter", async ({
+  page,
+}) => {
+  const problems: string[] = [];
+  const hosts = new Set<string>();
+  page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() === "error" && !/404 \(Not Found\)/.test(message.text())) {
+      problems.push(message.text());
+    }
+  });
+  page.on("request", (request) => hosts.add(new URL(request.url()).host));
+
+  await page.goto("/");
+  await page.waitForTimeout(1500);
+  await page.goto("/web");
+  await expect(page.getByRole("region", { name: "Productos" })).toBeVisible();
+  await page.getByRole("button", { name: "Explora" }).click();
+  await expect(page.locator("[data-cat]")).toBeAttached();
+  await page.waitForTimeout(500);
+
+  expect(problems).toEqual([]);
+  // Nada de Google Fonts ni de otros orígenes tipográficos: solo el propio servidor.
+  expect([...hosts]).toEqual([new URL(page.url()).host]);
+  const families = await page.evaluate(() => [...document.fonts].map((font) => font.family));
+  expect(new Set(families)).toEqual(new Set(["Inter"]));
+});

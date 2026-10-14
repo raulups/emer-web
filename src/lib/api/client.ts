@@ -90,6 +90,31 @@ export function toQuery(params: Record<string, QueryValue>): string {
   return query ? `?${query}` : "";
 }
 
+/**
+ * Límite del backend: 60 peticiones/min, compartido (todas las visitas salen por este servidor).
+ * Ventana deslizante por proceso; si no hay hueco, se espera como mucho `RATE_WAIT_MS` (un
+ * "use cache" no puede tardar más de 50 s) y si no, se responde como un 429.
+ */
+const RATE_LIMIT = 60;
+const RATE_WINDOW_MS = 60_000;
+const RATE_WAIT_MS = 10_000;
+const sent: number[] = [];
+
+async function rateSlot(path: string): Promise<void> {
+  const deadline = Date.now() + RATE_WAIT_MS;
+  for (;;) {
+    const now = Date.now();
+    while (sent.length > 0 && now - (sent[0] ?? 0) >= RATE_WINDOW_MS) sent.shift();
+    if (sent.length < RATE_LIMIT) {
+      sent.push(now);
+      return;
+    }
+    const wait = RATE_WINDOW_MS - (now - (sent[0] ?? now)) + 10;
+    if (now + wait > deadline) throw new ApiError("Límite de peticiones (60/min)", 429, path);
+    await new Promise((resolve) => setTimeout(resolve, wait));
+  }
+}
+
 function isRetryable(error: unknown): boolean {
   if (!(error instanceof ApiError)) return true; // red / timeout
   return error.status === 429 || error.status >= 500;
@@ -114,6 +139,7 @@ export async function apiGet<T>(path: string): Promise<ApiEnvelope<T>> {
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
+      await rateSlot(path);
       const res = await fetch(url, {
         headers: { Accept: "application/json" },
         signal: AbortSignal.timeout(building ? BUILD_TIMEOUT_MS : TIMEOUT_MS),

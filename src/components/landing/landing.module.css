@@ -1,0 +1,603 @@
+.root {
+  position: relative;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--black);
+}
+
+/* ---------- Loader (README §1.1) ---------- */
+
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  padding: 32px 48px;
+  background: var(--paper);
+  transition: transform 1.2s var(--ease-load);
+}
+
+.root[data-ready] .loader {
+  pointer-events: none;
+  transform: translateY(-100vh);
+}
+
+.loaderRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  font-variant-numeric: tabular-nums;
+}
+
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: var(--paper);
+  pointer-events: none;
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 0.9s var(--ease-out-expo);
+}
+
+.root[data-leaving] .curtain {
+  clip-path: inset(0);
+}
+
+/* [ SALTAR ]: centrado a escala 1.5 desde el primer frame; al abrir viaja a la esquina. */
+.skip {
+  position: fixed;
+  top: 22px;
+  right: 48px;
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 6px 0;
+  isolation: isolate;
+  visibility: hidden;
+  transform: translate(var(--ex, 0px), var(--ey, 0px)) scale(1.5);
+}
+
+.root[data-measured] .skip {
+  visibility: visible;
+}
+
+.root[data-ready] .skip {
+  transform: none;
+  transition: transform 1.4s var(--ease-out-expo);
+}
+
+.skipHalo {
+  position: absolute;
+  inset: -30px -60px -26px;
+  z-index: -1;
+  background: var(--halo-bg);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 70%);
+  mask-image: radial-gradient(ellipse at center, #000 35%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-out-expo) 0.6s;
+}
+
+.root[data-ready] .skipHalo {
+  opacity: 1;
+}
+
+.skipLabel,
+.autoLabel,
+.exitLabel {
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.28em;
+  white-space: nowrap;
+}
+
+.skipLine,
+.autoLine {
+  height: 1px;
+  background: var(--black);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.skip:hover .skipLine,
+.skip:focus-visible .skipLine,
+.autoButton:hover .autoLine,
+.autoButton:focus-visible .autoLine {
+  transform: scaleX(1);
+}
+
+.skip:focus-visible,
+.autoButton:focus-visible,
+.exitLabel:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 6px;
+}
+
+.progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 220;
+  height: 2px;
+  pointer-events: none;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--black);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* ---------- Hero (README §1.2) ---------- */
+
+.hero {
+  position: relative;
+  height: 460vh;
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  transform: translateY(100vh);
+}
+
+.root[data-ready] .stage {
+  transform: none;
+  transition: transform 1.2s var(--ease-load);
+}
+
+.deco,
+.woman {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  height: auto;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+.woman {
+  z-index: 1;
+  bottom: 0;
+  left: 87%;
+  width: auto;
+  height: min(68vh, 58vw);
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+}
+
+/* will-change solo mientras la sección está en pantalla y animándose. */
+.hero[data-live] :is(.deco, .woman, .wordText, .tile, .counter) {
+  will-change: transform, opacity;
+}
+
+.word {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Inter 900, display: EMER ocupa ~70 % del ancho (Inter es más ancha que League Gothic). */
+.wordText {
+  display: block;
+  font-weight: var(--w-display);
+  font-size: min(27vw, 50vh);
+  line-height: var(--lh-display);
+  /* Algo más abierto que el token (−.06em) para que las letras respiren. */
+  letter-spacing: -0.035em;
+  transform-origin: 50% 55%;
+}
+
+.auto {
+  position: absolute;
+  top: calc(50% + min(10.5vw, 20vh) + 56px);
+  left: 50%;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 0.6s var(--ease-out-expo);
+}
+
+.autoButton {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  cursor: pointer;
+}
+
+.root[data-ready] .autoLabel {
+  animation: blink 0.7s steps(1, end) infinite;
+}
+
+.tagline {
+  position: absolute;
+  bottom: 32px;
+  left: 48px;
+  z-index: 3;
+  max-width: 280px;
+  margin: 0;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.28em;
+}
+
+.scrollHint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-left: 0.28em;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  transform: translateX(-50%);
+}
+
+.drip {
+  position: relative;
+  width: 1px;
+  height: 36px;
+  overflow: hidden;
+}
+
+.dripFill {
+  position: absolute;
+  inset: 0;
+  background: var(--black);
+  transform: scaleY(0);
+}
+
+.root[data-ready] .dripFill {
+  animation: drip 2.2s var(--ease-out-expo) infinite;
+}
+
+/* Túnel: tarjetas de marca siempre por debajo del contador. */
+.tunnel,
+.tunnelSet {
+  display: contents;
+}
+
+.tile {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: 14vw;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.08);
+}
+
+.tileImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.counter {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.counterNumber {
+  font-weight: var(--w-display);
+  font-size: min(30vw, 52vh);
+  line-height: var(--lh-display);
+  letter-spacing: var(--track-display);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.6);
+}
+
+.counterLabel {
+  position: relative;
+  padding: 10px 0;
+  isolation: isolate;
+  font-weight: var(--w-text);
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.3em;
+  text-align: center;
+  text-shadow: var(--halo-text-shadow);
+}
+
+/* ---------- Manifiesto (README §1.3) ---------- */
+
+.mani {
+  position: relative;
+  height: 340vh;
+}
+
+.maniStage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 100vh;
+  padding: 0 48px;
+  overflow: hidden;
+}
+
+.manifesto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.06em;
+  margin: 0;
+  font-weight: var(--w-title);
+  font-size: min(4.4vw, 9vh);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.maniStage[data-big] .manifesto {
+  opacity: 0;
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 0.26em;
+}
+
+.w,
+.wImage {
+  display: inline-flex;
+  align-items: center;
+}
+
+.w {
+  opacity: 0.1;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.w[data-on] {
+  opacity: 1;
+  transform: none;
+}
+
+/* El hueco de la imagen está reservado; se destapa de izquierda a derecha. */
+.clip {
+  display: inline-block;
+  width: 1.9em;
+  height: 0.95em;
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1s var(--ease-out-expo);
+}
+
+.wImage[data-on] .clip {
+  clip-path: inset(0);
+}
+
+.clip img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.big {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 92vh;
+  width: auto;
+  max-width: none;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  transform: translate(-50%, -50%);
+}
+
+.maniStage[data-big] .big {
+  opacity: 1;
+}
+
+.pct {
+  position: absolute;
+  right: 48px;
+  bottom: 32px;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  font-variant-numeric: tabular-nums;
+}
+
+.mani[data-live] .w {
+  will-change: opacity, transform;
+}
+
+/* ---------- Salida (README §1.4) ---------- */
+
+.exit {
+  position: relative;
+  height: 160vh;
+}
+
+.exitStage {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100vh;
+}
+
+.exitLabel {
+  opacity: 0;
+}
+
+.exitLabel:focus-visible {
+  opacity: 1 !important;
+}
+
+.exitTrack {
+  position: relative;
+  width: 140px;
+  height: 1px;
+  overflow: hidden;
+  background: #e2e2e2;
+  opacity: 0;
+}
+
+.exitFill {
+  position: absolute;
+  inset: 0;
+  background: var(--black);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+@keyframes blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes drip {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  45% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+
+  55% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+/* ---------- Sin movimiento: pantallas estáticas, sin loader ni scroll coreografiado ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .loader,
+  .curtain,
+  .progress,
+  .tunnel,
+  .counter,
+  .auto,
+  .scrollHint,
+  .big,
+  .pct,
+  .exitTrack {
+    display: none;
+  }
+
+  .skip {
+    visibility: visible;
+    transform: none;
+  }
+
+  .skipHalo {
+    opacity: 1;
+    transition: none;
+  }
+
+  .stage {
+    transform: none;
+  }
+
+  .hero {
+    height: 100vh;
+  }
+
+  .mani {
+    height: auto;
+  }
+
+  .maniStage {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    padding-block: 12vh;
+  }
+
+  .w {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .clip {
+    clip-path: none;
+    transition: none;
+  }
+
+  .exit {
+    height: auto;
+    padding-block: 24vh;
+  }
+
+  .exitStage {
+    position: relative;
+    height: auto;
+  }
+
+  .exitLabel {
+    opacity: 1;
+  }
+}

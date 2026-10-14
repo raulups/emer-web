@@ -1,24 +1,25 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
+import { ExploraSection, ExploraSkeleton } from "@/components/explora/explora-section";
 import {
   MarketplaceSection,
   MarketplaceSkeleton,
 } from "@/components/marketplace/marketplace-section";
 import { Shell } from "@/components/shell/shell";
-import { ViewPlaceholder } from "@/components/views/view-placeholder";
-
-export const metadata: Metadata = { title: "Marketplace" };
 
 /** Shell con el switch MARKETPLACE / EXPLORA (`Web.dc.html`). */
-export default function WebPage() {
+export default function WebPage({ searchParams }: PageProps<"/web">) {
   return (
     <Shell
       marketplace={
         <Suspense fallback={<MarketplaceSkeleton />}>
-          <MarketplaceSection />
+          <MarketplaceSection searchParams={searchParams} />
         </Suspense>
       }
-      explora={<ViewPlaceholder title="Explora" fullBleed />}
+      explora={
+        <Suspense fallback={<ExploraSkeleton />}>
+          <ExploraSection />
+        </Suspense>
+      }
     />
   );
 }

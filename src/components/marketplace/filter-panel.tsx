@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import type { ProductFacets } from "@/lib/data";
 import { type Filters, SIZE_OPTIONS, SORT_OPTIONS, type Sort, toggle } from "@/lib/marketplace";
+import { ExpandableList } from "./expandable-list";
 import { BracketChoice, ColorChoice } from "./filter-choices";
 import styles from "./filter-panel.module.css";
 import { OptionRow } from "./option-row";
@@ -85,6 +86,7 @@ export function FilterPanel(props: Props) {
       <div
         ref={drawer}
         className={styles.drawer}
+        data-lenis-prevent
         data-open={open || undefined}
         role="dialog"
         aria-modal="true"
@@ -138,15 +140,20 @@ export function FilterPanel(props: Props) {
 
         {props.colors.length > 0 && (
           <Section id="filtro-color" label="COLOR">
-            {props.colors.map((color) => (
-              <ColorChoice
-                key={color.name}
-                name={color.name}
-                hex={color.hex ?? "#fff"}
-                selected={filters.colors.includes(color.name)}
-                onToggle={() => onChange({ colors: toggle(filters.colors, color.name) })}
-              />
-            ))}
+            <ExpandableList
+              items={props.colors}
+              itemKey={(color) => color.name}
+              label="Colores"
+              gap={14}
+              renderItem={(color) => (
+                <ColorChoice
+                  name={color.name}
+                  hex={color.hex ?? "#fff"}
+                  selected={filters.colors.includes(color.name)}
+                  onToggle={() => onChange({ colors: toggle(filters.colors, color.name) })}
+                />
+              )}
+            />
           </Section>
         )}
 

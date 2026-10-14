@@ -32,7 +32,7 @@ test("EXPLORA monta Explora a sangre", async ({ page }) => {
   await expect(option(page, "Explora")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("region", { name: "Productos" })).toHaveCount(0);
 
-  const explora = page.locator('[data-placeholder="explora"]');
+  const explora = page.locator("[data-intro]");
   await expect(explora).toBeVisible();
   expect((await explora.boundingBox())?.y).toBe(0);
 
@@ -53,4 +53,16 @@ test("en hover la línea viaja a la opción y sus letras suben", async ({ page }
   await page.mouse.move(10, 600);
   await expect(line(page, "Marketplace")).toHaveCSS("transform", SCALE_ON);
   await expect(line(page, "Explora")).toHaveCSS("transform", SCALE_OFF);
+});
+
+test("el cambio de vista es un slide horizontal (View Transition)", async ({ page }) => {
+  await page.goto("/web");
+  await expect(page.getByRole("region", { name: "Productos" })).toBeVisible();
+  const slide = page.waitForFunction(() => document.documentElement.dataset.slide === "forward");
+  await option(page, "Explora").click();
+  await slide;
+  await expect(page.locator("html")).not.toHaveAttribute("data-slide", /./, { timeout: 4000 });
+  const back = page.waitForFunction(() => document.documentElement.dataset.slide === "back");
+  await option(page, "Marketplace").click();
+  await back;
 });

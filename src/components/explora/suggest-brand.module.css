@@ -1,0 +1,372 @@
+/*
+ * Sugerir marca (handoff_sugerir_footer/README.md §1). Lo que pinta este CSS es el estado final
+ * (slot centrado, filas ocultas, formulario visible): así queda sin JS y con «reducir movimiento».
+ * Con movimiento, `suggest-brand.tsx` escribe `transform`/`opacity`/`pointer-events` en cada frame.
+ */
+.sg {
+  --f: min(10vw, 17vh);
+  position: relative;
+  height: 380vh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+.label {
+  position: absolute;
+  top: 2vw;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.labelLeft {
+  left: 2vw;
+}
+
+.labelRight {
+  right: 2vw;
+}
+
+/* Filas, slot, mirror y nombre comparten fuente: 500 F/1, tracking −.05em. */
+.row,
+.mirror,
+.name {
+  font-weight: 500;
+  font-size: var(--f);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+}
+
+.row {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-50%);
+}
+
+.slot {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: var(--f);
+  transform: translateY(-50%);
+}
+
+.title {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 5vh);
+  left: 0;
+  margin: 0;
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0.28em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Corchetes: Inter 200 al tamaño F; el bucle los separa según el ancho del texto. */
+.bracket {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-weight: 200;
+  font-size: var(--f);
+  line-height: 1;
+  transform: translate(calc(var(--f) * 0.3), -50%);
+}
+
+.bracketLeft {
+  transform: translate(calc(-100% - var(--f) * 0.3), -50%);
+}
+
+/*
+ * Cursor propio: 2px × 58 %. Fijo sin foco; con el foco en el nombre parpadea a 500 ms (es su
+ * indicador de foco; sin parpadeo con «reducir movimiento»).
+ */
+.caret {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 2px;
+  height: 58%;
+  background: var(--ink);
+  transform: translate(0, -50%);
+  pointer-events: none;
+}
+
+.slot:has(.name:focus-visible) .caret {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  52% {
+    opacity: 0;
+  }
+}
+
+.mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  white-space: pre;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.name {
+  all: unset;
+  position: absolute;
+  top: 0;
+  right: 12vw;
+  left: 12vw;
+  box-sizing: border-box;
+  height: 100%;
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: var(--f);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--ink);
+  caret-color: transparent;
+}
+
+.below {
+  position: absolute;
+  top: calc(50% + var(--f) / 2 + 5vh);
+  left: 50%;
+  width: min(520px, 84vw);
+  transform: translateX(-50%);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.instagram {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--ink);
+}
+
+.instagramLabel {
+  flex: none;
+  width: 110px;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.at,
+.instagramInput {
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.at {
+  color: var(--grey-mute);
+}
+
+.instagramInput {
+  all: unset;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.instagramInput::placeholder {
+  color: var(--grey-mute);
+}
+
+.submit {
+  all: unset;
+  display: flex;
+  box-sizing: border-box;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border: 1px solid var(--ink);
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  background: var(--paper);
+  color: var(--grey-mute);
+  cursor: default;
+  transition:
+    background-color 0.45s var(--ease-out-expo),
+    color 0.45s var(--ease-out-expo);
+}
+
+.submit[data-valid] {
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.submit:focus-visible,
+.instagram:focus-within {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* Línea de 96×1 px que se llena según la validación (sin flecha). */
+.meter {
+  position: relative;
+  flex: none;
+  width: 96px;
+  height: 1px;
+}
+
+.meter::before {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0.25;
+  content: "";
+}
+
+.meterFill {
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  transform-origin: left;
+  transition: transform 0.8s var(--ease-out-expo);
+}
+
+.error {
+  margin: 0;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.4;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+/* ---- Enviado (§1.5): el nombre entre corchetes y «EN REVISIÓN · GRACIAS» ---- */
+.sentName {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sentText {
+  font-weight: 500;
+  font-size: var(--f);
+  line-height: 1;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.thanks {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+.thanksText {
+  margin: 0;
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.again {
+  all: unset;
+  padding: 14px 18px;
+  border: 1px solid var(--ink);
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background-color 0.45s var(--ease-out-expo),
+    color 0.45s var(--ease-out-expo);
+}
+
+.again:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.again:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+/* Sin bucle (sin JS o «reducir movimiento») el CSS decide qué grupo se ve. */
+.sg [data-sv] {
+  opacity: 0;
+}
+
+.sg[data-sent] [data-sv] {
+  opacity: 1;
+}
+
+.sg[data-sent] [data-sf],
+.sg[data-sent] .slot .caret {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sg {
+    height: 100vh;
+  }
+
+  .slot:has(.name:focus-visible) .caret {
+    animation: none;
+  }
+
+  .meterFill,
+  .submit,
+  .again {
+    transition: none;
+  }
+}

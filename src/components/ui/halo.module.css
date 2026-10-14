@@ -1,17 +1,40 @@
+/*
+ * Cristal esmerilado elíptico: el desenfoque borra el detalle de la imagen de debajo y un tinte
+ * suave (blanco o negro según `--halo-dark`) da el contraste. Sobre fondo liso no se ve.
+ * Máscara radial (sin esquinas) en lugar de dos degradados lineales cruzados.
+ */
 .halo {
-  --halo-mask:
-    linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent),
-    linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
-
   position: absolute;
-  inset: -40px calc(var(--halo-spread) * -1) -34px;
+  inset: -34px calc(var(--halo-spread) * -1) -30px;
   z-index: -1;
   pointer-events: none;
-  background: var(--halo-bg);
-  -webkit-backdrop-filter: var(--halo-filter);
-  backdrop-filter: var(--halo-filter);
-  -webkit-mask-image: var(--halo-mask);
-  -webkit-mask-composite: source-in;
-  mask-image: var(--halo-mask);
-  mask-composite: intersect;
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-mask-image: radial-gradient(closest-side, #000 40%, rgb(0 0 0 / 0.55) 68%, transparent);
+  mask-image: radial-gradient(closest-side, #000 40%, rgb(0 0 0 / 0.55) 68%, transparent);
+}
+
+.halo::before,
+.halo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+
+.halo::before {
+  background: rgb(255 255 255 / 0.78);
+  opacity: calc(1 - var(--halo-dark));
+}
+
+.halo::after {
+  background: rgb(15 15 15 / 0.65);
+  opacity: var(--halo-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo::before,
+  .halo::after {
+    transition-duration: 0.01ms;
+  }
 }

@@ -1,8 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { bus } from "@/lib/bus";
 import type { Brand } from "@/lib/data";
-import { EMPTY_FILTERS, type Filters, filterCount, hasFilters, toggle } from "@/lib/marketplace";
+import {
+  BRAND_PARAM,
+  EMPTY_FILTERS,
+  type Filters,
+  filterCount,
+  hasFilters,
+  toggle,
+} from "@/lib/marketplace";
 import type { MarketplacePage } from "@/lib/marketplace-data";
 import { FilterPanel } from "./filter-panel";
 import styles from "./marketplace.module.css";
@@ -18,20 +26,37 @@ const NARROW = "(max-width: 760px)";
 type Props = {
   brands: readonly Brand[];
   initial: MarketplacePage;
+  /** Filtros con los que se pidió `initial` (marcas de `?brand=`). */
+  initialFilters: Filters;
 };
 
 /** Marketplace (README §3, `Marketplace.dc.html`). */
-export function Marketplace({ brands, initial }: Props) {
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+export function Marketplace({ brands, initial, initialFilters }: Props) {
+  const [filters, setFilters] = useState<Filters>(initialFilters);
   const [side, setSide] = useState(true);
   const [panelOpen, setPanelOpen] = useState(false);
   const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const filtersButton = useRef<HTMLButtonElement>(null);
-  const products = useProducts(filters, EMPTY_FILTERS, initial);
+  const products = useProducts(filters, initialFilters, initial);
 
   useEffect(() => {
     if (window.matchMedia(NARROW).matches) setSide(false);
   }, []);
+
+  // `?brand=` es la fuente de verdad del filtro de marca: se reescribe sin navegar (sin petición
+  // al servidor ni salto de scroll; `replaceState` se integra con el router de Next).
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete(BRAND_PARAM);
+    for (const id of filters.brands) url.searchParams.append(BRAND_PARAM, id);
+    if (url.href !== window.location.href) window.history.replaceState(null, "", url);
+  }, [filters.brands]);
+
+  // Filtros pedidos desde otra sección (footer → Ofertas).
+  useEffect(
+    () => bus.on("market:filters", (next) => setFilters({ ...EMPTY_FILTERS, ...next })),
+    [],
+  );
 
   // El rango del slider es el global (no depende del filtro de precio).
   const [priceRange] = useState(() => {
