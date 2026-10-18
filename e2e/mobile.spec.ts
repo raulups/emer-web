@@ -4,9 +4,12 @@ import { APP_PROMPT_KEY } from "@/lib/app-links";
 /** Web de móvil (`src/proxy.ts` → `src/app/m`): solo Marketplace y el aviso de la app. */
 
 const SATENIER = "0208bdca-c705-491b-82fa-76123232670b";
+const MAREA = "b13edf90-7c6d-4fe4-9b7f-8d9e0f1a2b3c";
+const bar = (page: Page) => page.getByRole("navigation", { name: "Catálogo" });
 const prompt = (page: Page) => page.getByRole("dialog", { name: "MEJOR EN LA APP" });
 const products = (page: Page) => page.getByRole("region", { name: "Productos" }).locator("article");
-const isOpen = (page: Page) => page.locator("dialog").evaluate((el: HTMLDialogElement) => el.open);
+/** ¿Hay alguna hoja abierta? (aviso de la app o las de la barra). */
+const isOpen = (page: Page) => page.evaluate(() => document.querySelector("dialog[open]") !== null);
 const skipPrompt = (page: Page) =>
   page.addInitScript((key) => sessionStorage.setItem(key, "1"), APP_PROMPT_KEY);
 
@@ -27,24 +30,138 @@ test.describe("móvil", () => {
     await expect(page.locator("[data-intro]")).toHaveCount(0);
   });
 
-  test("cabecera: [ MENÚ ] y [ MARKETPLACE ] en la primera fila; el menú abre debajo", async ({
+  test("cabecera [ MARKETPLACE ] arriba al centro y barra inferior sin menú lateral", async ({
     page,
   }) => {
     await skipPrompt(page);
     await page.goto("/web");
     await expect(products(page).first()).toBeVisible();
-    const menuButton = page.getByRole("button", { name: "Menú" });
     const title = page.getByRole("button", { name: "Marketplace: volver arriba" });
-    await expect(menuButton).toHaveCSS("top", "26px");
     await expect(title).toHaveCSS("top", "26px");
-    const [menuBox, titleBox] = [await menuButton.boundingBox(), await title.boundingBox()];
-    expect((menuBox?.x ?? 0) + (menuBox?.width ?? 0)).toBeLessThan(titleBox?.x ?? 0);
-    expect((await products(page).first().boundingBox())?.y ?? 0).toBeGreaterThanOrEqual(76);
+    await expect(title).toHaveCSS("mix-blend-mode", "difference");
+    await expect(page.getByRole("button", { name: "Menú" })).toHaveCount(0);
+    await expect(page.getByRole("complementary", { name: "Menú del catálogo" })).toHaveCount(0);
 
-    await menuButton.click();
-    const menu = page.getByRole("complementary", { name: "Menú del catálogo" });
-    await expect(menu).toHaveCSS("top", "76px");
-    await expect(menu.getByRole("button", { name: /^Ver todo/ })).toBeVisible();
+    const viewport = page.viewportSize();
+    const box = await bar(page).boundingBox();
+    expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(viewport?.height);
+    expect(box?.width).toBe(viewport?.width);
+    await expect(bar(page).getByRole("button")).toHaveText([
+      /CATEGORÍA\s*TODO/,
+      /MARCAS\s*TODAS/,
+      /FILTROS\s*NINGUNO/,
+      "",
+    ]);
+    // El último producto no queda tapado por la barra.
+    const section = page.getByRole("region", { name: "Productos" });
+    const padding = await section.evaluate((el) =>
+      Number.parseFloat(getComputedStyle(el).paddingBottom),
+    );
+    expect(padding).toBeGreaterThanOrEqual(box?.height ?? 0);
+  });
+
+  test("CATEGORÍA: hoja con la lista; elegir filtra y cierra", async ({ page }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    await bar(page)
+      .getByRole("button", { name: /CATEGORÍA/ })
+      .click();
+    const sheet = page.getByRole("dialog", { name: "CATEGORÍAS" });
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByRole("button", { name: /^Ver todo/ })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    await sheet.getByRole("button", { name: /^Camisetas/ }).click();
+    await expect.poll(() => isOpen(page)).toBe(false);
+    await expect(products(page).first()).toContainText("Camiseta");
+    await expect(bar(page).getByRole("button", { name: /CATEGORÍA/ })).toContainText(/camisetas/i);
+  });
+
+  test("MARCAS: selección múltiple, VER n cierra y ?brand= se actualiza", async ({ page }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    await bar(page)
+      .getByRole("button", { name: /MARCAS/ })
+      .click();
+    const sheet = page.getByRole("dialog", { name: "MARCAS" });
+    await sheet.getByRole("button", { name: /^Satenier/ }).click();
+    await expect(sheet.getByRole("button", { name: /^Satenier/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(sheet.getByRole("button", { name: "VER 12" })).toBeVisible();
+    await sheet.getByRole("button", { name: "VER 12" }).click();
+    await expect.poll(() => isOpen(page)).toBe(false);
+    await expect(page).toHaveURL(`/web?brand=${SATENIER}`);
+    await expect(bar(page).getByRole("button", { name: /MARCAS/ })).toContainText("1 ELEGIDA");
+  });
+
+  test("FILTROS: hoja con scroll propio (táctil) sin mover la página; vacío con sus filtros", async ({
+    page,
+    context,
+  }) => {
+    await skipPrompt(page);
+    await page.goto(`/web?brand=${MAREA}`);
+    await expect(products(page).first()).toBeVisible();
+    await bar(page)
+      .getByRole("button", { name: /FILTROS/ })
+      .click();
+    const sheet = page.getByRole("dialog", { name: "FILTROS" });
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
+
+    // Gesto táctil real sobre la hoja: se desplaza ella, no la página.
+    const cdp = await context.newCDPSession(page);
+    const swipe = async (x: number, from: number, to: number) => {
+      await cdp.send("Input.dispatchTouchEvent", {
+        type: "touchStart",
+        touchPoints: [{ x, y: from }],
+      });
+      for (let i = 1; i <= 10; i++) {
+        await cdp.send("Input.dispatchTouchEvent", {
+          type: "touchMove",
+          touchPoints: [{ x, y: from + ((to - from) * i) / 10 }],
+        });
+      }
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+    };
+    const [scrollHeight, clientHeight] = await sheet.evaluate((el) => [
+      el.scrollHeight,
+      el.clientHeight,
+    ]);
+    if ((scrollHeight ?? 0) > (clientHeight ?? 0)) {
+      await swipe(200, 700, 350);
+      await expect.poll(() => sheet.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    }
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+
+    await sheet.getByRole("button", { name: "ÚNICA" }).click();
+    await expect(sheet.getByRole("button", { name: "VER 0" })).toBeVisible();
+    await sheet.getByRole("button", { name: "VER 0" }).click();
+    await expect(page.getByRole("heading", { name: "NADA POR AQUÍ" })).toBeVisible();
+    await page.getByRole("button", { name: "Quitar Talla ÚNICA" }).click();
+    await expect(products(page).first()).toContainText("Marea");
+  });
+
+  test("productos por fila: 2 → 3 → 1, recordado al volver", async ({ page }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    const grid = page.getByRole("region", { name: "Productos" }).locator("ul").first();
+    const columns = () =>
+      grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+    expect(await columns()).toBe(2);
+    const button = bar(page).getByRole("button", { name: /Productos por fila/ });
+    await button.click();
+    await expect.poll(columns).toBe(3);
+    await button.click();
+    await expect.poll(columns).toBe(1);
+    await expect(button).toHaveAccessibleName("Productos por fila: 1. Cambiar");
+    await page.reload();
+    expect(await columns()).toBe(1);
   });
 
   test("[ MARKETPLACE ] sube al principio", async ({ page }) => {
@@ -163,7 +280,9 @@ test.describe("móvil", () => {
     await page.goto("/");
     await expect(prompt(page)).toBeVisible();
     await prompt(page).getByRole("button", { name: "SEGUIR EN LA WEB" }).click();
-    await page.getByRole("button", { name: "Menú" }).click();
+    await bar(page)
+      .getByRole("button", { name: /FILTROS/ })
+      .click();
     await page.waitForTimeout(800);
     expect(problems).toEqual([]);
   });

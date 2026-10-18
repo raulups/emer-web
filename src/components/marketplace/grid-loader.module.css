@@ -1,0 +1,67 @@
+.loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  color: var(--black);
+}
+
+/* Ventana de una línea: la pista de palabras sube por detrás. */
+.window {
+  display: block;
+  max-width: 100%;
+  height: 1em;
+  overflow: hidden;
+  font-weight: var(--w-display);
+  font-size: min(7vw, 72px);
+  line-height: 1;
+  letter-spacing: var(--track-display);
+}
+
+.reel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.word {
+  display: flex;
+  align-items: center;
+  gap: 0.22em;
+  height: 1em;
+  white-space: nowrap;
+}
+
+.bracket {
+  font-weight: var(--w-ui);
+  letter-spacing: 0;
+}
+
+.track {
+  position: relative;
+  display: block;
+  width: min(44vw, 260px);
+  height: 1px;
+  overflow: hidden;
+  background: var(--hairline);
+}
+
+.sweep {
+  position: absolute;
+  inset: 0;
+  background: var(--black);
+  transform: translateX(-100%);
+}
+
+.caption {
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 10px;
+  letter-spacing: 0.28em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sweep {
+    transform: none;
+  }
+}

@@ -1,16 +1,58 @@
+.wrap {
+  position: relative;
+}
+
+/*
+ * `--cols` productos por fila mientras cada uno mida al menos `--min`; con menos ancho, caben
+ * menos (auto-fill). El −1px evita que el redondeo deje una columna de menos.
+ */
 .grid {
+  --cols: 4;
+  --min: 150px;
+  --gap-x: 16px;
+
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 48px 16px;
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(
+        max(var(--min), calc((100% - (var(--cols) - 1) * var(--gap-x)) / var(--cols) - 1px)),
+        1fr
+      )
+    );
+  gap: 48px var(--gap-x);
   margin: 0;
   padding: 0;
   list-style: none;
   transition: opacity 0.6s var(--ease-out-expo);
 }
 
-/* Mientras llegan los nuevos resultados, el grid se atenúa (sin saltos). */
-.grid[data-loading] {
-  opacity: 0.4;
+.grid[data-device="mobile"] {
+  --min: 96px;
+  --gap-x: 10px;
+
+  row-gap: 32px;
+}
+
+/* Mientras llegan los nuevos resultados, el grid casi desaparece bajo el loader (sin saltos). */
+.wrap[data-loading] {
+  min-height: 60vh;
+}
+
+.wrap[data-loading] .grid {
+  opacity: 0.12;
+}
+
+/* Capa del alto del grid; el loader se queda pegado a media pantalla mientras se recorre. */
+.loaderLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.loaderSticky {
+  position: sticky;
+  top: calc(50vh - 70px);
+  padding-top: min(20vh, 160px);
 }
 
 .sentinel {
@@ -21,64 +63,38 @@
 }
 
 .more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
   color: var(--grey-text);
   font-weight: var(--w-ui);
   font-size: 10px;
   letter-spacing: 0.28em;
 }
 
-.message {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 80px 0;
+/* Línea que se llena y se vacía: «hay más en camino». */
+.moreLine {
+  display: block;
+  width: 64px;
+  height: 1px;
+  background: var(--black);
+  transform-origin: left;
+  animation: fill 1.2s var(--ease-load) infinite alternate;
 }
 
-.title {
-  margin: 0;
-  font-weight: var(--w-title);
-  font-size: 56px;
-  line-height: 0.95;
-  letter-spacing: var(--track-title);
-}
-
-.text {
-  margin: 0;
-  color: var(--link-hover);
-  font-weight: var(--w-ui);
-  font-size: 15px;
-}
-
-.retry {
-  margin-top: 12px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--black);
-  font-family: var(--font);
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
-  cursor: pointer;
-  transition: text-underline-offset 0.5s var(--ease-out-expo);
-}
-
-.retry:hover {
-  text-underline-offset: 10px;
-}
-
-.retry:focus-visible {
-  outline: 1px solid var(--black);
-  outline-offset: 4px;
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grid,
-  .retry {
+  .grid {
     transition-duration: 0.01ms;
+  }
+
+  .moreLine {
+    animation: none;
   }
 }

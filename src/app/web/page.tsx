@@ -12,7 +12,7 @@ export default function WebPage({ searchParams }: PageProps<"/web">) {
     <Shell
       marketplace={
         <Suspense fallback={<MarketplaceSkeleton />}>
-          <MarketplaceSection searchParams={searchParams} />
+          <MarketplaceSection searchParams={searchParams} device="desktop" />
         </Suspense>
       }
       explora={

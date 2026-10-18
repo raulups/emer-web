@@ -13,7 +13,7 @@ export default function MobileWebPage({ searchParams }: PageProps<"/m">) {
   return (
     <MobileShell>
       <Suspense fallback={<MarketplaceSkeleton />}>
-        <MarketplaceSection searchParams={searchParams} />
+        <MarketplaceSection searchParams={searchParams} device="mobile" />
       </Suspense>
     </MobileShell>
   );

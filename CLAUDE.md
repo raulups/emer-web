@@ -31,15 +31,16 @@ src/
     mobile/            web de móvil: shell sin switch + aviso «descarga la app» (una vez por sesión; enlaces en `lib/app-links.ts`)
     landing/           Landing: `landing.tsx` (un bucle por scroll), túnel de marcas (servidor + Suspense)
     explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
-    marketplace/       sección de servidor (datos) + cliente (filtros, menú, panel, grid, tarjeta)
-    ui/                halo, bracket-label (letras + corchetes + línea)
+    marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
+    ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal)
   fonts/Inter.woff2    única fuente (variable 100–900, subconjunto latino)
   styles/
-    theme.css          tokens: color, --font, --w-*, tracking, easings, halo, @font-face
+    theme.css          tokens: color, --font, --w-*, tracking, easings, @font-face
     theme.ts           los mismos tokens para JS (EASE, LERP, WEIGHT)
   lib/
     data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
     format.ts          reglas puras: price, discount, órdenes de marcas, fallback de imagen
+    grid.ts            columnas del grid por dispositivo y su cookie (el servidor pinta ya con ellas)
     marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
     explora-data.ts    Explora: Destacados, Populares, Novedades y Emergentes por tag de marca (`explora-tags.ts`), con sus piezas (solo servidor)
     marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
@@ -80,6 +81,7 @@ Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier
 - Antes de importar diseño de Claude Design, usar la skill `design-import`.
 - Estilos de sección complejos (hover, :has(), estados): CSS module junto al componente. Solo `globals.css` pasa por Tailwind (regla de Turbopack); los tokens están disponibles como variables gracias a `@theme static`.
 - Cada sección real se registra a sí misma con `trackSection(el, id)` al montarse y su fallback de Suspense tiene la misma geometría.
+- Texto fijo sobre fotos (switch, [ MENÚ ], VISTA, flechas): blanco con `mix-blend-mode: difference`. Nada de halos ni sombras blancas.
 
 ## Agentes y skills del proyecto
 

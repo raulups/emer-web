@@ -1,17 +1,21 @@
+import { cookies } from "next/headers";
 import { getBrands } from "@/lib/data";
+import { type Device, gridCookie, parseColumns } from "@/lib/grid";
 import { BRAND_PARAM, brandsFromParam, EMPTY_FILTERS, type Filters } from "@/lib/marketplace";
 import { getMarketplacePage } from "@/lib/marketplace-data";
 import { Marketplace } from "./marketplace";
 import styles from "./marketplace-section.module.css";
 
-type Props = Pick<PageProps<"/web">, "searchParams">;
+type Props = Pick<PageProps<"/web">, "searchParams"> & { device: Device };
 
 /**
  * Servidor: marcas y primera página de productos. El cliente sigue desde aquí. `?brand=<uuid>`
- * abre con esas marcas seleccionadas (si existen en `/brands`; si no, se ignora).
+ * abre con esas marcas seleccionadas (si existen en `/brands`; si no, se ignora). Las columnas del
+ * grid salen de su cookie: la primera pintura ya tiene las del usuario.
  */
-export async function MarketplaceSection({ searchParams }: Props) {
+export async function MarketplaceSection({ searchParams, device }: Props) {
   const requested = (await searchParams)[BRAND_PARAM];
+  const columns = parseColumns(device, (await cookies()).get(gridCookie(device))?.value);
   const brands = await getBrands();
   const filters: Filters = brands.ok
     ? {
@@ -32,7 +36,15 @@ export async function MarketplaceSection({ searchParams }: Props) {
     );
   }
 
-  return <Marketplace brands={brands.data} initial={initial.data} initialFilters={filters} />;
+  return (
+    <Marketplace
+      brands={brands.data}
+      initial={initial.data}
+      initialFilters={filters}
+      device={device}
+      initialColumns={columns}
+    />
+  );
 }
 
 /** Misma geometría que el Marketplace mientras llegan los datos (sin CLS). */

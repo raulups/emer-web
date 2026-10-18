@@ -1,5 +1,6 @@
 .card {
   position: relative;
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -67,13 +68,16 @@
   position: absolute;
   top: 12px;
   right: 12px;
+  padding: 4px 6px 4px 7px;
+  background: var(--black);
+  color: var(--paper);
   font-weight: 400;
   font-size: 10px;
+  line-height: 1;
   letter-spacing: 0.12em;
-  text-shadow: var(--halo-text-shadow);
 }
 
-/* Franja de tallas: sube desde abajo con blur (0.6s). */
+/* Franja de tallas: banda negra que sube desde abajo (0.6s). */
 .strip {
   position: absolute;
   right: 0;
@@ -83,9 +87,8 @@
   align-items: center;
   gap: 14px;
   padding: 14px 12px;
-  background: var(--halo-bg);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: var(--black);
+  color: var(--paper);
   font-weight: var(--w-text);
   font-size: 11px;
   letter-spacing: 0.08em;
@@ -107,7 +110,7 @@
 }
 
 .size[data-soldout] {
-  color: #b0b0b0;
+  color: var(--grey-text);
   text-decoration: line-through;
 }
 
@@ -121,7 +124,7 @@
 .dot {
   width: 6px;
   height: 1px;
-  background: var(--black);
+  background: currentColor;
   opacity: 0.35;
   transition:
     width 0.6s var(--ease-out-expo),
@@ -152,11 +155,11 @@
   padding: 0;
   border: 0;
   background: none;
-  color: var(--black);
+  color: #fff;
   font-family: var(--font);
   font-weight: var(--w-ui);
   font-size: 22px;
-  text-shadow: var(--halo-text-shadow);
+  mix-blend-mode: difference;
   cursor: pointer;
   opacity: 0;
   transition:
@@ -185,7 +188,7 @@
 }
 
 .arrow:focus-visible {
-  outline: 1px solid var(--black);
+  outline: 1px solid currentColor;
   outline-offset: -6px;
 }
 
@@ -242,6 +245,15 @@
   font-size: 10px;
   letter-spacing: 0.04em;
   white-space: nowrap;
+}
+
+/* Tarjetas estrechas (muchas por fila): el precio baja bajo el nombre. */
+@container (max-width: 180px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

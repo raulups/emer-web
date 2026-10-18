@@ -1,0 +1,87 @@
+.control {
+  position: fixed;
+  top: 26px;
+  right: 48px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 6px 0;
+  border: 0;
+  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
+  color: #fff;
+  mix-blend-mode: difference;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.28em;
+}
+
+.label {
+  margin-right: 10px;
+  opacity: 0.4;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0;
+  opacity: 0.4;
+  cursor: pointer;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+
+.option:hover {
+  opacity: 0.8;
+}
+
+.option[aria-pressed="true"] {
+  opacity: 1;
+}
+
+/* Corchetes: se abren alrededor de la opción activa. */
+.bracket {
+  display: inline-block;
+  padding: 0 3px;
+  opacity: 0;
+  transform: translateX(var(--shift, 4px));
+  transition:
+    opacity 0.5s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+}
+
+.bracket:last-child {
+  --shift: -4px;
+}
+
+.option[aria-pressed="true"] .bracket {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.option:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
+}
+
+/* En pantallas estrechas el switch ocupa la franja superior: baja una fila, como [ MENÚ ]. */
+@media (max-width: 760px) {
+  .control {
+    top: 64px;
+    right: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option,
+  .bracket {
+    transition-duration: 0.01ms;
+  }
+}

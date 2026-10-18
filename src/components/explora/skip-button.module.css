@@ -6,7 +6,9 @@
   padding: 6px 0;
   border: 0;
   background: none;
-  color: var(--chrome-fg);
+  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
+  color: #fff;
+  mix-blend-mode: difference;
   font: inherit;
   cursor: pointer;
   isolation: isolate;

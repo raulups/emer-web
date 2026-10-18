@@ -6,7 +6,9 @@
   display: flex;
   align-items: flex-start;
   gap: 44px;
-  color: var(--chrome-fg);
+  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
+  color: #fff;
+  mix-blend-mode: difference;
   transform: translateX(-50%);
   /* El switch no se desliza con la vista: su propio grupo de la View Transition. */
   view-transition-name: view-switch;
@@ -17,7 +19,7 @@
   padding: 6px 0;
   border: 0;
   background: none;
-  color: var(--chrome-fg);
+  color: inherit;
   font: inherit;
   cursor: pointer;
   isolation: isolate;

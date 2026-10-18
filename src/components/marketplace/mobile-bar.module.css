@@ -1,0 +1,152 @@
+/* Barra fija abajo: tres secciones y el botón de columnas. Sin sombras: borde de 1px. */
+.bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) 56px;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: var(--line) solid var(--black);
+  background: var(--paper);
+}
+
+.item,
+.columns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  height: 60px;
+  padding: 0 12px;
+  border: 0;
+  border-right: var(--line) solid var(--hairline);
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  text-align: left;
+  cursor: pointer;
+}
+
+.label {
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+}
+
+.value {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Con algo elegido el valor pasa a negrita y aparece una raya encima, como en el menú. */
+.item {
+  position: relative;
+}
+
+.item::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 12px;
+  width: 18px;
+  height: 3px;
+  background: var(--black);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.item[data-active]::before {
+  transform: scaleX(1);
+}
+
+.item[data-active] .value {
+  font-weight: var(--w-active);
+}
+
+.columns {
+  align-items: center;
+  border-right: 0;
+}
+
+/* Icono: tantas columnas como productos por fila. */
+.icon {
+  display: grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  width: 22px;
+  height: 22px;
+}
+
+.cell {
+  border: var(--line) solid var(--black);
+}
+
+.item:focus-visible,
+.columns:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: -4px;
+}
+
+/* ---------- Hojas ---------- */
+
+.list {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.clear,
+.apply {
+  height: 48px;
+  padding: 0;
+  border: var(--line) solid var(--black);
+  font-family: var(--font);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+}
+
+.clear {
+  background: var(--paper);
+  color: var(--black);
+}
+
+.apply {
+  background: var(--black);
+  color: var(--paper);
+}
+
+.clear:focus-visible,
+.apply:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item::before {
+    transition-duration: 0.01ms;
+  }
+}

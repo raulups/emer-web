@@ -7,8 +7,8 @@ type Props = {
   onClick: () => void;
   /** Recuento en superíndice (no se subraya). */
   count?: number;
-  /** `menu`: menú lateral en mayúsculas; `panel`: ORDENAR POR del panel de filtros. */
-  variant?: "menu" | "panel";
+  /** `menu`: menú lateral en mayúsculas; `panel`: ORDENAR POR del panel de filtros; `sheet`: hojas de móvil. */
+  variant?: "menu" | "panel" | "sheet";
   /** Selección múltiple (marcas) o única (categorías, orden). */
   multiple?: boolean;
   onMouseEnter?: MouseEventHandler;

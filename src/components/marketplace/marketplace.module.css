@@ -32,6 +32,11 @@
   }
 }
 
+/* Móvil: grid a todo el ancho; abajo deja sitio a la barra fija. */
+.main[data-device="mobile"] {
+  padding: 16px 12px calc(96px + env(safe-area-inset-bottom));
+}
+
 @media (prefers-reduced-motion: reduce) {
   .main {
     transition-duration: 0.01ms;

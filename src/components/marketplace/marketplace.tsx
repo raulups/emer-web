@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { bus } from "@/lib/bus";
 import type { Brand } from "@/lib/data";
+import { type Device, GRID, gridCookie } from "@/lib/grid";
 import {
+  activeFilters,
   BRAND_PARAM,
   EMPTY_FILTERS,
   type Filters,
@@ -13,8 +15,10 @@ import {
 } from "@/lib/marketplace";
 import type { MarketplacePage } from "@/lib/marketplace-data";
 import { FilterPanel } from "./filter-panel";
+import { GridControl } from "./grid-control";
 import styles from "./marketplace.module.css";
 import { MenuToggle } from "./menu-toggle";
+import { MobileBar, MobileSheets, type Sheet } from "./mobile-bar";
 import { ProductGrid } from "./product-grid";
 import { SideMenu } from "./side-menu";
 import { useProducts } from "./use-products";
@@ -22,26 +26,34 @@ import { useProducts } from "./use-products";
 const MENU_ID = "marketplace-menu";
 /** En pantallas estrechas el menú empieza oculto. */
 const NARROW = "(max-width: 760px)";
+const YEAR_S = 31_536_000;
 
 type Props = {
   brands: readonly Brand[];
   initial: MarketplacePage;
   /** Filtros con los que se pidió `initial` (marcas de `?brand=`). */
   initialFilters: Filters;
+  /** Escritorio: menú lateral y panel de filtros; móvil: barra inferior con hojas. */
+  device: Device;
+  /** Productos por fila guardados (cookie): el servidor ya pinta con ellos. */
+  initialColumns: number;
 };
 
 /** Marketplace (README §3, `Marketplace.dc.html`). */
-export function Marketplace({ brands, initial, initialFilters }: Props) {
+export function Marketplace({ brands, initial, initialFilters, device, initialColumns }: Props) {
+  const mobile = device === "mobile";
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [side, setSide] = useState(true);
+  const [side, setSide] = useState(!mobile);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [sheet, setSheet] = useState<Sheet | null>(null);
+  const [columns, setColumns] = useState(initialColumns);
   const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const filtersButton = useRef<HTMLButtonElement>(null);
   const products = useProducts(filters, initialFilters, initial);
 
   useEffect(() => {
-    if (window.matchMedia(NARROW).matches) setSide(false);
-  }, []);
+    if (!mobile && window.matchMedia(NARROW).matches) setSide(false);
+  }, [mobile]);
 
   // `?brand=` es la fuente de verdad del filtro de marca: se reescribe sin navegar (sin petición
   // al servidor ni salto de scroll; `replaceState` se integra con el router de Next).
@@ -74,6 +86,17 @@ export function Marketplace({ brands, initial, initialFilters }: Props) {
     [brands],
   );
   const categories = products.facets.categories.filter((c) => c.count > 0);
+  // Nombres de todas las categorías vistas: una categoría sin resultados sigue teniendo nombre.
+  const categoryNames = useMemo(
+    () =>
+      new Map(
+        [...initial.page.facets.categories, ...products.facets.categories].map((c) => [
+          c.id,
+          c.name,
+        ]),
+      ),
+    [initial.page.facets.categories, products.facets.categories],
+  );
   const allCount = categories.reduce((sum, c) => sum + c.count, 0);
   const colors = products.facets.colors.filter((c) => c.hex && c.count > 0);
   const cardBrand = brandById.get(hoveredBrand ?? filters.brands[0] ?? "") ?? null;
@@ -86,6 +109,76 @@ export function Marketplace({ brands, initial, initialFilters }: Props) {
     setPanelOpen(false);
     filtersButton.current?.focus({ preventScroll: true });
   }, []);
+  const changeColumns = (next: number) => {
+    setColumns(next);
+    // biome-ignore lint/suspicious/noDocumentCookie: preferencia de vista; la lee el servidor
+    document.cookie = `${gridCookie(device)}=${next}; path=/; max-age=${YEAR_S}; samesite=lax`;
+  };
+
+  const chips = activeFilters(filters, { categories: categoryNames, brands: brandNames }).map(
+    (chip) => ({ key: chip.key, label: chip.label, onRemove: () => update(chip.remove) }),
+  );
+
+  const grid = (
+    <section
+      className={styles.main}
+      data-side={(!mobile && side) || undefined}
+      data-device={device}
+      aria-label="Productos"
+    >
+      <p className="sr-only" aria-live="polite">
+        {products.status === "loading" ? "Cargando productos" : `${products.total} productos`}
+      </p>
+      <ProductGrid
+        items={products.items}
+        brandNames={brandNames}
+        loading={products.status === "loading"}
+        error={products.status === "error"}
+        hasMore={products.hasMore}
+        loadingMore={products.loadingMore}
+        onLoadMore={products.loadMore}
+        onRetry={products.reload}
+        device={device}
+        columns={columns}
+        loaderWords={categories.map((c) => c.name)}
+        chips={chips}
+        onClear={clear}
+      />
+    </section>
+  );
+
+  if (mobile) {
+    return (
+      <div className={styles.root}>
+        <h1 className="sr-only">Marketplace</h1>
+        {grid}
+        <MobileBar
+          category={filters.cat ? (categoryNames.get(filters.cat) ?? null) : null}
+          brandCount={filters.brands.length}
+          filterCount={filterCount(filters)}
+          columns={columns}
+          open={sheet}
+          onOpen={setSheet}
+          onColumns={changeColumns}
+        />
+        <MobileSheets
+          open={sheet}
+          onClose={() => setSheet(null)}
+          filters={filters}
+          categories={categories}
+          allCount={allCount}
+          brands={menuBrands}
+          colors={colors}
+          priceRange={priceRange}
+          saleCount={products.saleCount}
+          total={products.total}
+          loading={products.status === "loading"}
+          onChange={update}
+          onClear={clear}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.root}>
@@ -109,22 +202,9 @@ export function Marketplace({ brands, initial, initialFilters }: Props) {
         onClear={clear}
       />
       <MenuToggle open={side} controls={MENU_ID} onToggle={() => setSide(!side)} />
+      <GridControl options={GRID.desktop.options} value={columns} onChange={changeColumns} />
 
-      <section className={styles.main} data-side={side || undefined} aria-label="Productos">
-        <p className="sr-only" aria-live="polite">
-          {products.status === "loading" ? "Cargando productos" : `${products.total} productos`}
-        </p>
-        <ProductGrid
-          items={products.items}
-          brandNames={brandNames}
-          loading={products.status === "loading"}
-          error={products.status === "error"}
-          hasMore={products.hasMore}
-          loadingMore={products.loadingMore}
-          onLoadMore={products.loadMore}
-          onRetry={products.reload}
-        />
-      </section>
+      {grid}
 
       <FilterPanel
         open={panelOpen}

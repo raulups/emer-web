@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { BracketLabel } from "@/components/ui/bracket-label";
-import { Halo } from "@/components/ui/halo";
 import styles from "./menu-toggle.module.css";
 
 type Props = {
@@ -27,7 +26,6 @@ export function MenuToggle({ open, controls, onToggle }: Props) {
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
     >
-      <Halo spread={90} />
       <BracketLabel
         label="Menú"
         bracketed={open}
