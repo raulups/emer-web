@@ -6,6 +6,10 @@ const line = (page: Page, name: string) => option(page, name).locator("span").la
 const SCALE_ON = "matrix(1, 0, 0, 1, 0, 0)";
 const SCALE_OFF = "matrix(0, 0, 0, 1, 0, 0)";
 
+test.beforeEach(({ page: _page }, info) => {
+  test.skip(info.project.name === "mobile", "en el móvil no hay switch (ver e2e/mobile.spec.ts)");
+});
+
 test.beforeEach(async ({ page }) => {
   await page.goto("/web");
 });
@@ -41,9 +45,7 @@ test("EXPLORA monta Explora a sangre", async ({ page }) => {
   await expect(line(page, "Marketplace")).toHaveCSS("transform", SCALE_OFF);
 });
 
-test("en hover la línea viaja a la opción y sus letras suben", async ({ page }, info) => {
-  test.skip(info.project.name === "mobile", "sin hover en táctil");
-
+test("en hover la línea viaja a la opción y sus letras suben", async ({ page }) => {
   await option(page, "Explora").hover();
   await expect(line(page, "Explora")).toHaveCSS("transform", SCALE_ON);
   await expect(line(page, "Marketplace")).toHaveCSS("transform", SCALE_OFF);

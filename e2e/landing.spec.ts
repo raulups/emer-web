@@ -9,6 +9,10 @@ const progress = (page: Page, section: string) =>
     return (window.scrollY - top) / (el.offsetHeight - window.innerHeight);
   }, section);
 
+test.beforeEach(({ page: _page }, info) => {
+  test.skip(info.project.name === "mobile", "en el móvil no hay Landing (ver e2e/mobile.spec.ts)");
+});
+
 test("loader: contador, [ SALTAR ] centrado y viaje a la esquina", async ({ page }) => {
   await page.goto("/");
   const box = await skip(page).boundingBox();
@@ -42,8 +46,7 @@ test("hero: EMER, [ AUTOMÁTICO ] y el zoom con el scroll", async ({ page }) => 
 
 test("[ AUTOMÁTICO ] arranca el zoom ya, se oculta y se para con el scroll del usuario", async ({
   page,
-}, info) => {
-  test.skip(info.project.name === "mobile", "sin rueda en táctil");
+}) => {
   await page.goto("/");
   await expect(page.locator("main[data-ready]")).toBeAttached({ timeout: 6000 });
   await page.getByRole("button", { name: "[ AUTOMÁTICO ]" }).click();
@@ -59,10 +62,7 @@ test("[ AUTOMÁTICO ] arranca el zoom ya, se oculta y se para con el scroll del 
   expect(Math.abs((await page.evaluate(() => window.scrollY)) - stopped)).toBeLessThan(3);
 });
 
-test("[ AUTOMÁTICO ] recorre la Landing sin parar y abre el Marketplace", async ({
-  page,
-}, info) => {
-  test.skip(info.project.name === "mobile", "mismo recorrido que en escritorio");
+test("[ AUTOMÁTICO ] recorre la Landing sin parar y abre el Marketplace", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("main[data-ready]")).toBeAttached({ timeout: 6000 });
   await page.getByRole("button", { name: "[ AUTOMÁTICO ]" }).click();

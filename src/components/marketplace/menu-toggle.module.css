@@ -20,7 +20,8 @@
 /* En pantallas estrechas el switch ocupa la franja superior: el botón baja una fila. */
 @media (max-width: 760px) {
   .toggle {
-    top: 64px;
+    /* La web de móvil, sin switch, lo deja en la primera fila. */
+    top: var(--menu-toggle-top, 64px);
     left: 16px;
   }
 }

@@ -23,10 +23,12 @@ Web de marketing/descubrimiento de **Emer** (marketplace de marcas de streetwear
 
 ```
 src/
-  app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí)
+  proxy.ts             web de móvil: en un teléfono (user-agent) `/` y `/web` se sirven desde `/m`; tablets y ordenadores, web completa
+  app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí), `/m` web de móvil (interna, solo Marketplace)
   app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
   components/          componentes; cursor.tsx = cursor propio global (layout)
     shell/             Shell + switch MARKETPLACE / EXPLORA
+    mobile/            web de móvil: shell sin switch + aviso «descarga la app» (una vez por sesión; enlaces en `lib/app-links.ts`)
     landing/           Landing: `landing.tsx` (un bucle por scroll), túnel de marcas (servidor + Suspense)
     explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
     marketplace/       sección de servidor (datos) + cliente (filtros, menú, panel, grid, tarjeta)
