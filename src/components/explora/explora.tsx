@@ -92,7 +92,6 @@ export function Explora({ data }: Props) {
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // ---- Geometría: se mide al montar, al cargar la fuente y al cambiar el tamaño ----
         let vh = 0;
-        let vw = 0;
         let stageW = 0;
         let winW = 0;
         const box = { intro: [0, 0], pop: [0, 1], nv: [0, 0], er: [0, 1] } as Record<
@@ -112,13 +111,11 @@ export function Explora({ data }: Props) {
         // Final de cada sección de SECTIONS (scrollY en el que termina).
         let ends: number[] = [];
         // Controles fijos (switch del Shell, [ SALTAR ]) y su centro en pantalla, para su tono.
-        let probes: { node: HTMLElement; x: number; y: number }[] = [];
         let dirty = true;
         const docTop = (node: HTMLElement, scroll: number) =>
           node.getBoundingClientRect().top + scroll;
         const measure = () => {
           vh = window.innerHeight;
-          vw = window.innerWidth;
           // Recorrido horizontal medido: la sección fija mide vh + lo que se desplaza la pista.
           travel = Math.max(0, track.scrollWidth - pin.clientWidth);
           const pinHeight = `${Math.round(vh + travel)}px`;
@@ -160,10 +157,6 @@ export function Explora({ data }: Props) {
             acc.push(Math.min(last, Math.max(end, acc.at(-1) ?? 0)));
             return acc;
           }, []);
-          probes = [...document.querySelectorAll<HTMLElement>("[data-tone-probe]")].map((node) => {
-            const rect = node.getBoundingClientRect();
-            return { node, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-          });
           dirty = true;
         };
         measure();
@@ -212,17 +205,6 @@ export function Explora({ data }: Props) {
         const takeOver = ["wheel", "touchstart", "keydown"] as const;
         for (const type of takeOver) window.addEventListener(type, stop, { passive: true });
 
-        // ---- Tono: ¿el punto (x, y) de la pantalla está sobre el negro de Novedades? ----
-        const darkAt = (x: number, y: number, on: boolean, q: number, angle: number) => {
-          const top = box.nv[0] - s;
-          if (y < top || y >= top + box.nv[1]) return false;
-          if (!on || q <= 0) return true;
-          if (q >= 1) return false;
-          // La máscara conic deja ver Emergentes en [0, angle) y [180, 180 + angle).
-          const p = (Math.atan2(x - vw / 2, vh / 2 - y) * 180) / Math.PI;
-          const deg = p < 0 ? p + 360 : p;
-          return !(deg < angle || (deg >= 180 && deg < 180 + angle));
-        };
         const live = (node: HTMLElement, from: number, height: number) =>
           node.toggleAttribute("data-live", s > from - vh && s < from + height);
 
@@ -289,12 +271,6 @@ export function Explora({ data }: Props) {
           write(slLine, "transform", `rotate(${angle.toFixed(2)}deg)`);
           write(er, "visibility", on ? "visible" : "hidden");
           write(ediv, "opacity", q >= 1 ? "1" : "0");
-
-          // Tono de cada control fijo según lo que tiene justo debajo de su centro.
-          for (const { node, x, y } of probes) {
-            const tone = darkAt(x, y, on, q, angle) ? "dark" : "light";
-            if (node.dataset.tone !== tone) node.dataset.tone = tone;
-          }
 
           // [ SALTAR ]: la primera sección cuyo final aún queda por delante (scroll real).
           const y = window.scrollY;
@@ -365,7 +341,6 @@ export function Explora({ data }: Props) {
           stop();
           skip.removeEventListener("click", jump);
           for (const type of takeOver) window.removeEventListener(type, stop);
-          for (const { node } of probes) delete node.dataset.tone;
           observer.disconnect();
           window.removeEventListener("resize", measure);
         };

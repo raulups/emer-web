@@ -5,7 +5,6 @@ import gsap from "gsap";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
-import { Halo } from "@/components/ui/halo";
 import { clamp01, easeInOutCubic, lerpTo, pad } from "@/lib/motion/math";
 import { lockScroll, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
@@ -412,7 +411,6 @@ export function Landing({ tunnel }: Props) {
       <div className={styles.curtain} aria-hidden="true" />
 
       <Link href="/web" className={styles.skip} data-skip>
-        <span className={styles.skipHalo} aria-hidden="true" />
         <span className={styles.skipLabel}>[ SALTAR ]</span>
         <span className={styles.skipLine} aria-hidden="true" />
       </Link>
@@ -484,7 +482,6 @@ export function Landing({ tunnel }: Props) {
               00
             </span>
             <span className={styles.counterLabel}>
-              <Halo />
               MARCAS EMERGENTES
               <br />
               UN SOLO LUGAR

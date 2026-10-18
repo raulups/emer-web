@@ -51,30 +51,6 @@
   /* Líneas: siempre 1px, sin sombras ni radios */
   --line: 1px;
 
-  /* Halo blur (detrás de textos fijos sobre contenido) */
-  --halo-bg: rgba(255, 255, 255, 0.72);
-  --halo-text-shadow: 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 255, 255, 0.8);
-
   /* Cursor propio */
   --cursor-size: 12px;
-}
-
-/*
- * Tono de los controles fijos (switch, [ MENÚ ], [ SALTAR ]) según lo que tienen debajo.
- * Claro por defecto; la página pone `data-tone="dark"` en cada control (`[data-tone-probe]`) cuando
- * su centro pasa sobre fondo negro. El halo cruza su tinte con opacidad (`--halo-dark`: 0 claro, 1 oscuro).
- */
-:root,
-[data-tone="light"] {
-  --chrome-fg: var(--black);
-  --chrome-glow: rgba(255, 255, 255, 0.85);
-  --chrome-shadow: 0 0 2px rgba(255, 255, 255, 0.6), 0 0 12px rgba(255, 255, 255, 0.9);
-  --halo-dark: 0;
-}
-
-[data-tone="dark"] {
-  --chrome-fg: var(--text-on-dark);
-  --chrome-glow: rgba(0, 0, 0, 0.7);
-  --chrome-shadow: 0 0 2px rgba(0, 0, 0, 0.5), 0 0 12px rgba(0, 0, 0, 0.85);
-  --halo-dark: 1;
 }

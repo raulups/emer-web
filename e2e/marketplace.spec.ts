@@ -1,5 +1,4 @@
 import { expect, type Page, test } from "@playwright/test";
-import { APP_PROMPT_KEY } from "@/lib/app-links";
 
 /** Datos de src/lib/api/fixtures.ts: 9 marcas con productos y 49 productos. */
 const TOTAL = 49;
@@ -20,12 +19,12 @@ const blocksOf = (list: readonly (readonly [string, string])[]) =>
   list.map(([kind]) => kind).filter((kind, i, all) => kind !== all[i - 1]);
 
 test.beforeEach(async ({ page }, info) => {
-  // En el móvil el aviso de la app ya se ha visto (se prueba en e2e/mobile.spec.ts).
-  await page.addInitScript((key) => sessionStorage.setItem(key, "1"), APP_PROMPT_KEY);
+  test.skip(
+    info.project.name === "mobile",
+    "el Marketplace de móvil es otro diseño (e2e/mobile.spec.ts)",
+  );
   await page.goto("/web");
   await expect(products(page).first()).toBeVisible();
-  // En móvil el menú empieza oculto.
-  if (info.project.name === "mobile") await page.getByRole("button", { name: "Menú" }).click();
 });
 
 test("orden por defecto: categorías en orden, marcas intercaladas y carga infinita", async ({
@@ -118,10 +117,7 @@ test("CATEGORÍAS: 5 visibles y «Ver más» abre hasta 8", async ({ page }) => 
   await expect(bolsos).toHaveAttribute("aria-current", "true");
 });
 
-test("el menú cabe sin scroll de primeras y hace scroll al abrir las listas", async ({
-  page,
-}, info) => {
-  test.skip(info.project.name === "mobile", "el menú móvil es un panel aparte");
+test("el menú cabe sin scroll de primeras y hace scroll al abrir las listas", async ({ page }) => {
   const overflow = () =>
     menu(page)
       .locator("div")
@@ -175,6 +171,94 @@ test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => 
     .click();
   await expect(page.getByText("SIN RESULTADOS")).toBeVisible();
   await expect(page.getByText("Prueba con otra talla o quita algún filtro.")).toBeVisible();
+  // Cada filtro activo se puede quitar desde aquí; sin ÚNICA vuelven las piezas de Marea.
+  const active = page.getByRole("list", { name: "Filtros activos" });
+  await expect(active.getByRole("button", { name: "Quitar Marea" })).toBeVisible();
+  await active.getByRole("button", { name: "Quitar Talla ÚNICA" }).click();
+  await expect(products(page).first()).toContainText("Marea");
+});
+
+test("vacío: BORRAR FILTROS vuelve al catálogo completo", async ({ page }) => {
+  await menu(page)
+    .getByRole("button", { name: /^Marea/ })
+    .click();
+  await filtersButton(page).click();
+  await panel(page).getByRole("button", { name: "ÚNICA" }).click();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("heading", { name: "NADA POR AQUÍ" })).toBeVisible();
+  await page.getByRole("button", { name: "BORRAR FILTROS" }).click();
+  await expect(products(page).first()).toContainText("Sudadera");
+  await expect(menu(page).getByRole("button", { name: /^Ver todo/ })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+});
+
+test("VISTA: productos por fila de 2 a 6, recordados al volver", async ({ page }) => {
+  const grid = page.getByRole("region", { name: "Productos" }).locator("ul").first();
+  const columns = () =>
+    grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+  const view = page.getByRole("group", { name: "Productos por fila" });
+  await expect(view).toHaveCSS("position", "fixed");
+  await expect(view).toHaveCSS("mix-blend-mode", "difference");
+  await expect(view.getByRole("button", { name: "4 por fila" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  expect(await columns()).toBe(4);
+  for (const n of [2, 3, 5, 6]) {
+    await view.getByRole("button", { name: `${n} por fila` }).click();
+    await expect.poll(columns).toBe(n);
+  }
+  // La cookie hace que el servidor pinte ya con 6 (sin salto al hidratar).
+  await page.reload();
+  expect(await columns()).toBe(6);
+  await expect(view.getByRole("button", { name: "6 por fila" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("loader: mientras llegan los resultados sale la tragaperras de categorías", async ({
+  page,
+}) => {
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/products?**", async (route) => {
+    await gate;
+    await route.continue();
+  });
+  await menu(page)
+    .getByRole("button", { name: /^Camisetas/ })
+    .click();
+  const loader = page.getByText("BUSCANDO PIEZAS");
+  await expect(loader).toBeVisible();
+  await expect(page.getByRole("region", { name: "Productos" }).locator("ul").first()).toHaveCSS(
+    "opacity",
+    "0.12",
+  );
+  release();
+  await expect(loader).toBeHidden();
+  await expect(products(page).first()).toContainText("Camiseta");
+});
+
+test("error: SIN CONEXIÓN con cinta y REINTENTAR vuelve a pedir", async ({ page }) => {
+  let fail = true;
+  await page.route("**/api/products?**", (route) =>
+    fail
+      ? route.fulfill({ status: 500, json: { success: false, data: null, error: "x" } })
+      : route.continue(),
+  );
+  await menu(page)
+    .getByRole("button", { name: /^Camisetas/ })
+    .click();
+  const alert = page.getByRole("alert");
+  await expect(alert.getByRole("heading", { name: "SIN CONEXIÓN" })).toBeVisible();
+  fail = false;
+  await alert.getByRole("button", { name: "REINTENTAR" }).click();
+  await expect(products(page).first()).toContainText("Camiseta");
 });
 
 test("panel de filtros: COLOR muestra 5 y «Ver más» abre hasta 8", async ({ page }) => {
@@ -198,8 +282,7 @@ test("precio: el slider se maneja con teclado", async ({ page }) => {
   await expect(panel(page).getByRole("button", { name: /^VER/ })).toHaveText(/^VER [1-9]\d?$/);
 });
 
-test("tarjeta: en hover pasa a la 2.ª foto y muestra tallas", async ({ page }, info) => {
-  test.skip(info.project.name === "mobile", "sin hover en táctil");
+test("tarjeta: en hover pasa a la 2.ª foto y muestra tallas", async ({ page }) => {
   // Está en la 2.ª tanda del orden por defecto (Camisetas): puede llegar mientras el grid crece.
   const card = products(page).filter({ hasText: "Camiseta Satenier 1" });
   await expect(async () => {
@@ -224,8 +307,7 @@ test("[ MENÚ ] oculta y muestra el menú", async ({ page }) => {
   await expect(menu(page)).not.toHaveAttribute("inert", "");
 });
 
-test("en hover las etiquetas no cambian de tamaño", async ({ page }, info) => {
-  test.skip(info.project.name === "mobile", "sin hover en táctil");
+test("en hover las etiquetas no cambian de tamaño", async ({ page }) => {
   const label = menu(page)
     .getByRole("button", { name: /^Camisetas/ })
     .locator("span")
@@ -264,10 +346,7 @@ test("?brand= con un UUID que no está en /brands se ignora", async ({ page }) =
   await expect(products(page).first()).toContainText("Sudadera");
 });
 
-test("seleccionar marcas reescribe ?brand= sin navegar ni mover el scroll", async ({
-  page,
-}, info) => {
-  test.skip(info.project.name === "mobile", "el menú se abre aparte en móvil");
+test("seleccionar marcas reescribe ?brand= sin navegar ni mover el scroll", async ({ page }) => {
   const requests: string[] = [];
   page.on("request", (r) => {
     if (r.resourceType() === "document") requests.push(r.url());
@@ -298,8 +377,7 @@ test("seleccionar marcas reescribe ?brand= sin navegar ni mover el scroll", asyn
 
 test("con un filtro u orden explícito se pagina normal; al quitarlo vuelve el orden por defecto", async ({
   page,
-}, info) => {
-  test.skip(info.project.name === "mobile", "el menú se abre aparte en móvil");
+}) => {
   await filtersButton(page).click();
   await panel(page).getByRole("button", { name: "PRECIO ASCENDENTE" }).click();
   await page.keyboard.press("Escape");

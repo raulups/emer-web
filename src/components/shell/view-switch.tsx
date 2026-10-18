@@ -1,7 +1,6 @@
 "use client";
 
 import { BracketLabel } from "@/components/ui/bracket-label";
-import { Halo } from "@/components/ui/halo";
 import styles from "./view-switch.module.css";
 
 export type View = "market" | "explora";
@@ -20,8 +19,8 @@ type Props = {
 
 /**
  * Switch [ MARKETPLACE ] / EXPLORA (README §2, `Web.dc.html`).
- * La línea está en la opción en hover o, si no hay hover, en la activa. Cada opción lleva su halo
- * y su tono (`data-tone-probe`): sobre una frontera blanco/negro cada una se lee por separado.
+ * La línea está en la opción en hover o, si no hay hover, en la activa. El switch va en blanco con
+ * `mix-blend-mode: difference`: se lee sobre cualquier foto o fondo sin halos.
  */
 export function ViewSwitch({ view, hover, onSelect, onHover }: Props) {
   const lined = hover ?? view;
@@ -36,14 +35,12 @@ export function ViewSwitch({ view, hover, onSelect, onHover }: Props) {
             key={option.view}
             type="button"
             className={styles.option}
-            data-tone-probe
             aria-pressed={active}
             onClick={() => onSelect(option.view)}
             onMouseEnter={() => onHover(option.view)}
             onFocus={() => onHover(option.view)}
             onBlur={() => onHover(null)}
           >
-            <Halo spread={40} />
             <BracketLabel
               label={option.label}
               bracketed={active}

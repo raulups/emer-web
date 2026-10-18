@@ -195,14 +195,19 @@ test("transición Populares → Novedades: línea que gira, máscara conic y sin
   await expect(page.locator("[data-sl]")).toHaveCSS("visibility", "hidden");
 });
 
-test("[ SALTAR ]: scroll animado al final de la sección y controles en blanco sobre Populares", async ({
+test("[ SALTAR ]: scroll animado al final de la sección; controles en modo diferencia (sin halos)", async ({
   page,
 }) => {
   await openExplora(page);
   const skip = page.getByRole("button", { name: "Saltar al final de Destacados" });
-  const option = page.getByRole("button", { name: "Marketplace" });
+  const nav = page.getByRole("navigation", { name: "Vista" });
   await expect(skip).toBeVisible();
-  await expect(option).toHaveAttribute("data-tone", "light");
+  // Blanco en modo diferencia: se lee sobre blanco, negro o foto sin halo ni sombra.
+  for (const control of [nav, skip]) {
+    await expect(control).toHaveCSS("mix-blend-mode", "difference");
+    await expect(control).toHaveCSS("color", "rgb(255, 255, 255)");
+  }
+  await expect(nav.locator("span").first()).toHaveCSS("text-shadow", "none");
 
   const g = await geometry(page);
   await skip.click();
@@ -214,12 +219,6 @@ test("[ SALTAR ]: scroll animado al final de la sección y controles en blanco s
     .toBeCloseTo(g.nv.top, -1);
 
   await expect(page.getByRole("button", { name: "Saltar al final de Populares" })).toBeVisible();
-  await expect(option).toHaveAttribute("data-tone", "dark", { timeout: 4000 });
-  await expect(option).toHaveCSS("color", "rgb(242, 242, 242)");
-
-  // Al volver a Marketplace no queda ningún tono puesto.
-  await option.click();
-  await expect(option).not.toHaveAttribute("data-tone", /.*/);
 });
 
 test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa por hover y sin repetidas", async ({

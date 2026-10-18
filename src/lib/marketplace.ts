@@ -69,6 +69,56 @@ export function hasFilters(f: Filters): boolean {
   return f.brands.length > 0 || f.cat !== null || filterCount(f) > 0;
 }
 
+/** Un filtro activo como etiqueta y el cambio que lo quita (pantalla de «sin resultados»). */
+export type ActiveFilter = { key: string; label: string; remove: Partial<Filters> };
+
+export function activeFilters(
+  f: Filters,
+  names: { categories: ReadonlyMap<string, string>; brands: ReadonlyMap<string, string> },
+): ActiveFilter[] {
+  const list: ActiveFilter[] = [];
+  if (f.cat) {
+    list.push({
+      key: "cat",
+      label: names.categories.get(f.cat) ?? "Categoría",
+      remove: { cat: null },
+    });
+  }
+  for (const id of f.brands) {
+    list.push({
+      key: `brand:${id}`,
+      label: names.brands.get(id) ?? "Marca",
+      remove: { brands: f.brands.filter((b) => b !== id) },
+    });
+  }
+  for (const size of f.sizes) {
+    const label = SIZE_OPTIONS.find((o) => o.value === size)?.label ?? size;
+    list.push({
+      key: `size:${size}`,
+      label: `Talla ${label}`,
+      remove: { sizes: f.sizes.filter((s) => s !== size) },
+    });
+  }
+  for (const color of f.colors) {
+    list.push({
+      key: `color:${color}`,
+      label: color,
+      remove: { colors: f.colors.filter((c) => c !== color) },
+    });
+  }
+  if (f.sale) list.push({ key: "sale", label: "Solo ofertas", remove: { sale: false } });
+  if (f.lo != null || f.hi != null) {
+    const label =
+      f.lo != null && f.hi != null
+        ? `${f.lo}–${f.hi} €`
+        : f.lo != null
+          ? `Desde ${f.lo} €`
+          : `Hasta ${f.hi} €`;
+    list.push({ key: "price", label, remove: { lo: null, hi: null } });
+  }
+  return list;
+}
+
 // ---------- Orden por defecto: por categorías ----------
 
 /**

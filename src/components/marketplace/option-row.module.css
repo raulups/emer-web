@@ -96,6 +96,27 @@
   letter-spacing: 0;
 }
 
+/* Hoja de móvil: filas a todo el ancho, más grandes y con el recuento a la derecha. */
+.row[data-variant="sheet"] {
+  box-sizing: border-box;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  margin-right: 0;
+  padding: 12px 0;
+  border-bottom: var(--line) solid var(--hairline);
+  font-size: 14px;
+  /* Sin desplazamiento: la línea sale en su hueco y el texto no se mueve. */
+  transform: none;
+}
+
+.row[data-variant="sheet"] .count {
+  align-self: center;
+  margin-left: auto;
+  color: var(--grey-text);
+  font-size: 11px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .row,
   .line {

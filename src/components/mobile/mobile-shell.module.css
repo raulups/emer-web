@@ -1,8 +1,5 @@
 .shell {
   --shell-top: 76px;
-  /* Sin switch, [ MENÚ ] y su panel suben a la primera fila (ver menu-toggle y side-menu). */
-  --menu-toggle-top: 26px;
-  --menu-panel-top: var(--shell-top);
 
   display: flex;
   flex-direction: column;
@@ -22,16 +19,18 @@
 .title {
   position: fixed;
   top: 26px;
-  /* A la derecha: centrado, el halo de [ MENÚ ] lo tapa en pantallas estrechas. */
-  right: 16px;
+  left: 50%;
   z-index: 50;
   padding: 6px 0;
   border: 0;
   background: none;
-  color: var(--chrome-fg);
+  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
+  color: #fff;
+  mix-blend-mode: difference;
   font: inherit;
   cursor: pointer;
   isolation: isolate;
+  transform: translateX(-50%);
 }
 
 .title:focus-visible {

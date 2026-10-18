@@ -1,14 +1,9 @@
 "use client";
 
-import { type SyntheticEvent, type TransitionEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { APP_LINKS, APP_PROMPT_KEY } from "@/lib/app-links";
-import { lockScroll } from "@/lib/motion/scroll";
 import styles from "./app-prompt.module.css";
-
-/** Si la transición de cierre no llega a terminar (pestaña oculta…), se cierra igual. */
-const CLOSE_FALLBACK_MS = 1200;
-
-type State = "hidden" | "open" | "closing";
 
 function shouldShow(): boolean {
   try {
@@ -25,80 +20,25 @@ const STORES = [
   { name: "Google Play", href: APP_LINKS.android },
 ] as const;
 
-/**
- * Aviso de la web de móvil: para una mejor experiencia, la app. Hoja inferior modal (`<dialog>`
- * nativo: página inerte detrás y Escape). Entra y sale con `transform`; con «reducir movimiento», sin animar.
- */
+/** Aviso de la web de móvil: para una mejor experiencia, la app. Una vez por sesión. */
 export function AppPrompt() {
-  const dialog = useRef<HTMLDialogElement>(null);
-  const [state, setState] = useState<State>("hidden");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const el = dialog.current;
-    if (!el || !shouldShow()) return;
-    el.showModal();
-    // El foco empieza en la hoja (sin marcar ningún botón); Tab entra en sus controles.
-    el.focus();
-    setState("open");
+    if (shouldShow()) setOpen(true);
   }, []);
 
-  useEffect(() => {
-    if (state === "hidden") return;
-    lockScroll(true);
-    return () => lockScroll(false);
-  }, [state]);
-
-  const finish = () => {
-    dialog.current?.close();
-    setState("hidden");
-  };
-
-  useEffect(() => {
-    if (state !== "closing") return;
-    const timer = window.setTimeout(finish, CLOSE_FALLBACK_MS);
-    return () => window.clearTimeout(timer);
-  });
-
-  const close = () => setState((current) => (current === "open" ? "closing" : current));
-
-  const onCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
-    event.preventDefault();
-    close();
-  };
-
-  const onTransitionEnd = (event: TransitionEvent<HTMLDialogElement>) => {
-    if (
-      state === "closing" &&
-      event.target === event.currentTarget &&
-      event.propertyName === "transform"
-    ) {
-      finish();
-    }
-  };
+  const close = () => setOpen(false);
 
   return (
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Escape llega por `cancel`; el clic es el del fondo
-    <dialog
-      ref={dialog}
-      className={styles.sheet}
-      aria-labelledby="app-prompt-title"
-      aria-describedby="app-prompt-text"
-      data-closing={state === "closing" || undefined}
-      data-lenis-prevent
-      tabIndex={-1}
-      onCancel={onCancel}
-      onClick={(event) => {
-        if (event.target === event.currentTarget) close();
-      }}
-      onTransitionEnd={onTransitionEnd}
+    <BottomSheet
+      open={open}
+      onClose={close}
+      title="EMER EN EL MÓVIL"
+      labelledBy="app-prompt-title"
+      describedBy="app-prompt-text"
     >
-      <div className={styles.body}>
-        <div className={styles.head}>
-          <p className={styles.eyebrow}>EMER EN EL MÓVIL</p>
-          <button type="button" className={styles.close} aria-label="Cerrar" onClick={close}>
-            ×
-          </button>
-        </div>
+      <div className={styles.content}>
         <h2 id="app-prompt-title" className={styles.title}>
           MEJOR EN LA APP
         </h2>
@@ -131,6 +71,6 @@ export function AppPrompt() {
           SEGUIR EN LA WEB
         </button>
       </div>
-    </dialog>
+    </BottomSheet>
   );
 }

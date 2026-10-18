@@ -6,7 +6,9 @@
   padding: 6px 0;
   border: 0;
   background: none;
-  color: var(--chrome-fg);
+  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
+  color: #fff;
+  mix-blend-mode: difference;
   font: inherit;
   cursor: pointer;
   isolation: isolate;
@@ -20,8 +22,7 @@
 /* En pantallas estrechas el switch ocupa la franja superior: el botón baja una fila. */
 @media (max-width: 760px) {
   .toggle {
-    /* La web de móvil, sin switch, lo deja en la primera fila. */
-    top: var(--menu-toggle-top, 64px);
+    top: 64px;
     left: 16px;
   }
 }

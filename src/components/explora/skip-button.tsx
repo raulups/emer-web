@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { BracketLabel } from "@/components/ui/bracket-label";
-import { Halo } from "@/components/ui/halo";
 import styles from "./skip-button.module.css";
 
 /**
  * [ SALTAR NOVEDADES ] fijo arriba a la derecha (espejo de [ MENÚ ]). El bucle de `explora.tsx`
- * decide la sección, lo muestra (`data-on`), su tono (`data-tone`, por ser `data-tone-probe`) y anima el scroll al pulsarlo.
+ * decide la sección, lo muestra (`data-on`) y anima el scroll al pulsarlo.
  */
 export function SkipButton({ section }: { section: string }) {
   const [hover, setHover] = useState(false);
@@ -17,14 +16,12 @@ export function SkipButton({ section }: { section: string }) {
       type="button"
       className={styles.skip}
       data-skip
-      data-tone-probe
       aria-label={`Saltar al final de ${section}`}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       onFocus={() => setHover(true)}
       onBlur={() => setHover(false)}
     >
-      <Halo spread={70} />
       <BracketLabel
         label={`Saltar ${section}`}
         bracketed={hover}
