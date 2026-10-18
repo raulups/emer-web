@@ -26,28 +26,16 @@
   object-fit: cover;
 }
 
+/* Caja de 64×40; el logo (`BrandLogo`) ocupa como mucho 54×30 dentro, con el fondo del logo. */
 .logo {
   position: absolute;
   bottom: 10px;
   left: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-sizing: border-box;
   width: 64px;
   height: 40px;
-  padding: 6px;
+  padding: 4px;
   border: var(--line) solid var(--black);
-  background: var(--paper);
-}
-
-.logo img {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
 }
 
 .caption {

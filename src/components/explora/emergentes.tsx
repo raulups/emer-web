@@ -7,11 +7,19 @@ import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./emergentes.module.css";
+import { NoStock } from "./no-stock";
 
-const PRODUCT_MAX = 92;
+/** Tope solo para pantallas enormes: por debajo manda el hueco libre. */
+const PRODUCT_MAX = 360;
 const PRODUCT_MIN = 40;
+const PRODUCT_COUNT = 3;
+const PRODUCT_GAP = 10;
 /** Precio + hueco bajo la foto de cada pieza. */
 const PRICE_HEIGHT = 20;
+/** Scroll por marca del carrusel (vh): cuanto menos, más rápido se recorre. */
+export const ER_VH_PER_BRAND = 32;
+/** Pantalla extra al final con la escena quieta, para el fundido a Emergentes (Catálogo). */
+export const ER_HOLD_VH = 100;
 
 type CardProps = {
   brand: ExploraBrand;
@@ -77,10 +85,11 @@ export function Emergentes({ brands, near }: Props) {
   const text = useRef<HTMLParagraphElement>(null);
   const info = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState<number>(PRODUCT_MAX);
-  const products = active?.products.slice(0, 3) ?? [];
+  const products = active?.products.slice(0, PRODUCT_COUNT) ?? [];
   const hasProducts = products.length > 0;
 
-  // Las piezas se ajustan al alto que dejan el texto, el nombre y el enlace (sin invadirlos).
+  // Las piezas ocupan todo el hueco: el alto que dejan el texto, el nombre y los botones (sin
+  // invadirlos) y el ancho del bloque repartido entre tres.
   useLayoutEffect(() => {
     const blockEl = block.current;
     const textEl = text.current;
@@ -94,7 +103,9 @@ export function Emergentes({ brands, near }: Props) {
         0,
       );
       const free = blockEl.clientHeight - textEl.offsetHeight - 20 - rest - gaps;
-      const next = Math.max(0, Math.min(PRODUCT_MAX, ((free - PRICE_HEIGHT) * 3) / 4));
+      const byHeight = ((free - PRICE_HEIGHT) * 3) / 4;
+      const byWidth = (blockEl.clientWidth - (PRODUCT_COUNT - 1) * PRODUCT_GAP) / PRODUCT_COUNT;
+      const next = Math.max(0, Math.min(PRODUCT_MAX, byHeight, byWidth));
       setSize((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
     };
     update();
@@ -113,10 +124,10 @@ export function Emergentes({ brands, near }: Props) {
     <section
       className={styles.er}
       data-er
-      style={{ height: `${100 + brands.length * 70}vh` }}
+      style={{ height: `${100 + ER_HOLD_VH + brands.length * ER_VH_PER_BRAND}vh` }}
       aria-label="Novedades"
     >
-      <div className={styles.stage}>
+      <div className={styles.stage} data-er-stage>
         <span className={styles.divider} data-ediv aria-hidden="true" />
         <span className={styles.hline} aria-hidden="true" />
 
@@ -155,14 +166,19 @@ export function Emergentes({ brands, near }: Props) {
             Las últimas marcas en llegar a EMER. Baja para recorrerlas.
           </p>
           <div ref={info} className={styles.info} data-er-info>
-            <span className={styles.name}>{active.name}</span>
+            <span
+              className={styles.name}
+              style={{ "--len": Math.max(8, active.name.length) } as CSSProperties}
+            >
+              {active.name}
+            </span>
             <span className={styles.meta}>
               Desde {active.foundedYear ?? "—"} · {active.count} piezas
             </span>
             <div
               className={styles.products}
               data-er-products
-              style={{ "--pw": `${Math.min(size, PRODUCT_MAX)}px` } as CSSProperties}
+              style={{ "--pw": `${size}px` } as CSSProperties}
             >
               {hasProducts && showProducts ? (
                 products.map((product) => (
@@ -171,9 +187,9 @@ export function Emergentes({ brands, near }: Props) {
                       <BrandImage
                         sources={product.image ? [product.image] : []}
                         alt=""
-                        width={184}
-                        height={245}
-                        request={240}
+                        width={360}
+                        height={480}
+                        request={720}
                         className={styles.productImage}
                       />
                     </span>
@@ -181,7 +197,7 @@ export function Emergentes({ brands, near }: Props) {
                   </span>
                 ))
               ) : !hasProducts ? (
-                <span className={styles.soon}>Catálogo pronto</span>
+                <NoStock />
               ) : null}
             </div>
             <BrandActions brand={active} />

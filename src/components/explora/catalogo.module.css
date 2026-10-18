@@ -1,28 +1,13 @@
+/* Empieza 200vh antes del final de Novedades: así está fija debajo durante la pantalla extra
+   (`ER_HOLD_VH`) en la que la escena de Novedades se funde por encima. Sin pantalla en blanco. */
 .cat {
   position: relative;
+  margin-top: -200vh;
   background: var(--paper);
   color: var(--ink);
 }
 
-/* Entrada: 70vh en blanco donde la línea vertical del 50 % baja dibujándose con el scroll (la misma
-   línea que la división de Emergentes y que el borde de la primera columna: mismo x). */
-.lead {
-  position: relative;
-  height: 70vh;
-}
-
-.lineV {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 100%;
-  background: var(--hairline-strong);
-  transform: scaleY(0);
-  transform-origin: top;
-}
-
-/* El alto (vh + recorrido medido) lo fija `explora.tsx` al medir. */
+/* El alto (2·vh + recorrido medido: fundido + pista) lo fija `explora.tsx` al medir. */
 .pin {
   position: relative;
   height: 300vh;
@@ -131,8 +116,10 @@
   outline-offset: -4px;
 }
 
+/* Contenedor (`size`): las miniaturas del hover se miden contra la celda. */
 .frame {
   position: relative;
+  container-type: size;
   display: block;
   width: 100%;
   height: 100%;
@@ -166,16 +153,12 @@
   justify-content: space-between;
 }
 
-.name,
-.soon {
+.name {
   background: var(--paper);
   padding: 6px 8px;
   font-weight: var(--w-text);
-  line-height: 1;
-}
-
-.name {
   font-size: 13px;
+  line-height: 1;
 }
 
 /* Botones de la marca (encima del nombre): solo con hover o con el foco dentro de la celda. */
@@ -200,9 +183,10 @@
   gap: 6px;
 }
 
+/* Tres a lo ancho de la celda, sin pasar del 38 % de su alto (deja ver la foto y las etiquetas). */
 .thumb {
   display: block;
-  width: min(5.4vw, 11vh, 84px);
+  width: min(calc((100cqw - 28px) / 3), calc(38cqh * 3 / 4), 200px);
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--paper);
@@ -228,8 +212,7 @@
 }
 
 .soon {
-  font-size: 11px;
-  line-height: 1.3;
+  max-width: min(260px, calc(100cqw - 16px));
   opacity: 0;
   transition: opacity 0.4s var(--ease-out-expo);
 }
@@ -240,8 +223,8 @@
 
 /* Sin movimiento: sin entrada ni pista sticky; el grid se recorre con scroll horizontal nativo. */
 @media (prefers-reduced-motion: reduce) {
-  .lead {
-    display: none;
+  .cat {
+    margin-top: 0;
   }
 
   .pin {

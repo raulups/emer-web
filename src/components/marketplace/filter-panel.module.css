@@ -74,52 +74,12 @@
   margin-top: auto;
 }
 
-.clear,
-.apply {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 48px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--black);
-  font-family: var(--font);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  cursor: pointer;
+/* Los botones (BORRAR / VER n) son los de `ui/button.module.css`, a todo el ancho de su columna. */
+.actions > * {
+  width: 100%;
 }
 
-.clear {
-  border: var(--line) solid var(--black);
-  background: var(--paper);
-  font-weight: var(--w-text);
-  transition:
-    background-color 0.4s var(--ease-out-expo),
-    color 0.4s var(--ease-out-expo);
-}
-
-.clear:hover {
-  background: var(--black);
-  color: var(--paper);
-}
-
-.apply {
-  font-weight: var(--w-text);
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
-  transition: text-underline-offset 0.5s var(--ease-out-expo);
-}
-
-.apply:hover {
-  text-underline-offset: 10px;
-}
-
-.close:focus-visible,
-.clear:focus-visible,
-.apply:focus-visible {
+.close:focus-visible {
   outline: 1px solid var(--black);
   outline-offset: 4px;
 }
@@ -127,9 +87,7 @@
 @media (prefers-reduced-motion: reduce) {
   .overlay,
   .drawer,
-  .close,
-  .clear,
-  .apply {
+  .close {
     transition-duration: 0.01ms;
   }
 }

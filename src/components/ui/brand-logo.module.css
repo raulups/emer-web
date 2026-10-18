@@ -1,0 +1,30 @@
+.box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+.image {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+
+.box[data-ready] .image {
+  opacity: 1;
+}
+
+/* Sin poder leer el logo: el original, entero dentro de la caja. */
+.image[data-fallback] {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
+}

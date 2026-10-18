@@ -8,6 +8,7 @@ import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./explora.module.css";
+import { NoStock } from "./no-stock";
 
 /** «Estilo. etiquetas, sin repetir el estilo. Desde AAAA.» (README §4.2). */
 export function describe(brand: ExploraBrand): string {
@@ -26,7 +27,8 @@ export function describe(brand: ExploraBrand): string {
 }
 
 const MAX_COUNT = 3;
-const MAX_WIDTH = 200;
+/** Tope solo para pantallas enormes: por debajo manda el hueco libre. */
+const MAX_WIDTH = 420;
 const MIN_WIDTH = 64;
 const GAP = 12;
 /** Nombre + precio + huecos bajo la foto de cada pieza. */
@@ -149,8 +151,11 @@ export function Populares({ popular, index }: Props) {
 
         <div ref={info} className={styles.info}>
           <p className={styles.desc}>{describe(current)}</p>
+          {current.description && <p className={styles.about}>{current.description}</p>}
           <BrandActions brand={current} />
         </div>
+
+        {available === 0 && <NoStock className={styles.noStock} />}
 
         <ul
           className={styles.products}
@@ -169,9 +174,9 @@ export function Populares({ popular, index }: Props) {
                   <BrandImage
                     sources={product.image ? [product.image] : []}
                     alt=""
-                    width={280}
-                    height={373}
-                    request={480}
+                    width={420}
+                    height={560}
+                    request={840}
                     className={styles.productImage}
                   />
                 </span>

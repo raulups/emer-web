@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import button from "@/components/ui/button.module.css";
 import { APP_LINKS, APP_PROMPT_KEY } from "@/lib/app-links";
 import styles from "./app-prompt.module.css";
 
@@ -67,7 +68,7 @@ export function AppPrompt() {
             </li>
           ))}
         </ul>
-        <button type="button" className={styles.continue} onClick={close}>
+        <button type="button" className={`${button.text} ${styles.continue}`} onClick={close}>
           SEGUIR EN LA WEB
         </button>
       </div>

@@ -1,0 +1,68 @@
+/*
+ * Botones de toda la web (los de BORRAR / VER n del panel de filtros):
+ * - `box`: caja con borde de 1px sobre papel; en hover se rellena de tinta.
+ * - `text`: texto subrayado; en hover el subrayado se separa.
+ * Mismo alto, cuerpo y tracking en los dos. `--btn-h` (heredable) cambia el alto: 48px por defecto.
+ */
+.box,
+.text {
+  display: inline-flex;
+  box-sizing: border-box;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--btn-h, 48px);
+  margin: 0;
+  padding: 0 20px;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font);
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-drag: none;
+}
+
+.box {
+  border: var(--line) solid var(--black);
+  background: var(--paper);
+  transition:
+    background-color 0.4s var(--ease-out-expo),
+    color 0.4s var(--ease-out-expo);
+}
+
+.box:hover {
+  background: var(--black);
+  color: var(--paper);
+}
+
+.text {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+  transition: text-underline-offset 0.5s var(--ease-out-expo);
+}
+
+.text:hover {
+  color: var(--black);
+  text-underline-offset: 10px;
+}
+
+.box:focus-visible,
+.text:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .box,
+  .text {
+    transition-duration: 0.01ms;
+  }
+}

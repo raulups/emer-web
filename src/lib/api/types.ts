@@ -53,6 +53,8 @@ export type RawBrand = {
   total_product_count?: number;
   founded_year?: number;
   style?: string;
+  /** Aún no lo envía el backend (ver docs/PENDIENTES.md); la web lo pinta si llega. */
+  description?: string | null;
   on_sale_count?: number;
   category_counts?: Record<string, number>;
 };
@@ -164,6 +166,7 @@ export type Brand = {
   categoryCounts: Record<string, number>;
   foundedYear: number | null;
   style: string | null;
+  description: string | null;
 };
 
 export type ProductSize = {

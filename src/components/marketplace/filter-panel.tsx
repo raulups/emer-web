@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import button from "@/components/ui/button.module.css";
 import type { ProductFacets } from "@/lib/data";
 import type { Filters } from "@/lib/marketplace";
 import { FilterFields } from "./filter-fields";
@@ -92,10 +93,10 @@ export function FilterPanel(props: Props) {
         />
 
         <div className={styles.actions}>
-          <button type="button" className={styles.clear} onClick={props.onClear}>
+          <button type="button" className={button.box} onClick={props.onClear}>
             BORRAR
           </button>
-          <button type="button" className={styles.apply} onClick={onClose}>
+          <button type="button" className={button.text} onClick={onClose}>
             VER {props.total}
           </button>
         </div>

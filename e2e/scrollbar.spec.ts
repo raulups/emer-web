@@ -26,8 +26,6 @@ test("la línea de Emergentes y la de Catálogo son la misma (mismo x que la pri
       .first()
       .evaluate((el) => el.getBoundingClientRect().left);
   const emergentes = await x("[data-ediv]");
-  const lead = await x("[data-cat-line]");
   const column = await x("[data-cat-g]");
-  expect(Math.abs(emergentes - lead)).toBeLessThan(0.5);
-  expect(Math.abs(lead - column)).toBeLessThan(0.5);
+  expect(Math.abs(emergentes - column)).toBeLessThan(0.5);
 });

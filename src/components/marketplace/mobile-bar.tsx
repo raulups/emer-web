@@ -1,6 +1,7 @@
 "use client";
 
 import { BottomSheet } from "@/components/ui/bottom-sheet";
+import button from "@/components/ui/button.module.css";
 import type { Brand, ProductFacets } from "@/lib/data";
 import { nextColumns } from "@/lib/grid";
 import { type Filters, toggle } from "@/lib/marketplace";
@@ -105,10 +106,10 @@ export function MobileSheets(props: SheetsProps) {
 
   const actions = (onClearSection: () => void) => (
     <div className={styles.actions}>
-      <button type="button" className={styles.clear} onClick={onClearSection}>
+      <button type="button" className={button.box} onClick={onClearSection}>
         BORRAR
       </button>
-      <button type="button" className={styles.apply} onClick={onClose}>
+      <button type="button" className={button.text} onClick={onClose}>
         {props.loading ? "BUSCANDO…" : `VER ${props.total}`}
       </button>
     </div>

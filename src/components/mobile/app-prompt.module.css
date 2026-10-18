@@ -59,25 +59,7 @@
   letter-spacing: 0.28em;
 }
 
+/* SEGUIR EN LA WEB: botón `text` de `ui/button.module.css`, centrado. */
 .continue {
   align-self: center;
-  height: 44px;
-  padding: 0 8px;
-  border: 0;
-  background: none;
-  color: var(--black);
-  font-family: var(--font);
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 6px;
-  cursor: pointer;
-}
-
-.store:focus-visible,
-.continue:focus-visible {
-  outline: 1px solid var(--black);
-  outline-offset: 4px;
 }

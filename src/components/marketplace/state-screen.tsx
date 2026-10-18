@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import button from "@/components/ui/button.module.css";
 import styles from "./state-screen.module.css";
 
 export type FilterChip = { key: string; label: string; onRemove: () => void };
@@ -52,7 +53,12 @@ export function StateScreen(props: Props) {
               ))}
             </ul>
           )}
-          <button type="button" className={styles.primary} style={delay(4)} onClick={props.onClear}>
+          <button
+            type="button"
+            className={`${button.box} ${styles.primary}`}
+            style={delay(4)}
+            onClick={props.onClear}
+          >
             BORRAR FILTROS
           </button>
         </div>

@@ -4,6 +4,7 @@ import { type CSSProperties, useState } from "react";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { BrandImage } from "./brand-image";
+import { NoStock } from "./no-stock";
 import styles from "./novedades.module.css";
 
 /** `2026-09-28T…` → `28.09.26`. */
@@ -52,16 +53,19 @@ export function Novedades({ newest }: Props) {
                     request={1280}
                     className={styles.previewImage}
                   />
+                  {brand.products.length === 0 && (
+                    <NoStock tone="overlay" className={styles.previewEmpty} />
+                  )}
                   <ul className={styles.previewProducts}>
-                    {brand.products.map((product) => (
+                    {brand.products.slice(0, 3).map((product) => (
                       <li key={product.id} className={styles.previewCard}>
                         <span className={styles.previewPhoto}>
                           <BrandImage
                             sources={product.image ? [product.image] : []}
                             alt=""
-                            width={240}
-                            height={320}
-                            request={320}
+                            width={300}
+                            height={400}
+                            request={600}
                             className={styles.previewProductImage}
                           />
                         </span>
@@ -83,7 +87,7 @@ export function Novedades({ newest }: Props) {
         </div>
       </div>
 
-      <div className={styles.right}>
+      <div className={styles.right} data-nv-right>
         <ul className={styles.rows}>
           {newest.map((item, i) => (
             <li
@@ -113,7 +117,7 @@ export function Novedades({ newest }: Props) {
             </li>
           ))}
         </ul>
-        <div className={styles.end} />
+        <div className={styles.end} data-nv-end />
         <div className={styles.spacer} data-sp />
       </div>
     </section>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type MouseEvent, type PointerEvent, useRef } from "react";
+import button from "@/components/ui/button.module.css";
 import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import styles from "./brand-actions.module.css";
@@ -28,7 +29,8 @@ type Props = {
 
 /**
  * Botones de una marca: «Ver marca» (Marketplace filtrado por la marca) e «Ir a la tienda» (su
- * web, en otra pestaña). Mismo alto con uno, dos o ningún botón, para que el carrusel no salte.
+ * web, en otra pestaña), con los botones comunes de la web (`ui/button.module.css`): el principal
+ * es `box` y el otro `text`. Mismo alto con uno, dos o ningún botón, para que el carrusel no salte.
  */
 export function BrandActions({ brand, tone = "line", className }: Props) {
   const { market, store, primary } = brandActions(brand);
@@ -74,7 +76,7 @@ export function BrandActions({ brand, tone = "line", className }: Props) {
     >
       {market && (
         <Link
-          className={styles.button}
+          className={`${primary === "market" ? button.box : button.text} ${styles.button}`}
           data-primary={primary === "market" || undefined}
           href={`/marketplace?brand=${brand.id}`}
           draggable={false}
@@ -86,7 +88,7 @@ export function BrandActions({ brand, tone = "line", className }: Props) {
       )}
       {store && brand.url && (
         <a
-          className={styles.button}
+          className={`${primary === "store" ? button.box : button.text} ${styles.button}`}
           data-primary={primary === "store" || undefined}
           href={brand.url}
           target="_blank"

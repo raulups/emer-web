@@ -58,7 +58,7 @@ Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier
 3. Usar `useGSAP` de `@gsap/react` con `scope` y `dependencies`; nada de `useEffect` + `gsap.to` sin `gsap.context`.
 4. Todo ScrollTrigger se crea dentro de un contexto GSAP para que se limpie solo.
 5. Respetar `prefers-reduced-motion` con `gsap.matchMedia()`: versión sin movimiento o estática.
-6. Un solo reloj: `gsap.ticker`. Lo ligado al scroll va en un único bucle suscrito con `subscribe()`, que suaviza con `lerpTo` (`s += (t − s)·0.14`) y escribe estilos en nodos con `write()` (nada de estado de React por frame). Lenis corre sobre él y el resto se suscribe con `subscribe()` de `lib/motion/ticker.ts` (pasando `el` si depende de una sección). Prohibido `requestAnimationFrame` y `setInterval` para animar.
+6. Un solo reloj: `gsap.ticker`. Lo ligado al scroll va en un único bucle suscrito con `subscribe()`, que suaviza con `followScroll` (con Lenis, su `scrollY` tal cual; sin él, `lerpTo`: `s += (t − s)·0.14`) y escribe estilos en nodos con `write()` (nada de estado de React por frame). Lenis corre sobre él y el resto se suscribe con `subscribe()` de `lib/motion/ticker.ts` (pasando `el` si depende de una sección). Prohibido `requestAnimationFrame` y `setInterval` para animar.
 10. Cursor: los estados se declaran con `data-cursor="prod|hero|link"` o con `cursor.set()`. Nunca se anima width/height, solo `scale` y `opacity`.
 11. Eventos entre secciones por `bus` (nada de `window.dispatchEvent` sueltos).
 12. `Providers` vive en el layout y no se desmonta al navegar: nunca guardar ahí nodos de una página. Lo que depende del DOM de una página se registra desde esa página y devuelve su limpieza (`registerHero`, `initHeroKeys`, `initSectionTracking`).

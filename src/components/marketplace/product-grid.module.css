@@ -33,16 +33,24 @@
   row-gap: 32px;
 }
 
-/* Mientras llegan los nuevos resultados, el grid casi desaparece bajo el loader (sin saltos). */
+/*
+ * Mientras llegan los nuevos resultados, el grid casi desaparece bajo el loader (sin saltos). Mide
+ * al menos lo que queda de pantalla bajo el shell, para que el loader caiga en el centro del
+ * contenido (`--loader-bottom`: lo que tapa abajo, p. ej. la barra del móvil).
+ */
+.wrap {
+  --loader-h: calc(100svh - var(--shell-top, 76px) - var(--loader-bottom, 28px) - 28px);
+}
+
 .wrap[data-loading] {
-  min-height: 60vh;
+  min-height: var(--loader-h);
 }
 
 .wrap[data-loading] .grid {
   opacity: 0.12;
 }
 
-/* Capa del alto del grid; el loader se queda pegado a media pantalla mientras se recorre. */
+/* Capa del alto del grid; el loader se queda centrado en la parte visible mientras se recorre. */
 .loaderLayer {
   position: absolute;
   inset: 0;
@@ -51,8 +59,12 @@
 
 .loaderSticky {
   position: sticky;
-  top: calc(50vh - 70px);
-  padding-top: min(20vh, 160px);
+  top: var(--shell-top, 76px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--loader-h);
+  max-height: 100%;
 }
 
 .sentinel {

@@ -98,8 +98,9 @@
 }
 
 /*
- * Cursor propio: 2px × 58 %. Fijo sin foco; con el foco en el nombre parpadea a 500 ms (es su
- * indicador de foco; sin parpadeo con «reducir movimiento»).
+ * Cursor propio: 2px × 58 %. Parpadea a 500 ms con el foco en el nombre o mientras está vacío (los
+ * corchetes ya se han ido y solo queda él); sin foco va en gris, así el color indica el foco. Sin
+ * parpadeo con «reducir movimiento».
  */
 .caret {
   position: absolute;
@@ -112,7 +113,14 @@
   pointer-events: none;
 }
 
+/* Sin texto, el cursor parpadea siempre (invita a escribir): gris sin foco, tinta con foco. */
+.slot[data-empty] .caret {
+  background: var(--grey-mute);
+  animation: blink 1s steps(1) infinite;
+}
+
 .slot:has(.name:focus-visible) .caret {
+  background: var(--ink);
   animation: blink 1s steps(1) infinite;
 }
 
@@ -315,32 +323,6 @@
   text-transform: uppercase;
 }
 
-.again {
-  all: unset;
-  padding: 14px 18px;
-  border: 1px solid var(--ink);
-  font-family: var(--font);
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    background-color 0.45s var(--ease-out-expo),
-    color 0.45s var(--ease-out-expo);
-}
-
-.again:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.again:focus-visible {
-  outline: 1px solid var(--ink);
-  outline-offset: 4px;
-}
-
 /* Sin bucle (sin JS o «reducir movimiento») el CSS decide qué grupo se ve. */
 .sg [data-sv] {
   opacity: 0;
@@ -360,13 +342,17 @@
     height: 100vh;
   }
 
-  .slot:has(.name:focus-visible) .caret {
+  .sg .slot:has(.name) .caret {
     animation: none;
   }
 
+  /* Sin bucle no hay separación: los corchetes solo se ven al enviar. */
+  .sg:not([data-sent]) .bracket {
+    visibility: hidden;
+  }
+
   .meterFill,
-  .submit,
-  .again {
+  .submit {
     transition: none;
   }
 }

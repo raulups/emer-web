@@ -1,4 +1,5 @@
 import type Lenis from "lenis";
+import { lerpTo } from "./math";
 
 /**
  * Scroll suave con inercia (Lenis). Ajustar aquí la sensación:
@@ -27,6 +28,16 @@ export function setLenis(instance: Lenis | null): void {
 
 /** Instancia activa (null sin Lenis: «reducir movimiento» o antes de montarse). */
 export const getLenis = (): Lenis | null => lenis;
+
+/**
+ * Siguiente valor del scroll suavizado de un bucle. Con Lenis, el `scrollY` ya llega con inercia
+ * (corre antes en el mismo tick): se usa tal cual, porque suavizar otra vez añade retraso y separa
+ * lo que pinta el bucle de lo que se mueve con el scroll real (`sticky`). Sin Lenis (táctil o
+ * antes de montarse), lerp 0.14.
+ */
+export function followScroll(current: number, deltaMs: number): number {
+  return lenis ? window.scrollY : lerpTo(current, window.scrollY, deltaMs);
+}
 
 /** Bloquea el scroll del usuario (p. ej. el loader de la Landing). Se recuerda si Lenis aún no existe. */
 export function lockScroll(on: boolean): void {

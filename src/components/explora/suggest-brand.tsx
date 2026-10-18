@@ -3,6 +3,7 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { type FormEvent, useLayoutEffect, useRef, useState } from "react";
+import button from "@/components/ui/button.module.css";
 import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { clamp01, easeOutCubic as E, lerpBy } from "@/lib/motion/math";
@@ -195,7 +196,9 @@ export function SuggestBrand({ brands }: Props) {
           write(slot, "opacity", focus(sy).toFixed(3));
           write(slot, "transform", `translateY(calc(-50% + ${sy.toFixed(1)}px))`);
 
-          const goal = hug(width.current, F, vw);
+          // Mientras se abre el formulario los corchetes se separan hasta salir de la pantalla y
+          // queda solo el cursor; al enviar (S → 0) vuelven y se cierran sobre el nombre.
+          const goal = hug(width.current, F, vw) + S * (vw * 0.5 + F);
           g = g === null ? goal : lerpBy(g, goal, 0.2, deltaMs);
           brackets(g, F);
           write(cur, "opacity", (1 - SV).toFixed(3));
@@ -289,7 +292,7 @@ export function SuggestBrand({ brands }: Props) {
           </div>
         ))}
 
-        <div className={styles.slot} data-slot>
+        <div className={styles.slot} data-slot data-empty={(!name && !isSent) || undefined}>
           <h2 id="sg-title" className={styles.title} data-sf="0">
             Ayúdanos a encontrar marcas
           </h2>
@@ -368,7 +371,7 @@ export function SuggestBrand({ brands }: Props) {
             <p className={styles.thanksText} role="status">
               {isSent ? "En revisión · Gracias" : ""}
             </p>
-            <button className={styles.again} type="button" onClick={reset}>
+            <button className={button.box} type="button" onClick={reset}>
               Sugerir otra
             </button>
           </div>

@@ -11,7 +11,7 @@ const FALLBACK_WORDS = ["PIEZAS", "MARCAS", "TALLAS", "COLORES"];
 const MAX_WORDS = 6;
 
 /**
- * Loader de resultados: una tragaperras de palabras (las categorías del catálogo), cada una entre
+ * Loader de resultados: una tragaperras de palabras (nombres de marca), cada una entre
  * corchetes, con una línea que barre debajo. Solo `transform` y `opacity`; sin movimiento,
  * palabra fija.
  */

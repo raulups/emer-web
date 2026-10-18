@@ -181,6 +181,12 @@ const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
     ...(TAGS[brand.name] ? { tags: TAGS[brand.name] } : {}),
     founded_year: 2018 + (b % 7),
     style: b % 2 === 0 ? "Streetwear" : "Skate",
+    ...(b % 2 === 1
+      ? {
+          description:
+            "Ropa hecha en Madrid en tiradas cortas. Algodón grueso, cortes amplios y gráficos dibujados a mano.",
+        }
+      : {}),
     created_at: `2026-0${9 - (b % 9)}-01T10:00:00.000000Z`,
     store_locations: [],
     preview_products: products.slice(0, 3).map((p) => ({

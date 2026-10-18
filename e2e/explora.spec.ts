@@ -40,7 +40,6 @@ const geometry = (page: Page) =>
       nv: top("[data-nv]"),
       sp: top("[data-sp]"),
       er: top("[data-er]"),
-      lead: top("[data-cat-lead]"),
       pin: top("[data-cat-pin]"),
       vh: window.innerHeight,
     };
@@ -64,7 +63,7 @@ test("intro: las palabras suben en escalera y se alinean al cruzar el centro", a
   await expect.poll(() => wordX(page, 0)).toBeGreaterThan(100);
 
   const g = await geometry(page);
-  // RES termina a la altura de MARCAS (centrada): ahí todas las palabras tienen translateX 0.
+  // DOS termina a la altura de MARCAS (centrada): ahí todas las palabras tienen translateX 0.
   await page.evaluate((y) => window.scrollTo(0, y), g.intro.top + g.intro.height - g.vh / 2 - 60);
   await expect.poll(() => wordX(page, 0), { timeout: 4000 }).toBeLessThan(2);
   await expect.poll(() => wordX(page, 3), { timeout: 4000 }).toBeLessThan(2);
@@ -91,6 +90,27 @@ test("Destacados: nombres, descripción, piezas y contador de la marca activa", 
   await page.evaluate((y) => window.scrollTo(0, y), at(1));
   await expect(counter(page)).toContainText(DESTACADOS[2] as string, { timeout: 4000 });
   await expect(counter(page)).toContainText("03");
+});
+
+test("intro → Destacados: MARCAS sube con la sección y se queda arriba, sobre los nombres", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const marcas = page.locator("[data-marcas]");
+  const g = await geometry(page);
+  // Al empezar, centrada.
+  const start = await marcas.boundingBox();
+  expect(Math.abs((start?.y ?? 0) + (start?.height ?? 0) / 2 - g.vh / 2)).toBeLessThan(4);
+
+  // Con Destacados fija: arriba, más pequeña y por encima de los nombres.
+  await page.evaluate((y) => window.scrollTo(0, y), g.pop.top + 0.3 * (g.pop.height - g.vh));
+  await expect
+    .poll(async () => (await marcas.boundingBox())?.y ?? 999, { timeout: 4000 })
+    .toBeLessThan(g.vh * 0.15);
+  const top = await marcas.boundingBox();
+  const names = await page.locator("[data-nm-base]").boundingBox();
+  expect(top?.height ?? 999).toBeLessThan(start?.height ?? 0);
+  expect((top?.y ?? 0) + (top?.height ?? 0)).toBeLessThanOrEqual(names?.y ?? 0);
 });
 
 test("Destacados: la copia negra de los nombres se recorta a la ventana 50–75 %", async ({
@@ -221,6 +241,36 @@ test("[ SALTAR ]: scroll animado al final de la sección; controles en modo dife
   await expect(page.getByRole("button", { name: "Saltar al final de Populares" })).toBeVisible();
 });
 
+test("índice: discreto en reposo, marca la sección actual y lleva a cada una", async ({ page }) => {
+  await openExplora(page);
+  const index = page.getByRole("navigation", { name: "Secciones de Explora" });
+  await expect(index).toHaveCSS("opacity", "0.32");
+  await expect(index).toHaveCSS("mix-blend-mode", "difference");
+  await expect(index.getByRole("button")).toHaveText([
+    /Destacados/,
+    /Populares/,
+    /Novedades/,
+    /Emergentes/,
+    /Sugerir marca/,
+  ]);
+  await expect(index.getByRole("button", { name: /Destacados/ })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+
+  await index.hover();
+  await expect(index).toHaveCSS("opacity", "1");
+  const g = await geometry(page);
+  await index.getByRole("button", { name: /Populares/ }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeCloseTo(g.nv.top, -1);
+  await expect(index.getByRole("button", { name: /Populares/ })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+});
+
 test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa por hover y sin repetidas", async ({
   page,
 }) => {
@@ -259,36 +309,63 @@ test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa
   await expect(page.locator("[data-er-info]")).toContainText(under as string);
 });
 
-test("Catálogo: la línea baja, el alto sale del recorrido medido y la pista se desplaza", async ({
+test("Novedades → Emergentes: fundido con Emergentes ya fija debajo, sin pantalla en blanco", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
-  const matrix = (selector: string) =>
-    page.locator(selector).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform));
+  const opacity = (selector: string) =>
+    page
+      .locator(selector)
+      .first()
+      .evaluate((el) => Number(getComputedStyle(el).opacity));
 
-  await page.evaluate((y) => window.scrollTo(0, y), g.lead.top + 0.3 * g.lead.height);
-  await expect
-    .poll(async () => (await matrix("[data-cat-line]")).d, { timeout: 4000 })
-    .toBeLessThan(0.9);
-  await page.evaluate((y) => window.scrollTo(0, y), g.lead.top + g.lead.height);
-  await expect
-    .poll(async () => (await matrix("[data-cat-line]")).d, { timeout: 4000 })
-    .toBeCloseTo(1, 1);
+  // Emergentes empieza fija justo cuando el carrusel de Novedades ha terminado (se solapan).
+  expect(Math.abs(g.pin.top - (g.er.top + g.er.height - 2 * g.vh))).toBeLessThanOrEqual(2);
 
-  // Alto de la sección = alto de pantalla + recorrido horizontal de la pista.
+  // A mitad del fundido: Novedades medio transparente y Emergentes asomando por debajo.
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.4 * g.vh);
+  await expect.poll(() => opacity("[data-er-stage]"), { timeout: 4000 }).toBeLessThan(0.9);
+  await expect.poll(() => opacity("[data-er-stage]"), { timeout: 4000 }).toBeGreaterThan(0.1);
+  expect(await opacity("[data-cat-g]")).toBeGreaterThan(0);
+  // La escena de Novedades sigue ocupando toda la pantalla (no se corta por abajo).
+  const stage = await page.locator("[data-er-stage]").boundingBox();
+  expect(stage?.y ?? 99).toBeLessThan(1);
+  expect((stage?.y ?? 0) + (stage?.height ?? 0)).toBeGreaterThan(g.vh * 0.9);
+
+  // Al acabar, Novedades se oculta (no tapa el hover) y Emergentes está entera.
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.vh);
+  await expect(page.locator("[data-er]")).toHaveCSS("visibility", "hidden", { timeout: 4000 });
+  await expect.poll(() => opacity("[data-cat] h2"), { timeout: 4000 }).toBe(1);
+});
+
+test("Catálogo: el alto sale del recorrido medido y la pista llega justo al final", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const g = await geometry(page);
+  const trackX = () =>
+    page
+      .locator("[data-cat-track]")
+      .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).e);
+
+  // Alto = fundido (vh) + pantalla (vh) + recorrido horizontal de la pista.
   const travel = await page.evaluate(() => {
     const track = document.querySelector<HTMLElement>("[data-cat-track]");
     const pin = document.querySelector<HTMLElement>("[data-cat-pin]");
     return track && pin ? track.scrollWidth - pin.clientWidth : 0;
   });
   expect(travel).toBeGreaterThan(0);
-  expect(Math.abs(g.pin.height - (g.vh + travel))).toBeLessThanOrEqual(1);
+  expect(Math.abs(g.pin.height - (2 * g.vh + travel))).toBeLessThanOrEqual(1);
 
+  // Quieta durante el fundido; a mitad del recorrido, a mitad de la pista.
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * g.vh);
+  await expect.poll(trackX, { timeout: 4000 }).toBeCloseTo(0, 0);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.vh + travel / 2);
+  await expect.poll(trackX, { timeout: 4000 }).toBeCloseTo(-travel / 2, -1);
+  // Justo cuando se suelta la escena, la pista está en su final (ni antes ni después).
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.pin.height - g.vh);
-  await expect
-    .poll(async () => (await matrix("[data-cat-track]")).e, { timeout: 5000 })
-    .toBeCloseTo(-travel, -1);
+  await expect.poll(trackX, { timeout: 5000 }).toBeCloseTo(-travel, -1);
 });
 
 test("Catálogo: hover con zoom, atenuado, miniaturas y botones sin cambiar el tamaño de las celdas", async ({
@@ -339,7 +416,7 @@ test("Catálogo: hover con zoom, atenuado, miniaturas y botones sin cambiar el t
   await expect(cell).not.toHaveAttribute("data-on");
 });
 
-test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y «Catálogo pronto» sin piezas", async ({
+test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y aviso sin piezas", async ({
   page,
 }) => {
   await openExplora(page);
@@ -349,7 +426,7 @@ test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y �
   expect(names).toEqual(EMERGENTES);
   await expect(page.locator("[data-cat] h2")).toHaveText("EMERGENTES");
   await expect(
-    page.locator("[data-cat] [data-cat-cell]", { hasText: "Catálogo pronto" }),
+    page.locator("[data-cat] [data-cat-cell]", { hasText: "Inventario en camino" }),
   ).toHaveCount(1);
 });
 

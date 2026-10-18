@@ -1,0 +1,40 @@
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 300px;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--grey-rule);
+  color: var(--ink);
+}
+
+.title {
+  font-weight: var(--w-text);
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.text {
+  color: var(--grey-text);
+  font-weight: var(--w-text);
+  font-size: 12px;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.box[data-variant="dark"] {
+  border-color: var(--hairline-dark-2);
+  color: var(--text-on-dark);
+}
+
+.box[data-variant="dark"] .text {
+  color: var(--grey-mute-dark);
+}
+
+.box[data-variant="overlay"] {
+  border: 0;
+  background: var(--paper);
+}

@@ -42,6 +42,7 @@ export type Brand = {
   tags: string[];
   founded_year: number | null;
   style: string | null;
+  description: string | null;
   created_at: string;
   product_count: number;
   preview_products: PreviewProduct[];
@@ -100,6 +101,7 @@ function toBrand(b: ApiBrand): Brand {
     tags: b.tags,
     founded_year: b.foundedYear,
     style: b.style,
+    description: b.description,
     created_at: b.createdAt,
     product_count: b.totalProductCount,
     preview_products: b.previewProducts.map((p) => ({

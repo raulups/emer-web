@@ -34,6 +34,7 @@
 
 /* Móvil: grid a todo el ancho; abajo deja sitio a la barra fija. */
 .main[data-device="mobile"] {
+  --loader-bottom: calc(96px + env(safe-area-inset-bottom));
   padding: 16px 12px calc(96px + env(safe-area-inset-bottom));
 }
 

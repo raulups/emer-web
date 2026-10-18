@@ -85,6 +85,15 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         .toSorted((a, b) => a.name.localeCompare(b.name, "es")),
     [brands],
   );
+  // Loader: las marcas elegidas o, sin filtro de marca, las que más piezas tienen.
+  const loaderWords = useMemo(() => {
+    const picked = filters.brands.map((id) => brandNames.get(id)).filter(Boolean) as string[];
+    if (picked.length > 0) return picked;
+    return brands
+      .toSorted((a, b) => b.product_count - a.product_count)
+      .slice(0, 6)
+      .map((b) => b.name);
+  }, [brands, brandNames, filters.brands]);
   const categories = products.facets.categories.filter((c) => c.count > 0);
   // Nombres de todas las categorías vistas: una categoría sin resultados sigue teniendo nombre.
   const categoryNames = useMemo(
@@ -140,7 +149,7 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         onRetry={products.reload}
         device={device}
         columns={columns}
-        loaderWords={categories.map((c) => c.name)}
+        loaderWords={loaderWords}
         chips={chips}
         onClear={clear}
       />

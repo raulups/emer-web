@@ -1,8 +1,10 @@
 /* Solapada con el spacer de Novedades; oculta hasta que la línea empieza a girar. */
+/* Por encima de Emergentes (Catálogo), que entra fija debajo durante la pantalla extra del final:
+   el fondo va en la escena (no en la sección) para que al fundirse se vea lo de debajo. */
 .er {
   position: relative;
+  z-index: 1;
   margin-top: -200vh;
-  background: var(--paper);
   color: var(--ink);
   visibility: hidden;
 }
@@ -12,6 +14,7 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
+  background: var(--paper);
 }
 
 /* La línea que gira en Novedades termina siendo esta división central. */
@@ -73,7 +76,7 @@
   left: 50%;
 }
 
-.er[data-live] :is(.colA, .colB, .car, .info) {
+.er[data-live] :is(.stage, .colA, .colB, .car, .info) {
   will-change: transform, opacity;
 }
 
@@ -155,17 +158,21 @@
 }
 
 .info {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: 14px;
   opacity: 0;
 }
 
+/* Una línea que cabe entera: el cuerpo baja con la longitud del nombre (`--len`, ≈ 0.52em por
+   letra en Inter 300) y el padding deja sitio a los descendentes (g, p, y) dentro del recorte. */
 .name {
   display: block;
   overflow: hidden;
+  padding: 0.04em 0 0.16em;
   font-weight: var(--w-text);
-  font-size: min(4vw, 8vh);
+  font-size: min(4vw, 8vh, calc(100cqi / (var(--len) * 0.52)));
   line-height: 1;
   letter-spacing: var(--track-name);
   text-overflow: ellipsis;
@@ -211,13 +218,6 @@
   font-weight: var(--w-text);
   font-size: 10px;
   line-height: 1;
-}
-
-.soon {
-  color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 12px;
-  line-height: 1.3;
 }
 
 .count {

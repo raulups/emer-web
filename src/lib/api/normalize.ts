@@ -71,6 +71,7 @@ export function brand(raw: RawBrand): Brand {
     categoryCounts: raw.category_counts ?? {},
     foundedYear: raw.founded_year ?? null,
     style: raw.style ?? null,
+    description: raw.description?.trim() || null,
   };
 }
 

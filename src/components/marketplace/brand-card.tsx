@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BrandLogo } from "@/components/ui/brand-logo";
 import type { Brand } from "@/lib/data";
 import { brandImage } from "@/lib/format";
 import { sizedImage } from "@/lib/marketplace";
@@ -10,7 +11,8 @@ import styles from "./brand-card.module.css";
 const IMAGE_WIDTH = 380;
 
 /**
- * Ficha de marca bajo FILTROS: imagen 4:5, logo en caja de 64×40, nombre y «estilo · año».
+ * Ficha de marca bajo FILTROS: imagen 4:5, logo en caja de 64×40 (recortado y con el mismo peso
+ * visual en todas las marcas: `BrandLogo`), nombre y «estilo · año».
  * Si la imagen de la marca falla, usa la del primer producto.
  */
 export function BrandCard({ brand }: { brand: Brand }) {
@@ -34,12 +36,7 @@ export function BrandCard({ brand }: { brand: Brand }) {
             onError={() => setFailed((prev) => new Set(prev).add(brand.id))}
           />
         )}
-        {brand.logo && (
-          <span className={styles.logo}>
-            {/* biome-ignore lint/performance/noImgElement: logo remoto, tamaño fijo */}
-            <img src={brand.logo} alt="" width={52} height={28} />
-          </span>
-        )}
+        {brand.logo && <BrandLogo src={brand.logo} width={54} height={30} className={styles.logo} />}
       </div>
       <figcaption className={styles.caption}>
         <span className={styles.name}>{brand.name}</span>

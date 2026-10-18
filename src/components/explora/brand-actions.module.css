@@ -1,60 +1,22 @@
 /*
- * Botones de marca de Explora. Principal: relleno de tinta; secundario: borde de 1px. Siempre una
- * fila del mismo alto aunque haya uno o ningún botón (el carrusel no cambia de alto): 36px con
- * ratón y 44px en táctil (área mínima recomendada).
+ * Botones de marca de Explora: los comunes de la web (`ui/button.module.css`). Siempre una fila del
+ * mismo alto aunque haya uno o ningún botón (el carrusel no cambia de alto).
  */
+/* `--brand-btn-h` deja a cada sección ajustar el alto (44px por defecto). */
 .actions {
-  --h: 36px;
+  --btn-h: var(--brand-btn-h, 44px);
   display: flex;
-  /* Una sola fila: puede salirse del ancho del texto (Populares) pero nunca crecer en alto. */
+  /* Una sola fila: puede salirse del ancho del texto (Destacados) pero nunca crecer en alto. */
   flex-wrap: nowrap;
   width: max-content;
   gap: 8px;
   align-items: stretch;
-  min-height: var(--h);
+  min-height: var(--btn-h);
 }
 
-.button {
-  display: inline-flex;
-  box-sizing: border-box;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--h);
-  padding: 0 16px;
-  border: 1px solid var(--ink);
-  background: transparent;
-  color: var(--ink);
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  text-decoration: none;
-  -webkit-user-drag: none;
-  transition:
-    background-color 0.45s var(--ease-out-expo),
-    color 0.45s var(--ease-out-expo);
-}
-
-.button[data-primary] {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.button:hover {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.button[data-primary]:hover {
-  background: var(--link-hover);
-}
-
-.button:focus-visible {
-  outline: 1px solid var(--ink);
-  outline-offset: 3px;
+/* El principal (`box`) lleva el aire; el secundario (`text`) se pega a él. */
+.button:not([data-primary]) {
+  padding: 0 12px;
 }
 
 .icon {
@@ -63,9 +25,10 @@
   height: 12px;
 }
 
-/* Sobre la foto (Catálogo): fondo papel en el secundario para que se lea sobre cualquier imagen. */
-/* En la celda (tamaño fijo) sí puede partirse: la celda no cambia de alto. */
+/* Sobre la foto (Catálogo): fondo papel en los dos para que se lean sobre cualquier imagen. En la
+   celda (tamaño fijo) sí puede partirse: la celda no cambia de alto. */
 .actions[data-tone="overlay"] {
+  --btn-h: 36px;
   flex-wrap: wrap;
   width: auto;
   gap: 6px;
@@ -74,26 +37,21 @@
 .actions[data-tone="overlay"] .button {
   flex: 1 1 auto;
   padding: 0 8px;
-  letter-spacing: 0.02em;
-  text-transform: none;
-  font-size: 12px;
-}
-
-.actions[data-tone="overlay"] .button:not([data-primary]) {
   background: var(--paper);
+  letter-spacing: 0.12em;
 }
 
-.actions[data-tone="overlay"] .button:not([data-primary]):hover {
-  background: var(--ink);
+.actions[data-tone="overlay"] .button[data-primary]:hover {
+  background: var(--black);
 }
 
 /*
  * Celdas estrechas (`.labels` del Catálogo es el contenedor): con los dos botones, «Ir a la
  * tienda» se queda en el icono (cuadrado) para no partir la fila. El texto sigue para lectores.
  */
-@container (max-width: 216px) {
+@container (max-width: 300px) {
   .actions[data-tone="overlay"] .button + .button {
-    flex: 0 0 var(--h);
+    flex: 0 0 var(--btn-h);
     padding: 0;
   }
 
@@ -110,12 +68,6 @@
 @media (pointer: coarse) {
   .actions,
   .actions[data-tone="overlay"] {
-    --h: 44px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
+    --btn-h: 44px;
   }
 }
