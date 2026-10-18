@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { APP_PROMPT_KEY } from "@/lib/app-links";
 
 /** Datos de src/lib/api/fixtures.ts: 9 marcas con productos y 49 productos. */
 const TOTAL = 49;
@@ -19,6 +20,8 @@ const blocksOf = (list: readonly (readonly [string, string])[]) =>
   list.map(([kind]) => kind).filter((kind, i, all) => kind !== all[i - 1]);
 
 test.beforeEach(async ({ page }, info) => {
+  // En el móvil el aviso de la app ya se ha visto (se prueba en e2e/mobile.spec.ts).
+  await page.addInitScript((key) => sessionStorage.setItem(key, "1"), APP_PROMPT_KEY);
   await page.goto("/web");
   await expect(products(page).first()).toBeVisible();
   // En móvil el menú empieza oculto.

@@ -38,7 +38,7 @@ test("cursor propio: sigue al ratón solo con pointer fine", async ({ page }, in
 
 test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni solo Inter", async ({
   page,
-}) => {
+}, info) => {
   const problems: string[] = [];
   const hosts = new Set<string>();
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
@@ -53,8 +53,11 @@ test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni 
   await page.waitForTimeout(1500);
   await page.goto("/web");
   await expect(page.getByRole("region", { name: "Productos" })).toBeVisible();
-  await page.getByRole("button", { name: "Explora" }).click();
-  await expect(page.locator("[data-cat]")).toBeAttached();
+  // En el móvil no hay Explora.
+  if (info.project.name !== "mobile") {
+    await page.getByRole("button", { name: "Explora" }).click();
+    await expect(page.locator("[data-cat]")).toBeAttached();
+  }
   await page.waitForTimeout(500);
 
   expect(problems).toEqual([]);

@@ -115,8 +115,8 @@
 @media (max-width: 760px) {
   .aside {
     position: fixed;
-    /* Bajo el botón [ MENÚ ], que en móvil va en una segunda fila. */
-    top: 100px;
+    /* Bajo el botón [ MENÚ ], que en móvil va en una segunda fila (en la web de móvil, en la primera). */
+    top: var(--menu-panel-top, 100px);
     bottom: 0;
     left: 0;
     z-index: 40;
@@ -128,7 +128,7 @@
   }
 
   .inner {
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - var(--menu-panel-top, 100px));
     padding-left: 34px;
   }
 }
