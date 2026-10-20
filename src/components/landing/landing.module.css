@@ -94,6 +94,15 @@
   background: currentColor;
 }
 
+/* [ SALTAR ] parpadea hasta que se le pasa por encima (entonces baraja a IR AL MARKETPLACE). */
+.root[data-ready] .skipLabel {
+  animation: blink 1.1s steps(1, end) infinite;
+}
+
+.skip:is(:hover, :focus-visible) .skipLabel {
+  animation: none;
+}
+
 .skipLine,
 .autoLine {
   height: 1px;
@@ -314,9 +323,7 @@
   align-items: center;
   justify-content: center;
   gap: 18px;
-  /* Blanco en modo diferencia: se invierte sobre lo que tenga debajo (foto, blanco o negro). */
-  color: #fff;
-  mix-blend-mode: difference;
+  color: var(--black);
   opacity: 0;
   pointer-events: none;
 }
@@ -401,26 +408,21 @@
   align-items: center;
 }
 
+/* Las palabras aparecen de golpe y barajan sus letras (lo escribe `landing.tsx`). */
 .w {
-  opacity: 0.1;
-  transform: translateY(6px);
-  transition:
-    opacity 0.5s var(--ease-out-expo),
-    transform 0.7s var(--ease-out-expo);
+  opacity: 0;
 }
 
 .w[data-on] {
   opacity: 1;
-  transform: none;
 }
 
-/* El hueco de la imagen está reservado; se destapa de izquierda a derecha. */
+/* El hueco de la imagen está reservado; aparece de golpe, sin animación. */
 .clip {
   display: inline-block;
   width: 1.9em;
   height: 0.95em;
   clip-path: inset(0 100% 0 0);
-  transition: clip-path 1s var(--ease-out-expo);
 }
 
 .wImage[data-on] .clip {
@@ -448,8 +450,27 @@
   transform: translate(-50%, -50%);
 }
 
+/* El coche entra parpadeando, como una imagen que se enciende a trompicones, y se queda. */
 .maniStage[data-big] .big {
   opacity: 1;
+  animation: flicker 0.9s steps(1, end) both;
+}
+
+@keyframes flicker {
+  0%,
+  12%,
+  30%,
+  48% {
+    opacity: 0;
+  }
+
+  6%,
+  20%,
+  38%,
+  60%,
+  100% {
+    opacity: 1;
+  }
 }
 
 .pct {
@@ -462,10 +483,6 @@
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   font-variant-numeric: tabular-nums;
-}
-
-.mani[data-live] .w {
-  will-change: opacity, transform;
 }
 
 /* ---------- Salida (README §1.4) ---------- */
@@ -592,13 +609,14 @@
 
   .w {
     opacity: 1;
-    transform: none;
-    transition: none;
   }
 
   .clip {
     clip-path: none;
-    transition: none;
+  }
+
+  .root[data-ready] .skipLabel {
+    animation: none;
   }
 
   .exit {

@@ -9,8 +9,10 @@ import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
+import { cursorLogo } from "./cursor-logo";
 import styles from "./explora.module.css";
 import { NoStock } from "./no-stock";
+import { peekProps } from "./product-peek";
 
 /** «Estilo. etiquetas, sin repetir el estilo. Desde AAAA.» (README §4.2). */
 export function describe(brand: ExploraBrand): string {
@@ -108,7 +110,7 @@ export function Populares({ popular, index }: Props) {
     <section
       className={styles.pop}
       data-pop
-      style={{ height: `${total * 100}vh` }}
+      style={{ height: `${total * 75}vh` }}
       aria-label="Marcas destacadas"
     >
       <div ref={stage} className={styles.stage} data-pop-stage>
@@ -134,7 +136,7 @@ export function Populares({ popular, index }: Props) {
           </div>
         </div>
 
-        <div className={styles.imWindow} data-im-window>
+        <div className={styles.imWindow} data-im-window {...cursorLogo(current)}>
           <div className={styles.imTrack} data-im-track>
             {popular.map((brand) => (
               <div key={brand.id} className={styles.imTile}>
@@ -152,8 +154,14 @@ export function Populares({ popular, index }: Props) {
         </div>
 
         <div ref={info} className={styles.info}>
-          <p className={styles.desc}>{describe(current)}</p>
-          {current.description && <p className={styles.about}>{current.description}</p>}
+          <p className={styles.desc}>
+            <ScrambleText text={describe(current)} hover={false} />
+          </p>
+          {current.description && (
+            <p className={styles.about}>
+              <ScrambleText text={current.description} hover={false} />
+            </p>
+          )}
           <BrandActions brand={current} />
         </div>
 
@@ -164,11 +172,12 @@ export function Populares({ popular, index }: Props) {
           style={fit.size > 0 ? ({ "--pw": `${fit.size}px` } as CSSProperties) : undefined}
           data-count={fit.count}
         >
-          {current.products.slice(0, fit.count).map((product) => (
-            <li key={product.id}>
+          {current.products.slice(0, fit.count).map((product, i) => (
+            <li key={product.id} style={{ "--i": i } as CSSProperties}>
               <a
                 className={styles.product}
                 data-scramble-hover
+                {...peekProps(product, current.name)}
                 href={product.url ?? current.url ?? undefined}
                 target="_blank"
                 rel="noopener"
@@ -185,12 +194,12 @@ export function Populares({ popular, index }: Props) {
                 </span>
                 <ScrambleText
                   text={product.name ?? ""}
-                  view={false}
                   className={`${typo.label} ${styles.productName}`}
                 />
-                <span className={`${typo.label} ${styles.productPrice}`}>
-                  {price(product.price)}
-                </span>
+                <ScrambleText
+                  text={price(product.price)}
+                  className={`${typo.label} ${styles.productPrice}`}
+                />
               </a>
             </li>
           ))}

@@ -7,6 +7,8 @@
   margin-top: -200vh;
   color: var(--ink);
   visibility: hidden;
+  /* Solo la escena captura el ratón: mientras sube con el scroll, Emergentes (debajo) ya responde. */
+  pointer-events: none;
 }
 
 .stage {
@@ -15,6 +17,7 @@
   height: 100vh;
   overflow: hidden;
   background: var(--paper);
+  pointer-events: auto;
 }
 
 /* La línea que gira en Novedades termina siendo esta división central. */
@@ -84,9 +87,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
   padding: 1.2vw 1.2vw 2.4vw;
+  border: 0;
   border-bottom: 1px solid var(--hairline);
+  background: none;
   color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .card:focus-visible {
@@ -99,6 +110,23 @@
   aspect-ratio: 3 / 4;
   overflow: hidden;
   background: var(--placeholder);
+}
+
+/* Seleccionada: la foto se rodea de un borde grueso; las demás se quedan en gris. */
+.photo {
+  outline: 3px solid transparent;
+  outline-offset: -3px;
+  transition:
+    outline-color 0.3s var(--ease-out-expo),
+    opacity 0.45s var(--ease-out-expo);
+}
+
+.card[data-selected] .photo {
+  outline-color: var(--black);
+}
+
+.car[data-selecting] .card:not([data-selected]) .photo {
+  opacity: 0.35;
 }
 
 .photoImage {
@@ -176,18 +204,6 @@
   flex-direction: column;
   gap: 14px;
   opacity: 0;
-}
-
-/* Una línea que cabe entera: el cuerpo baja con la longitud del nombre (`--len`, ≈ 0.46em por
-   letra en Cormorant 300) y el padding deja sitio a los descendentes (g, p, y) dentro del recorte. */
-.name {
-  display: block;
-  overflow: hidden;
-  padding: 0.04em 0 0.16em;
-  font-size: min(4.8vw, 9.5vh, calc(100cqi / (var(--len) * 0.46)));
-  letter-spacing: -0.01em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .meta {

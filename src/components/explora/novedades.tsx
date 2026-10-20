@@ -1,13 +1,16 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import Link from "next/link";
+import { type CSSProperties, type MouseEvent, useState } from "react";
 import { DisplayTitle } from "@/components/ui/display-title";
 import { ScrambleText } from "@/components/ui/scramble-text";
 import typo from "@/components/ui/type.module.css";
+import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { BrandImage } from "./brand-image";
+import { cursorLogo } from "./cursor-logo";
 import { NoStock } from "./no-stock";
 import styles from "./novedades.module.css";
 
@@ -17,6 +20,15 @@ function arrival(iso: string): string {
 }
 
 type Props = { newest: readonly ExploraBrand[] };
+
+/** «Ver productos»: el Marketplace filtrado por la marca, sin salir del Shell (como «Ver marca»). */
+const openMarketplace = (id: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    return;
+  event.preventDefault();
+  bus.emit("market:filters", { brands: [id] });
+  bus.emit("view", "market");
+};
 
 /**
  * §4.3: Novedades con fondo negro. Título sticky a la izquierda, lista de marcas por `created_at`
@@ -32,6 +44,7 @@ export function Novedades({ newest }: Props) {
     <section
       className={styles.nv}
       data-nv
+      data-scramble-in
       onMouseLeave={() => setHovered(null)}
       aria-label="Populares"
     >
@@ -42,14 +55,18 @@ export function Novedades({ newest }: Props) {
             <span className={styles.hline} aria-hidden="true" />
             <div className={styles.head}>
               <p className={`${typo.label} ${styles.kicker}`}>
-                <ScrambleText text="A — 2" />
-                <ScrambleText text="Populares" />
-                <ScrambleText text={`${pad(newest.length, 2)} marcas`} />
+                <ScrambleText text="A — 2" onIn />
+                <ScrambleText text="Populares" onIn />
+                <ScrambleText text={`${pad(newest.length, 2)} marcas`} onIn />
               </p>
               <DisplayTitle lines={[["LAS", "MÁS"], ["*POPULARES"]]} className={styles.title} />
             </div>
             <p className={styles.text}>
-              Las marcas que más se mueven en EMER. Pasa por encima de un nombre para verla.
+              <ScrambleText
+                text="Las marcas que más se mueven en EMER. Pasa por encima de un nombre para verla."
+                hover={false}
+                onIn
+              />
             </p>
 
             <div className={styles.preview} data-on={brand ? "" : undefined} aria-hidden="true">
@@ -110,13 +127,12 @@ export function Novedades({ newest }: Props) {
               className={styles.rowWrap}
               style={{ "--delay": `${300 + i * 110}ms` } as CSSProperties}
             >
-              <a
+              {/* biome-ignore lint/a11y/noStaticElementInteractions: el hover solo es visual; el foco llega de su enlace */}
+              <div
                 className={styles.row}
                 data-nv-row
                 data-scramble-hover
-                href={item.url ?? undefined}
-                target="_blank"
-                rel="noopener"
+                {...cursorLogo(item)}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 onFocus={() => setHovered(i)}
@@ -130,7 +146,15 @@ export function Novedades({ newest }: Props) {
                   text={`${pad(i + 1, 2)} — Llegó el ${arrival(item.createdAt)} · ${item.count} piezas`}
                   className={`${typo.label} ${styles.rowMeta}`}
                 />
-              </a>
+                <Link
+                  className={`${typo.label} ${styles.cta}`}
+                  href={`/marketplace?brand=${item.id}`}
+                  onClick={openMarketplace(item.id)}
+                >
+                  <ScrambleText text="Ver productos" view={false} />
+                  <span className="sr-only"> de {item.name}</span>
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

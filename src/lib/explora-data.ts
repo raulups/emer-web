@@ -20,6 +20,8 @@ export type ExploraBrand = {
   url: string | null;
   /** Imagen de la marca y, por si falla, la de su primer producto. */
   sources: string[];
+  /** Logo de la marca (cursor en hover). */
+  logo: string | null;
   style: string | null;
   /** Texto de la marca (aún no llega del backend). */
   description: string | null;
@@ -58,6 +60,7 @@ function fromPreview(brand: Brand): ExploraBrand {
     name: brand.name,
     url: brand.url,
     sources: [brand.img, products[0]?.image].filter((src): src is string => Boolean(src)),
+    logo: brand.logo,
     style: brand.style,
     description: brand.description,
     tags: brand.tags,

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type CSSProperties, type ReactNode, useRef, useState } from "react";
 import { clamp01, easeInOutCubic, lerpTo, pad } from "@/lib/motion/math";
+import { scramble } from "@/lib/motion/scramble";
 import { lockScroll, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write, writeText } from "@/lib/motion/write";
@@ -28,6 +29,8 @@ import styles from "./landing.module.css";
 gsap.registerPlugin(useGSAP);
 
 const WORD_COUNT = MANIFESTO.flat().length;
+const SKIP_LABEL = "[ SALTAR ]";
+const SKIP_HOVER_LABEL = "[ IR AL MARKETPLACE ]";
 
 type Controls = { toggleAuto: () => void };
 
@@ -60,6 +63,7 @@ export function Landing({ tunnel }: Props) {
       const all = (name: string) => [...el.querySelectorAll<HTMLElement>(`[data-${name}]`)];
 
       const skip = one("skip");
+      const skipLabel = one("skip-label");
       const counter = one("intro-count");
       const bar = one("progress");
       const hero = one("hero");
@@ -100,6 +104,21 @@ export function Landing({ tunnel }: Props) {
 
           // El loader fija el scroll arriba: Lenis no debe acumular rueda mientras tanto.
           lockScroll(true);
+
+          // [ SALTAR ] → [ IR AL MARKETPLACE ] con el barajado de letras (y de vuelta al salir).
+          const skipText = skipLabel.firstChild;
+          let stopSkip = () => {};
+          const swapSkip = (text: string) => () => {
+            if (!(skipText instanceof Text)) return;
+            stopSkip();
+            stopSkip = scramble(skipText, text);
+          };
+          const skipIn = swapSkip(SKIP_HOVER_LABEL);
+          const skipOut = swapSkip(SKIP_LABEL);
+          skip.addEventListener("pointerenter", skipIn);
+          skip.addEventListener("pointerleave", skipOut);
+          skip.addEventListener("focus", skipIn);
+          skip.addEventListener("blur", skipOut);
 
           // ---- Geometría (se mide al montar y al cambiar el tamaño, nunca por frame) ----
           let vh = 0;
@@ -236,6 +255,17 @@ export function Landing({ tunnel }: Props) {
           let s = 0;
           const last = { a: Number.NaN, b: Number.NaN, c: Number.NaN };
           const wordOn: boolean[] = [];
+          // Manifiesto: cada palabra aparece barajando sus letras; las imágenes, sin animación.
+          const wordTexts = words.map((node) => node.firstChild?.textContent ?? "");
+          const wordStops: (() => void)[] = [];
+          const lightWord = (node: HTMLElement, i: number, on: boolean) => {
+            const text = node.firstChild;
+            if (!(text instanceof Text)) return;
+            wordStops[i]?.();
+            const final = wordTexts[i] ?? "";
+            if (on) wordStops[i] = scramble(text, final);
+            else if (text.data !== final) text.data = final;
+          };
           const progress = (key: "hero" | "mani" | "exit") => {
             const [top, height] = geo[key];
             return clamp01((s - top) / (height - vh || 1));
@@ -354,6 +384,7 @@ export function Landing({ tunnel }: Props) {
                 if (wordOn[i] === on) return;
                 wordOn[i] = on;
                 node.toggleAttribute("data-on", on);
+                lightWord(node, i, on);
               });
               maniStage.toggleAttribute("data-big", pB > 0.66);
               writeText(pct, pad(Math.round(pB * 100), 3));
@@ -374,6 +405,17 @@ export function Landing({ tunnel }: Props) {
           return () => {
             unsubscribe();
             lockScroll(false);
+            stopSkip();
+            if (skipText instanceof Text) skipText.data = SKIP_LABEL;
+            skip.removeEventListener("pointerenter", skipIn);
+            skip.removeEventListener("pointerleave", skipOut);
+            skip.removeEventListener("focus", skipIn);
+            skip.removeEventListener("blur", skipOut);
+            words.forEach((node, i) => {
+              wordStops[i]?.();
+              const text = node.firstChild;
+              if (text instanceof Text) text.data = wordTexts[i] ?? text.data;
+            });
             tunnelObserver.disconnect();
             window.removeEventListener("resize", measure);
             for (const type of inputs) window.removeEventListener(type, onUserInput);
@@ -410,8 +452,10 @@ export function Landing({ tunnel }: Props) {
       </div>
       <div className={styles.curtain} aria-hidden="true" />
 
-      <Link href="/web" className={styles.skip} data-skip>
-        <span className={styles.skipLabel}>[ SALTAR ]</span>
+      <Link href="/web" className={styles.skip} data-skip aria-label="Saltar al Marketplace">
+        <span className={styles.skipLabel} data-skip-label>
+          {SKIP_LABEL}
+        </span>
         <span className={styles.skipLine} aria-hidden="true" />
       </Link>
 

@@ -10,7 +10,9 @@ import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
+import { cursorLogo } from "./cursor-logo";
 import { NoStock } from "./no-stock";
+import { peekProps } from "./product-peek";
 
 /**
  * Columnas del grid irregular (README §4.5, `LAY`): ancho y alto relativo de cada celda. Los anchos
@@ -63,6 +65,7 @@ export function Catalogo({ brands }: Props) {
     <section
       className={styles.cat}
       data-cat
+      data-scramble-in
       onMouseLeave={() => setHovered(null)}
       aria-label="Emergentes"
     >
@@ -73,16 +76,20 @@ export function Catalogo({ brands }: Props) {
               <span className={styles.lineH} data-cat-h aria-hidden="true" />
               <div className={styles.head}>
                 <p className={`${typo.label} ${styles.kicker}`} data-cat-t>
-                  <ScrambleText text="A — 4" view={false} />
-                  <ScrambleText text="Emergentes" view={false} />
+                  <ScrambleText text="A — 4" onIn />
+                  <ScrambleText text="Emergentes" onIn />
                 </p>
                 <DisplayTitle lines={[["LA", "NUEVA"], ["*OLA"]]} className={styles.title} />
               </div>
               <p className={styles.text} data-cat-t>
-                Marcas que acaban de nacer. Baja para recorrerlas.
+                <ScrambleText
+                  text="Marcas que acaban de nacer. Baja para recorrerlas."
+                  hover={false}
+                  onIn
+                />
               </p>
               <p className={`${typo.labelLg} ${styles.count}`} data-cat-t>
-                <ScrambleText text={`${pad(brands.length, 2)} marcas`} view={false} />
+                <ScrambleText text={`${pad(brands.length, 2)} marcas`} onIn />
               </p>
             </div>
             {columns.map((column) => (
@@ -102,6 +109,7 @@ export function Catalogo({ brands }: Props) {
                       className={styles.cell}
                       data-cat-cell
                       data-scramble-hover
+                      {...cursorLogo(brand)}
                       style={{ "--grow": height } as CSSProperties}
                       data-first={first || undefined}
                       data-on={on || undefined}
@@ -134,6 +142,7 @@ export function Catalogo({ brands }: Props) {
                               key={product.id}
                               className={styles.thumb}
                               style={{ "--delay": `${120 + j * 70}ms` } as CSSProperties}
+                              {...peekProps(product, brand.name)}
                             >
                               <BrandImage
                                 sources={product.image ? [product.image] : []}

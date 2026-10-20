@@ -89,6 +89,22 @@ html[data-slide]::view-transition-new(root) {
   animation-fill-mode: both;
 }
 
+/* El cursor propio no se desliza con las vistas: se queda quieto donde está el ratón. */
+html::view-transition-group(cursor),
+html::view-transition-old(cursor),
+html::view-transition-new(cursor) {
+  animation: none;
+}
+
+html::view-transition-old(cursor) {
+  display: none;
+}
+
+/* La captura del cursor se mezcla igual que el cursor real (blanco en modo diferencia). */
+html::view-transition-new(cursor) {
+  mix-blend-mode: difference;
+}
+
 html[data-slide="forward"]::view-transition-old(root) {
   animation-name: slide-out-left;
 }

@@ -7,10 +7,14 @@ import { type Device, GRID, gridCookie } from "@/lib/grid";
 import {
   activeFilters,
   BRAND_PARAM,
+  changedFilter,
   EMPTY_FILTERS,
+  type FilterChange,
   type Filters,
   filterCount,
   hasFilters,
+  SIZE_OPTIONS,
+  SORT_OPTIONS,
   toggle,
 } from "@/lib/marketplace";
 import type { MarketplacePage } from "@/lib/marketplace-data";
@@ -50,6 +54,13 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const filtersButton = useRef<HTMLButtonElement>(null);
   const products = useProducts(filters, initialFilters, initial);
+  // Último filtro puesto (estado derivado en el mismo render: el loader ya sale con él).
+  const [seen, setSeen] = useState<{ filters: Filters; change: FilterChange | null }>({
+    filters,
+    change: null,
+  });
+  if (seen.filters !== filters) setSeen({ filters, change: changedFilter(seen.filters, filters) });
+  const change = seen.filters === filters ? seen.change : changedFilter(seen.filters, filters);
 
   useEffect(() => {
     if (!mobile && window.matchMedia(NARROW).matches) setSide(false);
@@ -85,15 +96,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         .toSorted((a, b) => a.name.localeCompare(b.name, "es")),
     [brands],
   );
-  // Loader: las marcas elegidas o, sin filtro de marca, las que más piezas tienen.
-  const loaderWords = useMemo(() => {
-    const picked = filters.brands.map((id) => brandNames.get(id)).filter(Boolean) as string[];
-    if (picked.length > 0) return picked;
-    return brands
-      .toSorted((a, b) => b.product_count - a.product_count)
-      .slice(0, 6)
-      .map((b) => b.name);
-  }, [brands, brandNames, filters.brands]);
   const categories = products.facets.categories.filter((c) => c.count > 0);
   // Nombres de todas las categorías vistas: una categoría sin resultados sigue teniendo nombre.
   const categoryNames = useMemo(
@@ -106,6 +108,56 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
       ),
     [initial.page.facets.categories, products.facets.categories],
   );
+  // Loader: empieza por el filtro recién pulsado y sigue con otros del mismo tipo (otra
+  // categoría, otra marca, otra talla…). Sin filtro nuevo: las marcas elegidas o las que más
+  // piezas tienen.
+  const loaderWords = useMemo(() => {
+    const topBrands = brands
+      .toSorted((a, b) => b.product_count - a.product_count)
+      .map((b) => b.name);
+    const lead = (first: string | undefined, others: readonly string[]) =>
+      first ? [first, ...others.filter((w) => w !== first)] : [...others];
+    switch (change?.kind) {
+      case "cat":
+        return lead(
+          categoryNames.get(change.value),
+          products.facets.categories.map((c) => c.name),
+        );
+      case "brand":
+        return lead(brandNames.get(change.value), topBrands);
+      case "size":
+        return lead(
+          SIZE_OPTIONS.find((o) => o.value === change.value)?.label ?? change.value,
+          SIZE_OPTIONS.map((o) => o.label),
+        );
+      case "color":
+        return lead(
+          change.value,
+          products.facets.colors.map((c) => c.name),
+        );
+      case "sort":
+        return lead(
+          SORT_OPTIONS.find((o) => o.value === change.value)?.label,
+          SORT_OPTIONS.map((o) => o.label),
+        );
+      case "sale":
+        return lead("OFERTAS", topBrands);
+      case "price":
+        return lead(`${filters.lo ?? priceRange.min}–${filters.hi ?? priceRange.max} €`, topBrands);
+    }
+    const picked = filters.brands.map((id) => brandNames.get(id)).filter(Boolean) as string[];
+    return picked.length > 0 ? picked : topBrands.slice(0, 6);
+  }, [
+    brands,
+    brandNames,
+    categoryNames,
+    change,
+    filters.brands,
+    filters.lo,
+    filters.hi,
+    priceRange,
+    products.facets,
+  ]);
   const allCount = categories.reduce((sum, c) => sum + c.count, 0);
   const colors = products.facets.colors.filter((c) => c.hex && c.count > 0);
   const cardBrand = brandById.get(hoveredBrand ?? filters.brands[0] ?? "") ?? null;

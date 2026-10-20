@@ -1,6 +1,6 @@
 import { expect, type Page, test } from "@playwright/test";
 
-const skip = (page: Page) => page.getByRole("link", { name: "[ SALTAR ]" });
+const skip = (page: Page) => page.getByRole("link", { name: "Saltar al Marketplace" });
 const progress = (page: Page, section: string) =>
   page.evaluate((name) => {
     const el = document.querySelector<HTMLElement>(`[data-${name}]`);

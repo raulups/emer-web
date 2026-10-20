@@ -128,7 +128,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.12em;
-  padding: 100vh 0 0.42em 1vw;
+  padding: 72vh 0 0.42em 1vw;
   white-space: nowrap;
 }
 
@@ -216,6 +216,43 @@
 
 .pop[data-live] :is(.stage, .namesBase, .namesTop, .imTrack) {
   will-change: transform;
+}
+
+/* Hover en la foto: crece hacia arriba como un popup y vuelve a su sitio al salir. */
+.imWindow {
+  transform-origin: 50% 100%;
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.imWindow:hover {
+  z-index: 5;
+  outline: 1px solid var(--black);
+  transform: scale(1.5);
+}
+
+/* Destacados entra con MARCAS: la info y las piezas caen desde arriba, en cascada. Al cambiar de
+   marca las piezas nuevas (otro `key`) repiten la caída. */
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+@media (scripting: enabled) {
+  .info,
+  .products > li {
+    opacity: 0;
+  }
+
+  .pop[data-in] :is(.info, .products > li) {
+    opacity: 1;
+    animation: drop 0.8s var(--ease-out-expo) both;
+  }
+
+  .pop[data-in] .products > li {
+    animation-delay: calc(0.12s + var(--i, 0) * 0.08s);
+  }
 }
 
 /* Imagen de marca en la ventana 50–75 %, bajo la línea; una foto por marca, sincronizada. */

@@ -4,6 +4,7 @@ import { getBrands } from "@/lib/data";
 import { type Device, gridCookie, parseColumns } from "@/lib/grid";
 import { BRAND_PARAM, brandsFromParam, EMPTY_FILTERS, type Filters } from "@/lib/marketplace";
 import { getMarketplacePage } from "@/lib/marketplace-data";
+import { GridLoader } from "./grid-loader";
 import { Marketplace } from "./marketplace";
 import styles from "./marketplace-section.module.css";
 
@@ -48,11 +49,17 @@ export async function MarketplaceSection({ searchParams, device }: Props) {
   );
 }
 
-/** Misma geometría que el Marketplace mientras llegan los datos (sin CLS). */
+/**
+ * Misma geometría que el Marketplace mientras llegan los datos (sin CLS), con el loader centrado en
+ * pantalla: al entrar desde la Landing (o con el backend dormido) se ve que está cargando.
+ */
 export function MarketplaceSkeleton() {
   return (
     <div className={styles.skeleton} aria-busy="true">
       <p className="sr-only">Cargando el catálogo</p>
+      <div className={styles.loading}>
+        <GridLoader words={[]} caption="CARGANDO MARCAS" />
+      </div>
       <div className={styles.aside} />
       <ul className={styles.grid}>
         {Array.from({ length: 8 }, (_, i) => (

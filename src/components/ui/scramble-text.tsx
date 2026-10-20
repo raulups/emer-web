@@ -14,6 +14,11 @@ type Props = {
   view?: boolean;
   /** Baraja al pasar el ratón por el ancestro `[data-scramble-hover]` más cercano (o por sí mismo). */
   hover?: boolean;
+  /**
+   * Baraja cada vez que el ancestro `[data-scramble-in]` más cercano gana `data-in` (secciones de
+   * Explora cuyo bucle decide cuándo «entran»). Sustituye a `view`.
+   */
+  onIn?: boolean;
 };
 
 /**
@@ -21,13 +26,13 @@ type Props = {
  * derecha al entrar en pantalla, con hover y cada vez que cambia el texto. Pensada para Geist Mono
  * (ancho fijo: no mueve nada alrededor). Fuera de la animación el texto es siempre el real.
  */
-export function ScrambleText({ text, className, view = true, hover = true }: Props) {
+export function ScrambleText({ text, className, view = true, hover = true, onIn = false }: Props) {
   const ref = useRef<HTMLSpanElement>(null);
   const latest = useRef(text);
   // Lo lee la limpieza del efecto, que React ejecuta después de haber escrito ya el texto nuevo.
   latest.current = text;
   const shown = useRef(text);
-  const seen = useRef(!view);
+  const seen = useRef(!view || onIn);
 
   useGSAP(
     () => {
@@ -63,16 +68,28 @@ export function ScrambleText({ text, className, view = true, hover = true }: Pro
             );
         if (observer) observer.observe(el);
 
+        const section = onIn ? el.closest<HTMLElement>("[data-scramble-in]") : null;
+        let wasIn = section?.hasAttribute("data-in") ?? false;
+        const entering = section
+          ? new MutationObserver(() => {
+              const isIn = section.hasAttribute("data-in");
+              if (isIn && !wasIn) play();
+              wasIn = isIn;
+            })
+          : null;
+        if (section) entering?.observe(section, { attributes: true, attributeFilter: ["data-in"] });
+
         return () => {
           stop();
           if (node.data !== latest.current) node.data = latest.current;
           if (canHover) host.removeEventListener("pointerenter", play);
           observer?.disconnect();
+          entering?.disconnect();
         };
       });
       return () => mm.revert();
     },
-    { scope: ref, dependencies: [text, hover] },
+    { scope: ref, dependencies: [text, hover, onIn] },
   );
 
   return (

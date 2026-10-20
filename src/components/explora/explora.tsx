@@ -18,6 +18,7 @@ import styles from "./explora.module.css";
 import { Footer } from "./footer";
 import { Novedades } from "./novedades";
 import { describe, Populares } from "./populares";
+import { ProductPeek } from "./product-peek";
 import { type IndexItem, SectionIndex } from "./section-index";
 import { SkipButton } from "./skip-button";
 import { SuggestBrand } from "./suggest-brand";
@@ -60,6 +61,8 @@ export function Explora({ data }: Props) {
   const [index, setIndex] = useState(0);
   const [near, setNear] = useState(0);
   const [section, setSection] = useState(0);
+  // MARCAS ya arriba, sobre Destacados: su subtítulo pasa a ser el nombre de la marca activa.
+  const [inPop, setInPop] = useState(false);
 
   useGSAP(
     () => {
@@ -219,6 +222,7 @@ export function Explora({ data }: Props) {
         let shownIndex = 0;
         let shownNear = 0;
         let shownSection = 0;
+        let shownInPop = false;
         let target: number | undefined;
 
         // ---- [ SALTAR ]: scroll animado hasta el final de la sección actual ----
@@ -298,6 +302,13 @@ export function Explora({ data }: Props) {
             "transform",
             `translateY(${(mY + marcasH * mScale + 18 - 6 * m).toFixed(1)}px)`,
           );
+          // Destacados entra a la vez que MARCAS sube: la info y las piezas caen desde arriba.
+          const popIn = m > 0.82;
+          pop.toggleAttribute("data-in", popIn);
+          if (popIn !== shownInPop) {
+            shownInPop = popIn;
+            setInPop(popIn);
+          }
 
           // §4.2 Populares: interpola entre los `offsetLeft` medidos (activo en la línea del 50 %).
           const count = offsets.length;
@@ -368,16 +379,11 @@ export function Explora({ data }: Props) {
           write(nvRight, "pointer-events", fade > 0.5 ? "none" : "auto");
           write(ediv, "opacity", q >= 1 ? "1" : "0");
 
-          // Novedades → Emergentes: con Emergentes ya fija debajo, la escena de Novedades se queda
-          // quieta, sube un poco y se funde (sin pantalla en blanco ni fotos cortadas).
-          const x = clamp01((s - pinTop) / Math.max(1, hold * 0.75));
-          const xe = easeInOutCubic(x);
-          write(erStage, "opacity", (1 - xe).toFixed(3));
-          write(
-            erStage,
-            "transform",
-            x > 0 ? `translateY(${(-xe * vh * 0.05).toFixed(1)}px)` : "none",
-          );
+          // Novedades → Emergentes: sin fundido. Con Emergentes ya fija debajo, la escena de
+          // Novedades sigue al scroll (sube 1:1, como si se soltara) y deja ver Emergentes, cuyas
+          // piezas entran animadas según se baja.
+          const x = clamp01((s - pinTop) / Math.max(1, hold));
+          write(erStage, "transform", x > 0 ? `translateY(${(-x * hold).toFixed(1)}px)` : "none");
           write(er, "visibility", on && x < 1 ? "visible" : "hidden");
           // Titular de Novedades: sus palabras suben cuando la línea casi ha terminado de girar.
           er.toggleAttribute("data-in", on && q > 0.6);
@@ -451,11 +457,9 @@ export function Explora({ data }: Props) {
             write(node, "transform", `translateY(${((1 - e) * 14).toFixed(1)}px)`);
           });
           catCols.forEach((node, i) => {
-            write(
-              node,
-              "opacity",
-              easeOutCubic(clamp01((kc - 0.3 - Math.min(i, 3) * 0.08) / 0.45)).toFixed(3),
-            );
+            const e = easeOutCubic(clamp01((kc - 0.3 - Math.min(i, 3) * 0.08) / 0.45));
+            write(node, "opacity", e.toFixed(3));
+            write(node, "transform", e < 1 ? `translateY(${((1 - e) * 12).toFixed(2)}vh)` : "none");
           });
           const along = travel > 0 ? clamp01((s - pinTop - hold) / travel) : 0;
           write(track, "transform", `translateX(${(-along * travel).toFixed(1)}px)`);
@@ -505,8 +509,14 @@ export function Explora({ data }: Props) {
               MARCAS
             </span>
             <span className={`${typo.labelLg} ${styles.marcasSub}`} data-marcas-sub>
-              <ScrambleText text="A — 1" />
-              <ScrambleText text={`Destacados · ${pad(destacados.length, 2)}`} />
+              <ScrambleText text={inPop ? `A — 1 · ${pad(index + 1, 2)}` : "A — 1"} />
+              <ScrambleText
+                text={
+                  inPop
+                    ? (destacados[index]?.name ?? "Destacados")
+                    : `Destacados · ${pad(destacados.length, 2)}`
+                }
+              />
             </span>
           </div>
           <section className={styles.intro} data-intro aria-label="Destacados">
@@ -556,6 +566,7 @@ export function Explora({ data }: Props) {
           ))}
         </ul>
       )}
+      <ProductPeek />
       {/* Tras Emergentes en pantalla: las listas de arriba solo se ven con «reducir movimiento». */}
       <SuggestBrand brands={todas} />
       <Footer />

@@ -3,6 +3,16 @@
   align-items: flex-start;
 }
 
+.loading {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
 .aside {
   flex: 0 0 260px;
 }
@@ -22,6 +32,7 @@
   aspect-ratio: 3 / 4;
   margin-bottom: 49px;
   background: var(--placeholder);
+  opacity: 0.5;
 }
 
 .error {
@@ -44,6 +55,16 @@
 }
 
 @media (max-width: 760px) {
+  .loading {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
   .aside {
     display: none;
   }

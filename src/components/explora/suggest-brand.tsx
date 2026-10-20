@@ -215,6 +215,8 @@ export function SuggestBrand({ brands }: Props) {
           }
           const lab = E(clamp01((q - 0.3) / 0.2)).toFixed(3);
           for (const node of labels) write(node, "opacity", lab);
+          // Los textos del formulario barajan sus letras cuando aparece (`ScrambleText onIn`).
+          el.toggleAttribute("data-in", t > 0.3);
           const events = t > 0.5 && !sent.current ? "auto" : "none";
           for (const node of active) write(node, "pointer-events", events);
         };
@@ -276,6 +278,7 @@ export function SuggestBrand({ brands }: Props) {
       ref={root}
       id="sugerir-marca"
       className={styles.sg}
+      data-scramble-in
       aria-labelledby="sg-title"
       data-sent={isSent || undefined}
     >
@@ -295,7 +298,7 @@ export function SuggestBrand({ brands }: Props) {
 
         <div className={styles.slot} data-slot data-empty={(!name && !isSent) || undefined}>
           <h2 id="sg-title" className={styles.title} data-sf="0">
-            Ayúdanos a encontrar marcas
+            <ScrambleText text="Ayúdanos a encontrar marcas" onIn />
           </h2>
           <span className={`${styles.bracket} ${styles.bracketLeft}`} data-bl aria-hidden="true">
             [
@@ -332,7 +335,7 @@ export function SuggestBrand({ brands }: Props) {
         <div className={styles.below}>
           <div className={styles.fields} inert={isSent}>
             <label className={styles.instagram} data-sf="1" data-spe>
-              <span className={styles.instagramLabel}>Instagram</span>
+              <ScrambleText className={styles.instagramLabel} text="Instagram" onIn />
               <span className={styles.at} aria-hidden="true">
                 @
               </span>
@@ -357,7 +360,7 @@ export function SuggestBrand({ brands }: Props) {
               type="submit"
               aria-disabled={!valid}
             >
-              <span>Enviar sugerencia</span>
+              <ScrambleText text="Enviar sugerencia" onIn />
               <span className={styles.meter} aria-hidden="true">
                 <span className={styles.meterFill} style={{ transform: `scaleX(${fill})` }} />
               </span>
@@ -373,7 +376,7 @@ export function SuggestBrand({ brands }: Props) {
               {isSent ? "En revisión · Gracias" : ""}
             </p>
             <button className={button.box} type="button" onClick={reset}>
-              Sugerir otra
+              <ScrambleText text="Sugerir otra" view={false} />
             </button>
           </div>
         </div>

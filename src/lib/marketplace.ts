@@ -65,6 +65,29 @@ export function filterCount(f: Filters): number {
   );
 }
 
+/** El filtro que acaba de ponerse (el loader empieza por él); `null` si solo se quitó alguno. */
+export type FilterChange =
+  | { kind: "cat" | "brand" | "size" | "color"; value: string }
+  | { kind: "sort"; value: Sort }
+  | { kind: "sale" | "price" };
+
+export function changedFilter(prev: Filters, next: Filters): FilterChange | null {
+  const added = (a: readonly string[], b: readonly string[]) => b.find((v) => !a.includes(v));
+  if (next.cat && next.cat !== prev.cat) return { kind: "cat", value: next.cat };
+  const brand = added(prev.brands, next.brands);
+  if (brand) return { kind: "brand", value: brand };
+  const size = added(prev.sizes, next.sizes);
+  if (size) return { kind: "size", value: size };
+  const color = added(prev.colors, next.colors);
+  if (color) return { kind: "color", value: color };
+  if (next.sale && !prev.sale) return { kind: "sale" };
+  if (next.sort !== prev.sort) return { kind: "sort", value: next.sort };
+  if ((next.lo != null || next.hi != null) && (next.lo !== prev.lo || next.hi !== prev.hi)) {
+    return { kind: "price" };
+  }
+  return null;
+}
+
 export function hasFilters(f: Filters): boolean {
   return f.brands.length > 0 || f.cat !== null || filterCount(f) > 0;
 }

@@ -185,6 +185,33 @@ export async function getBrandProducts(
   return mapResult(await apiBrandProducts(brandId, query), toProductPage);
 }
 
+/** Ficha corta de un producto para el detalle en hover de Explora (las vistas previas no traen más). */
+export type ProductPeek = {
+  name: string;
+  url: string;
+  price: number | null;
+  original_price: number | null;
+  is_on_sale: boolean;
+  color_name: string | null;
+  sizes: { label: string; available: boolean }[];
+};
+
+export async function getProductPeek(productId: string): Promise<ApiResult<ProductPeek | null>> {
+  return mapResult(await getProduct(productId), (detail) =>
+    detail
+      ? {
+          name: detail.name,
+          url: detail.productUrl,
+          price: detail.price,
+          original_price: detail.originalPrice,
+          is_on_sale: detail.isOnSale,
+          color_name: detail.colorName,
+          sizes: detail.sizes.map((size) => ({ label: size.label, available: size.available })),
+        }
+      : null,
+  );
+}
+
 /** Tallas de un producto. Las listas no las traen: solo el detalle (`GET /products/{id}`). */
 export async function getProductSizes(productId: string): Promise<ApiResult<ProductSize[]>> {
   return mapResult(await getProduct(productId), (detail) =>

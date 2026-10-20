@@ -6,32 +6,25 @@
   color: var(--black);
 }
 
-/* Ventana de una línea: la pista de palabras sube por detrás. */
+/* Una línea: la palabra cambia de ancho y los corchetes la siguen. */
 .window {
-  display: block;
+  display: flex;
+  gap: 0.22em;
+  align-items: baseline;
+  justify-content: center;
   max-width: 100%;
-  height: 1em;
-  overflow: hidden;
   font-family: var(--font-sans-bold);
   font-weight: 700;
   letter-spacing: var(--track-sans-bold);
   text-transform: uppercase;
   line-height: 1;
   font-size: min(7vw, 72px);
-}
-
-.reel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  white-space: nowrap;
 }
 
 .word {
-  display: flex;
-  align-items: center;
-  gap: 0.22em;
-  height: 1em;
-  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
 }
 
 .bracket {

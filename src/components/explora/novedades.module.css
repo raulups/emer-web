@@ -252,13 +252,34 @@
   color: var(--text-on-dark);
 }
 
-.row:hover {
-  color: var(--text-on-dark);
-}
-
-.row:focus-visible {
+.row:focus-within {
   outline: 1px solid var(--text-on-dark);
   outline-offset: -4px;
+}
+
+/* «Ver productos», subrayado: aparece (barajando sus letras) con el hover o el foco de la fila. */
+.cta {
+  grid-column: 1;
+  justify-self: start;
+  margin-top: 14px;
+  color: var(--text-on-dark);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out-expo);
+}
+
+.cta:hover {
+  color: var(--paper);
+}
+
+.cta:focus-visible {
+  outline: none;
+}
+
+.row:is(:hover, :focus-within) .cta {
+  opacity: 1;
 }
 
 .nv[data-live] :is(.row, .right) {
@@ -279,7 +300,7 @@
 }
 
 .row:hover .plus,
-.row:focus-visible .plus {
+.row:focus-within .plus {
   transform: rotate(45deg);
 }
 
