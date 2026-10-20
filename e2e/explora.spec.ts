@@ -170,7 +170,7 @@ test("Populares (2.ª sección): marcas con el tag, opacidad por distancia y fot
   const g = await geometry(page);
   await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + g.vh * 0.6);
   const rows = page.locator("[data-nv-row]");
-  await expect(page.locator("[data-nv] h2")).toHaveText("POPULARES");
+  await expect(page.locator("[data-nv] h2")).toHaveText("LAS MÁS POPULARES");
   await expect(rows).toHaveCount(POPULARES.length);
   for (const [i, name] of POPULARES.entries()) await expect(rows.nth(i)).toContainText(name);
   await expect(rows.first()).toContainText("Llegó el 01.09.26");
@@ -294,7 +294,7 @@ test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa
   );
   expect(new Set(names).size).toBe(names.length);
   expect(names.toSorted()).toEqual(NOVEDADES.toSorted());
-  await expect(page.locator("[data-er] h2")).toHaveText("NOVEDADES");
+  await expect(page.locator("[data-er] h2")).toHaveText("LO NUEVO EN EMER");
 
   // Hover: la tarjeta bajo el ratón pasa a ser la marca activa.
   await page.evaluate((v) => window.scrollTo(0, v), y(0.5));
@@ -303,7 +303,8 @@ test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa
   await page.mouse.move(point.x, point.y);
   const under = await page.evaluate(({ x, y }) => {
     const card = document.elementFromPoint(x, y)?.closest("[data-er-car] a");
-    return card?.querySelectorAll("span")[2]?.textContent ?? null;
+    // El nombre del pie se baraja con el hover: se lee el de la foto.
+    return card?.querySelector("img")?.alt ?? null;
   }, point);
   expect(under).toBeTruthy();
   await expect(page.locator("[data-er-info]")).toContainText(under as string);
@@ -424,7 +425,7 @@ test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y a
     .locator("[data-cat] [data-cat-cell]")
     .evaluateAll((els) => els.map((el) => el.querySelector("img")?.getAttribute("alt") ?? ""));
   expect(names).toEqual(EMERGENTES);
-  await expect(page.locator("[data-cat] h2")).toHaveText("EMERGENTES");
+  await expect(page.locator("[data-cat] h2")).toHaveText("LA NUEVA OLA");
   await expect(
     page.locator("[data-cat] [data-cat-cell]", { hasText: "Inventario en camino" }),
   ).toHaveCount(1);

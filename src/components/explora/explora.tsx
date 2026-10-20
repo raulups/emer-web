@@ -3,9 +3,11 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import { bus } from "@/lib/bus";
 import type { ExploraData } from "@/lib/explora-data";
-import { clamp01, easeInOutCubic, easeInOutQuad } from "@/lib/motion/math";
+import { clamp01, easeInOutCubic, easeInOutQuad, pad } from "@/lib/motion/math";
 import { followScroll, getLenis, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write } from "@/lib/motion/write";
@@ -377,6 +379,8 @@ export function Explora({ data }: Props) {
             x > 0 ? `translateY(${(-xe * vh * 0.05).toFixed(1)}px)` : "none",
           );
           write(er, "visibility", on && x < 1 ? "visible" : "hidden");
+          // Titular de Novedades: sus palabras suben cuando la línea casi ha terminado de girar.
+          er.toggleAttribute("data-in", on && q > 0.6);
 
           // [ SALTAR ]: la primera sección cuyo final aún queda por delante (scroll real).
           const y = window.scrollY;
@@ -435,6 +439,7 @@ export function Explora({ data }: Props) {
           // §4.5 Catálogo: durante el fundido aparecen la línea, el título y las columnas; después
           // la pista se desplaza.
           const kc = clamp01((s - pinTop) / Math.max(1, hold));
+          cat.toggleAttribute("data-in", kc > 0.3);
           write(
             catH,
             "transform",
@@ -499,8 +504,9 @@ export function Explora({ data }: Props) {
             <span className={styles.marcas} data-marcas>
               MARCAS
             </span>
-            <span className={styles.marcasSub} data-marcas-sub>
-              Destacados
+            <span className={`${typo.labelLg} ${styles.marcasSub}`} data-marcas-sub>
+              <ScrambleText text="A — 1" />
+              <ScrambleText text={`Destacados · ${pad(destacados.length, 2)}`} />
             </span>
           </div>
           <section className={styles.intro} data-intro aria-label="Destacados">
@@ -543,7 +549,7 @@ export function Explora({ data }: Props) {
           {novedades.map((brand) => (
             <li key={brand.id} className={styles.staticItem}>
               <span className={styles.staticName}>{brand.name}</span>
-              <span className={styles.desc}>
+              <span className={typo.label}>
                 Desde {brand.foundedYear ?? "—"} · {brand.count} piezas
               </span>
             </li>

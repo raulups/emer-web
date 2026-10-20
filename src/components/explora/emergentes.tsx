@@ -1,6 +1,9 @@
 "use client";
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import { DisplayTitle } from "@/components/ui/display-title";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
@@ -35,6 +38,7 @@ function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
     <a
       className={styles.card}
       data-ea={first ? "" : undefined}
+      data-scramble-hover
       data-active={active || undefined}
       href={brand.url ?? undefined}
       target="_blank"
@@ -54,9 +58,9 @@ function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
           className={styles.photoImage}
         />
       </span>
-      <span className={styles.caption}>
-        <span>{brand.name}</span>
-        <span>{pad(number, 2)}</span>
+      <span className={`${typo.label} ${styles.caption}`}>
+        <ScrambleText text={brand.name} view={false} />
+        <ScrambleText text={`B — ${pad(number, 2)}`} view={false} />
       </span>
     </a>
   );
@@ -160,21 +164,36 @@ export function Emergentes({ brands, near }: Props) {
           </div>
         </div>
 
-        <h2 className={styles.title}>NOVEDADES</h2>
+        <div className={styles.head}>
+          <p className={`${typo.label} ${styles.kicker}`}>
+            <ScrambleText text="A — 3" view={false} />
+            <ScrambleText text="Novedades" view={false} />
+            <ScrambleText text={`${pad(brands.length, 2)} marcas`} view={false} />
+          </p>
+          <DisplayTitle
+            lines={[
+              ["LO", "*NUEVO"],
+              ["EN", "*EMER"],
+            ]}
+            className={styles.title}
+          />
+        </div>
         <div ref={block} className={styles.block}>
           <p ref={text} className={styles.text}>
             Las últimas marcas en llegar a EMER. Baja para recorrerlas.
           </p>
           <div ref={info} className={styles.info} data-er-info>
             <span
-              className={styles.name}
+              className={`${typo.editorial} ${styles.name}`}
               style={{ "--len": Math.max(8, active.name.length) } as CSSProperties}
             >
               {active.name}
             </span>
-            <span className={styles.meta}>
-              Desde {active.foundedYear ?? "—"} · {active.count} piezas
-            </span>
+            <ScrambleText
+              text={`Desde ${active.foundedYear ?? "—"} · ${active.count} piezas`}
+              view={false}
+              className={`${typo.label} ${styles.meta}`}
+            />
             <div
               className={styles.products}
               data-er-products
@@ -193,7 +212,9 @@ export function Emergentes({ brands, near }: Props) {
                         className={styles.productImage}
                       />
                     </span>
-                    <span className={styles.productPrice}>{price(product.price)}</span>
+                    <span className={`${typo.label} ${styles.productPrice}`}>
+                      {price(product.price)}
+                    </span>
                   </span>
                 ))
               ) : !hasProducts ? (
@@ -202,8 +223,14 @@ export function Emergentes({ brands, near }: Props) {
             </div>
             <BrandActions brand={active} />
           </div>
-          <p className={styles.count} aria-live="polite">
+          <p className="sr-only" aria-live="polite">
             {pad(activeNumber, 2)} / {pad(brands.length, 2)}
+          </p>
+          <p className={`${typo.labelLg} ${styles.count}`} aria-hidden="true">
+            <ScrambleText
+              text={`B — ${pad(activeNumber, 2)} / ${pad(brands.length, 2)}`}
+              view={false}
+            />
           </p>
         </div>
       </div>

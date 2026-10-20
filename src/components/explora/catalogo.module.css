@@ -47,16 +47,26 @@
   transform-origin: right;
 }
 
-.title {
+/* Numeración en mono y titular mixto, justificado al ancho del panel. */
+.head {
   position: absolute;
+  right: 2vw;
   bottom: calc(50% + 2.4vh);
   left: 2vw;
+  display: flex;
+  flex-direction: column;
+  gap: 2.2vh;
+}
+
+.kicker {
+  display: flex;
+  justify-content: space-between;
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: min(6vw, 15vh);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
   opacity: 0;
+}
+
+.title {
+  --display-size: var(--t-display-half);
 }
 
 .text {
@@ -76,9 +86,6 @@
   bottom: 24px;
   left: 2vw;
   margin: 0;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
   white-space: nowrap;
   opacity: 0;
 }
@@ -156,9 +163,6 @@
 .name {
   background: var(--paper);
   padding: 6px 8px;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
 }
 
 /* Botones de la marca (encima del nombre): solo con hover o con el foco dentro de la celda. */
@@ -241,7 +245,7 @@
     transform: none;
   }
 
-  .title,
+  .kicker,
   .text,
   .count,
   .column {

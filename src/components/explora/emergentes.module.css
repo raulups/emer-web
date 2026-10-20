@@ -113,10 +113,13 @@
   gap: 10px;
   justify-content: space-between;
   color: var(--grey-mute);
-  font-weight: var(--w-text);
-  font-size: 12px;
-  line-height: 1;
+  white-space: nowrap;
   transition: color 0.4s;
+}
+
+.caption > :first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card[data-active] .caption {
@@ -125,15 +128,25 @@
 
 /* ---------- Título e info (derecha) ---------- */
 
-.title {
+/* Numeración en mono y titular mixto, justificado al ancho de la mitad derecha. */
+.head {
   position: absolute;
+  right: 2vw;
   bottom: calc(50% + 2.4vh);
   left: calc(50% + 1.4vw);
+  display: flex;
+  flex-direction: column;
+  gap: 2.2vh;
+}
+
+.kicker {
+  display: flex;
+  justify-content: space-between;
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: min(5.6vw, 14vh);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
+}
+
+.title {
+  --display-size: var(--t-display-half);
   white-space: nowrap;
 }
 
@@ -165,25 +178,20 @@
   opacity: 0;
 }
 
-/* Una línea que cabe entera: el cuerpo baja con la longitud del nombre (`--len`, ≈ 0.52em por
-   letra en Inter 300) y el padding deja sitio a los descendentes (g, p, y) dentro del recorte. */
+/* Una línea que cabe entera: el cuerpo baja con la longitud del nombre (`--len`, ≈ 0.46em por
+   letra en Cormorant 300) y el padding deja sitio a los descendentes (g, p, y) dentro del recorte. */
 .name {
   display: block;
   overflow: hidden;
   padding: 0.04em 0 0.16em;
-  font-weight: var(--w-text);
-  font-size: min(4vw, 8vh, calc(100cqi / (var(--len) * 0.52)));
-  line-height: 1;
-  letter-spacing: var(--track-name);
+  font-size: min(4.8vw, 9.5vh, calc(100cqi / (var(--len) * 0.46)));
+  letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .meta {
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 12px;
-  line-height: 1;
 }
 
 .products {
@@ -215,8 +223,6 @@
 }
 
 .productPrice {
-  font-weight: var(--w-text);
-  font-size: 10px;
   line-height: 1;
 }
 
@@ -225,10 +231,6 @@
   right: 0;
   bottom: 0;
   margin: 0;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
 }
 
 /* Sin movimiento no hay transición ni carrusel: Emergentes se lista aparte (lista estática). */

@@ -34,18 +34,20 @@
 }
 
 .brand {
-  font-weight: 800;
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
   font-size: clamp(18px, 2.6vw, 46px);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
+  line-height: var(--lh-display-serif);
+  letter-spacing: var(--track-sans-bold);
   color: var(--paper);
 }
 
 .copy {
-  font-weight: 400;
-  font-size: clamp(7px, 0.62vw, 11px);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: clamp(7px, 0.7vw, 12px);
   line-height: 1;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--track-label);
   color: var(--grey-mute-dark);
 }
 
@@ -70,19 +72,21 @@
 
 .title {
   margin-bottom: 0.9em;
+  font-family: var(--font-mono);
   font-weight: 300;
-  font-size: clamp(7px, 0.62vw, 11px);
+  font-size: clamp(7px, 0.7vw, 12px);
   line-height: 1;
-  letter-spacing: 0.24em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   color: var(--grey-mute-dark);
 }
 
 .link {
-  font-weight: 400;
-  font-size: clamp(8px, 0.78vw, 13px);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: clamp(8px, 0.84vw, 14px);
   line-height: 1.6;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--paper);

@@ -4,6 +4,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { type FormEvent, useLayoutEffect, useRef, useState } from "react";
 import button from "@/components/ui/button.module.css";
+import { ScrambleText } from "@/components/ui/scramble-text";
 import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { clamp01, easeOutCubic as E, lerpBy } from "@/lib/motion/math";
@@ -280,10 +281,10 @@ export function SuggestBrand({ brands }: Props) {
     >
       <form className={styles.stage} onSubmit={submit} noValidate>
         <span className={`${styles.label} ${styles.labelLeft}`} data-slab aria-hidden="true">
-          Sugerir marca
+          <ScrambleText text="A — 5 · Sugerir marca" />
         </span>
         <span className={`${styles.label} ${styles.labelRight}`} data-slab aria-hidden="true">
-          Falta una
+          <ScrambleText text="¿Falta una?" />
         </span>
 
         {rows.map((row) => (

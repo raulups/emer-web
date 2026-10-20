@@ -50,20 +50,28 @@
   background: var(--hairline-dark);
 }
 
-.title {
+/* Numeración en mono y titular mixto (serif + negrita condensada), justificado al ancho del panel. */
+.head {
   position: absolute;
+  right: 2vw;
   bottom: calc(50% + 2.4vh);
   left: 2vw;
+  display: flex;
+  flex-direction: column;
+  gap: 2.2vh;
+}
+
+.kicker {
+  display: flex;
+  justify-content: space-between;
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: min(6vw, 15vh);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
   opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity 1.6s var(--ease-out-expo),
-    transform 1.8s var(--ease-out-expo);
+  transition: opacity 1.2s var(--ease-out-expo);
+}
+
+.title {
+  --display-color: var(--paper);
+  --display-size: var(--t-display-half);
 }
 
 .text {
@@ -79,9 +87,8 @@
   transition: opacity 1.6s var(--ease-out-expo) 0.25s;
 }
 
-.nv[data-in] :is(.title, .text) {
+.nv[data-in] :is(.kicker, .text) {
   opacity: 1;
-  transform: none;
 }
 
 /* Foto de la marca en hover: aparece y desaparece de golpe (sin transición). */
@@ -159,9 +166,6 @@
 .previewName,
 .previewPrice {
   overflow: hidden;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -262,10 +266,8 @@
 }
 
 .rowName {
-  font-weight: var(--w-text);
-  font-size: min(4vw, 8vh);
-  line-height: 1;
-  letter-spacing: var(--track-name);
+  font-size: min(4.8vw, 9.5vh);
+  letter-spacing: -0.01em;
   text-wrap: balance;
 }
 
@@ -285,9 +287,6 @@
   grid-column: 1;
   margin-top: 10px;
   color: var(--grey-mute-dark);
-  font-weight: var(--w-text);
-  font-size: 12px;
-  line-height: 1;
 }
 
 .end {
@@ -308,10 +307,9 @@
     transition: none;
   }
 
-  .title,
+  .kicker,
   .text {
     opacity: 1;
-    transform: none;
     transition: none;
   }
 

@@ -38,16 +38,18 @@
   background: none;
   color: inherit;
   font: inherit;
-  font-weight: var(--w-text);
-  font-size: 10px;
-  line-height: 1;
-  letter-spacing: 0.2em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   cursor: pointer;
 }
 
 /* El nombre solo aparece con el índice encendido; el actual también en reposo. */
 .label {
+  white-space: nowrap;
   opacity: 0;
   transform: translateX(6px);
   transition:

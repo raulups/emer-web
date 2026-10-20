@@ -1,8 +1,12 @@
 "use client";
 
 import { type CSSProperties, useState } from "react";
+import { DisplayTitle } from "@/components/ui/display-title";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
+import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
@@ -67,14 +71,18 @@ export function Catalogo({ brands }: Props) {
           <div className={styles.track} data-cat-track>
             <div className={styles.panel}>
               <span className={styles.lineH} data-cat-h aria-hidden="true" />
-              <h2 className={styles.title} data-cat-t>
-                EMERGENTES
-              </h2>
+              <div className={styles.head}>
+                <p className={`${typo.label} ${styles.kicker}`} data-cat-t>
+                  <ScrambleText text="A — 4" view={false} />
+                  <ScrambleText text="Emergentes" view={false} />
+                </p>
+                <DisplayTitle lines={[["LA", "NUEVA"], ["*OLA"]]} className={styles.title} />
+              </div>
               <p className={styles.text} data-cat-t>
                 Marcas que acaban de nacer. Baja para recorrerlas.
               </p>
-              <p className={styles.count} data-cat-t>
-                {brands.length} marcas
+              <p className={`${typo.labelLg} ${styles.count}`} data-cat-t>
+                <ScrambleText text={`${pad(brands.length, 2)} marcas`} view={false} />
               </p>
             </div>
             {columns.map((column) => (
@@ -93,6 +101,7 @@ export function Catalogo({ brands }: Props) {
                       key={brand.id}
                       className={styles.cell}
                       data-cat-cell
+                      data-scramble-hover
                       style={{ "--grow": height } as CSSProperties}
                       data-first={first || undefined}
                       data-on={on || undefined}
@@ -112,7 +121,11 @@ export function Catalogo({ brands }: Props) {
                           className={styles.photo}
                         />
                         <span className={styles.labels}>
-                          <span className={styles.name}>{brand.name}</span>
+                          <ScrambleText
+                            text={brand.name}
+                            view={false}
+                            className={`${typo.label} ${styles.name}`}
+                          />
                           <BrandActions brand={brand} tone="overlay" className={styles.cta} />
                         </span>
                         <span className={styles.thumbs}>

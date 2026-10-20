@@ -36,7 +36,7 @@ test("cursor propio: sigue al ratón solo con pointer fine", async ({ page }, in
   await expect(dot).toHaveCSS("transform", "matrix(1, 0, 0, 1, 200, 150)");
 });
 
-test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni solo Inter", async ({
+test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni fuentes ajenas", async ({
   page,
 }, info) => {
   const problems: string[] = [];
@@ -64,5 +64,13 @@ test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni 
   // Nada de Google Fonts ni de otros orígenes tipográficos: solo el propio servidor.
   expect([...hosts]).toEqual([new URL(page.url()).host]);
   const families = await page.evaluate(() => [...document.fonts].map((font) => font.family));
-  expect(new Set(families)).toEqual(new Set(["Inter"]));
+  expect(new Set(families)).toEqual(
+    new Set([
+      "Inter",
+      "Geist Mono",
+      "Instrument Serif",
+      "TeX Gyre Heros Condensed",
+      "Cormorant Garamond",
+    ]),
+  );
 });

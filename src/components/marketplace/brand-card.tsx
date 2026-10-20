@@ -36,7 +36,9 @@ export function BrandCard({ brand }: { brand: Brand }) {
             onError={() => setFailed((prev) => new Set(prev).add(brand.id))}
           />
         )}
-        {brand.logo && <BrandLogo src={brand.logo} width={54} height={30} className={styles.logo} />}
+        {brand.logo && (
+          <BrandLogo src={brand.logo} width={54} height={30} className={styles.logo} />
+        )}
       </div>
       <figcaption className={styles.caption}>
         <span className={styles.name}>{brand.name}</span>

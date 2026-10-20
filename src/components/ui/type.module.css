@@ -1,0 +1,90 @@
+/*
+ * Jerarquía tipográfica editorial (referencia: signal-a.studio). Explora la usa en etiquetas,
+ * titulares y nombres de marca; el texto corrido sigue en Inter.
+ */
+
+/* 1. Etiquetas: hora, numeración «A — 1», metadatos, navegación. */
+.label {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.labelLg {
+  composes: label;
+  font-size: var(--t-label-lg);
+}
+
+/* 4. Títulos editoriales finos: nombres de marca, citas. */
+.editorial {
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  line-height: var(--lh-editorial);
+}
+
+/* 2 + 3. Titular: serif fina y negrita condensada mezcladas en la misma línea. */
+.display {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  color: var(--display-color, var(--black));
+  font-size: var(--display-size, var(--t-display));
+  font-weight: 400;
+  line-height: var(--lh-display-serif);
+  text-transform: uppercase;
+}
+
+/* Cada línea llena el ancho: las palabras se reparten con espacio entre ellas. */
+.line {
+  display: flex;
+  gap: 0.22em;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.line[data-single] {
+  justify-content: flex-start;
+}
+
+/* Máscara de cada palabra: deja sitio a tildes y descendentes sin cambiar el alto de línea. */
+.mask {
+  display: inline-block;
+  margin: -0.14em 0 -0.08em;
+  padding: 0.14em 0 0.08em;
+  overflow: clip;
+}
+
+.word {
+  display: inline-block;
+  transition: transform 1.2s var(--ease-out-expo) calc(var(--i, 0) * 70ms);
+}
+
+.serif {
+  font-family: var(--font-serif-display);
+  font-weight: 400;
+  letter-spacing: var(--track-serif-display);
+}
+
+/* Misma altura de mayúsculas que Instrument Serif (718 vs 720 / 1000): mismo cuerpo. */
+.bold {
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  font-size: 1em;
+  letter-spacing: var(--track-sans-bold);
+}
+
+/* Las palabras suben desde su máscara cuando un ancestro (o el propio titular) lleva `data-in`. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .word {
+    transform: translateY(110%);
+  }
+
+  [data-in] .word,
+  .display[data-in] .word {
+    transform: none;
+  }
+}
