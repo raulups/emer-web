@@ -79,12 +79,26 @@
 
 /* Las palabras suben desde su máscara cuando un ancestro (o el propio titular) lleva `data-in`. */
 @media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
-  .word {
+  .display[data-play="in"] .word {
     transform: translateY(110%);
   }
 
-  [data-in] .word,
-  .display[data-in] .word {
+  [data-in] .display[data-play="in"] .word,
+  .display[data-play="in"][data-in] .word {
     transform: none;
+  }
+}
+
+/* `play="load"`: sube al montarse, con el retardo propio del titular (`--delay`) más el de cada palabra. */
+@keyframes rise {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .display[data-play="load"] .word {
+    animation: rise 1.2s var(--ease-out-expo) calc(var(--delay, 0ms) + var(--i, 0) * 70ms) both;
+    transition: none;
   }
 }

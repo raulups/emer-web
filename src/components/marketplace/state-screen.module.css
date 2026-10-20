@@ -19,10 +19,12 @@
 .zero {
   flex: none;
   color: transparent;
-  font-weight: var(--w-display);
-  font-size: min(36vw, 400px);
+  font-family: var(--font-serif-display);
+  font-weight: 400;
+  letter-spacing: var(--track-serif-display);
+  text-transform: uppercase;
   line-height: 0.8;
-  letter-spacing: var(--track-display);
+  font-size: min(36vw, 400px);
   -webkit-text-stroke: 1px var(--black);
   animation: rise 1.2s var(--ease-out-expo) both;
 }
@@ -43,17 +45,16 @@
 .eyebrow {
   margin: 0;
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 10px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 .title {
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: clamp(36px, 6vw, 72px);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
+  --display-size: clamp(48px, 6vw, 96px);
 }
 
 .text {
@@ -83,10 +84,10 @@
   border: var(--line) solid var(--black);
   background: var(--paper);
   color: var(--black);
-  font-family: var(--font);
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   cursor: pointer;
   transition:
@@ -140,12 +141,21 @@
   gap: 0.3em;
   padding-right: 0.3em;
   color: transparent;
-  font-weight: var(--w-display);
-  font-size: min(15vw, 180px);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
   line-height: 0.9;
-  letter-spacing: var(--track-display);
+  font-size: min(15vw, 180px);
   white-space: nowrap;
   -webkit-text-stroke: 1px var(--black);
+}
+
+/* Cinta: «SIN» en la serif fina frente a la negrita condensada de «CONEXIÓN». */
+.serif {
+  font-family: var(--font-serif-display);
+  font-weight: 400;
+  letter-spacing: var(--track-serif-display);
 }
 
 .sep {

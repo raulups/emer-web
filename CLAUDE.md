@@ -33,7 +33,7 @@ src/
     explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
     marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
     ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal), type.module.css (jerarquía editorial), display-title (titular serif + negrita), scramble-text (etiqueta que se baraja)
-  fonts/               Inter (texto), Geist Mono (etiquetas), Instrument Serif + TeX Gyre Heros Condensed Bold (titulares de Explora), Cormorant Garamond (nombres de marca); woff2, subconjunto latino
+  fonts/               jerarquía editorial en toda la web: Inter (texto corrido), Geist Mono 300 (etiquetas, menús, botones, precios), Instrument Serif + TeX Gyre Heros Condensed Bold (titulares mezclados), Cormorant Garamond 300 (nombres de marca); woff2, subconjunto latino. Selección/hover en mono se marcan con subrayado, nunca con peso
   styles/
     theme.css          tokens: color, --font-sans/-mono/-serif-display/-sans-bold/-serif-editorial, --t-*, --w-*, tracking, easings, @font-face
     theme.ts           los mismos tokens para JS (EASE, LERP, WEIGHT)

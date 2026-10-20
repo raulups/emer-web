@@ -33,10 +33,7 @@
 
 .title {
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: 56px;
-  line-height: 0.95;
-  letter-spacing: var(--track-title);
+  --display-size: clamp(48px, 9vw, 160px);
 }
 
 .text {

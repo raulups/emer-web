@@ -71,10 +71,12 @@
   padding: 4px 6px 4px 7px;
   background: var(--black);
   color: var(--paper);
-  font-weight: 400;
-  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   line-height: 1;
-  letter-spacing: 0.12em;
 }
 
 /* Franja de tallas: banda negra que sube desde abajo (0.6s). */
@@ -89,9 +91,11 @@
   padding: 14px 12px;
   background: var(--black);
   color: var(--paper);
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   transform: translateY(101%);
   transition: transform 0.6s var(--ease-out-expo);
 }
@@ -138,8 +142,11 @@
 
 .counter {
   margin-left: 6px;
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 /* Flechas ‹ ›: aparecen en hover desde fuera (±8px). */
@@ -209,11 +216,12 @@
 .name {
   min-width: 0;
   margin: 0;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1.35;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
+  line-height: 1.35;
   text-decoration-line: underline;
   text-decoration-color: transparent;
   text-decoration-thickness: 1px;
@@ -225,25 +233,30 @@
 }
 
 .price {
-  font-weight: 400;
-  font-size: 11px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   white-space: nowrap;
 }
 
 .brand {
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 10px;
-  letter-spacing: 0.2em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 
 .original {
   color: var(--grey-text);
-  font-weight: var(--w-ui);
-  font-size: 10px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   white-space: nowrap;
 }
 

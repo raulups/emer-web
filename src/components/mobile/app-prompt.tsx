@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import button from "@/components/ui/button.module.css";
+import { DisplayTitle } from "@/components/ui/display-title";
 import { APP_LINKS, APP_PROMPT_KEY } from "@/lib/app-links";
 import styles from "./app-prompt.module.css";
 
@@ -40,9 +41,15 @@ export function AppPrompt() {
       describedBy="app-prompt-text"
     >
       <div className={styles.content}>
-        <h2 id="app-prompt-title" className={styles.title}>
-          MEJOR EN LA APP
-        </h2>
+        <DisplayTitle
+          id="app-prompt-title"
+          lines={[
+            ["MEJOR", "EN"],
+            ["LA", "*APP"],
+          ]}
+          className={styles.title}
+          play="load"
+        />
         <p id="app-prompt-text" className={styles.text}>
           Para una mejor experiencia, descarga la app de Emer. Desde el móvil, en la web solo tienes
           el Marketplace.

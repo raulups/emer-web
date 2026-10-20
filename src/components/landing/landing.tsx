@@ -500,7 +500,11 @@ export function Landing({ tunnel }: Props) {
               >
                 {line.map((item) =>
                   "text" in item ? (
-                    <span key={item.text} className={styles.w} data-w>
+                    <span
+                      key={item.text}
+                      className={`${styles.w} ${item.bold ? styles.wBold : ""}`}
+                      data-w
+                    >
                       {item.text}
                     </span>
                   ) : (

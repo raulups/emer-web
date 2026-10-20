@@ -12,10 +12,12 @@
   max-width: 100%;
   height: 1em;
   overflow: hidden;
-  font-weight: var(--w-display);
-  font-size: min(7vw, 72px);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
   line-height: 1;
-  letter-spacing: var(--track-display);
+  font-size: min(7vw, 72px);
 }
 
 .reel {
@@ -33,8 +35,8 @@
 }
 
 .bracket {
-  font-weight: var(--w-ui);
-  letter-spacing: 0;
+  font-family: var(--font-serif-display);
+  font-weight: 400;
 }
 
 .track {
@@ -55,9 +57,11 @@
 
 .caption {
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 10px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

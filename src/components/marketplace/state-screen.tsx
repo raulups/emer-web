@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import button from "@/components/ui/button.module.css";
+import { DisplayTitle } from "@/components/ui/display-title";
 import styles from "./state-screen.module.css";
 
 export type FilterChip = { key: string; label: string; onRemove: () => void };
@@ -28,9 +29,12 @@ export function StateScreen(props: Props) {
           <p className={styles.eyebrow} style={delay(0)}>
             SIN RESULTADOS
           </p>
-          <h2 className={styles.title} style={delay(1)}>
-            NADA POR AQUÍ
-          </h2>
+          <DisplayTitle
+            lines={[["NADA", "*POR"], ["AQUÍ"]]}
+            className={styles.title}
+            style={delay(1)}
+            play="load"
+          />
           <p className={styles.text} style={delay(2)}>
             Prueba con otra talla o quita algún filtro.
           </p>
@@ -71,7 +75,7 @@ export function StateScreen(props: Props) {
   const band = Array.from({ length: MARQUEE_REPEAT }, (_, i) => (
     // biome-ignore lint/suspicious/noArrayIndexKey: copias fijas de la misma frase
     <span key={i} className={styles.phrase}>
-      SIN CONEXIÓN <span className={styles.sep}>✕</span>
+      <span className={styles.serif}>SIN</span> CONEXIÓN <span className={styles.sep}>✕</span>
     </span>
   ));
 
@@ -84,9 +88,13 @@ export function StateScreen(props: Props) {
         </div>
       </div>
       <div className={styles.copy}>
-        <Heading className={styles.title} style={delay(0)}>
-          SIN CONEXIÓN
-        </Heading>
+        <DisplayTitle
+          as={Heading}
+          lines={[["SIN", "*CONEXIÓN"]]}
+          className={styles.title}
+          style={delay(0)}
+          play="load"
+        />
         <p className={styles.text} style={delay(1)}>
           No hemos podido cargar los productos. Si el servidor estaba dormido, tarda unos segundos
           en despertar.

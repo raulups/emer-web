@@ -19,14 +19,7 @@
 }
 
 .errorTitle {
-  margin: 0;
-  color: var(--black);
-  font-family: var(--font-sans-bold);
-  font-weight: 700;
-  font-size: min(7vw, 16vh);
-  line-height: var(--lh-display-serif);
-  letter-spacing: var(--track-sans-bold);
-  text-transform: uppercase;
+  --display-size: min(9vw, 16vh);
 }
 
 .errorText {

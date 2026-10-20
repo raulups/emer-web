@@ -1,5 +1,12 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useGSAP } from "@gsap/react";
+import gsap from "gsap";
+import { type CSSProperties, useRef } from "react";
+import { scrambleNodes } from "@/lib/motion/scramble";
 import styles from "./bracket-label.module.css";
+
+gsap.registerPlugin(useGSAP);
 
 /** Retardo por letra del stagger en hover. */
 const LETTER_STAGGER_MS = 28;
@@ -20,9 +27,37 @@ type Props = {
 
 /**
  * Etiqueta del switch y del botón [ MENÚ ]: letras con stagger, corchetes animados y línea
- * inferior. Va dentro de un botón; el texto accesible es `label` (las letras se ocultan).
+ * inferior. Al abrirse los corchetes las letras se barajan (scramble de signal-a.studio). Va dentro
+ * de un botón; el texto accesible es `label` (las letras se ocultan).
  */
 export function BracketLabel({ label, bracketed, level, raised, lined, origin }: Props) {
+  const word = useRef<HTMLSpanElement>(null);
+  const wasBracketed = useRef(bracketed);
+
+  useGSAP(
+    () => {
+      const opened = bracketed && !wasBracketed.current;
+      wasBracketed.current = bracketed;
+      const el = word.current;
+      if (!opened || !el) return;
+      const letters = [...el.querySelectorAll<HTMLElement>("[data-letter]")];
+      const nodes = letters.map((letter) => letter.firstChild).filter((n) => n instanceof Text);
+      const texts = nodes.map((node) => node.data);
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const stop = scrambleNodes(nodes, texts);
+        return () => {
+          stop();
+          nodes.forEach((node, i) => {
+            node.data = texts[i] ?? node.data;
+          });
+        };
+      });
+      return () => mm.revert();
+    },
+    { scope: word, dependencies: [bracketed, label] },
+  );
+
   return (
     <span
       className={styles.root}
@@ -32,7 +67,7 @@ export function BracketLabel({ label, bracketed, level, raised, lined, origin }:
       data-lined={lined || undefined}
       data-origin={origin}
     >
-      <span className={styles.word}>
+      <span ref={word} className={styles.word}>
         <span className={styles.open} aria-hidden="true">
           [
         </span>
@@ -42,6 +77,7 @@ export function BracketLabel({ label, bracketed, level, raised, lined, origin }:
             // biome-ignore lint/suspicious/noArrayIndexKey: las letras de una etiqueta fija no cambian de orden
             key={i}
             className={styles.letter}
+            data-letter
             style={{ "--delay": `${i * LETTER_STAGGER_MS}ms` } as CSSProperties}
             aria-hidden="true"
           >

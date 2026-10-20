@@ -45,14 +45,20 @@ export const DECO = [
 ] as const;
 
 export type ManifestoWord =
-  | { text: string }
+  | { text: string; bold?: true }
   | { image: "ojo-grito" | "manos"; width: number; height: number };
 
-/** Cinco líneas fijas, sin reflujo. Las imágenes tienen su hueco y se destapan con clip-path. */
+/**
+ * Cinco líneas fijas, sin reflujo. Las imágenes tienen su hueco y se destapan con clip-path. Las
+ * palabras `bold` van en la negrita condensada; el resto, en la serif fina.
+ */
 export const MANIFESTO: readonly (readonly ManifestoWord[])[] = [
-  [{ text: "Rastreamos" }, { image: "ojo-grito", width: 735, height: 542 }],
-  [{ text: "las" }, { text: "mejores" }, { text: "marcas" }],
-  [{ text: "por" }, { text: "ti" }, { image: "manos", width: 735, height: 435 }],
-  [{ text: "Tu" }, { text: "cartera" }, { text: "se" }, { text: "encarga" }],
-  [{ text: "de" }, { text: "arder." }],
+  [
+    { text: "Rastreamos", bold: true },
+    { image: "ojo-grito", width: 735, height: 542 },
+  ],
+  [{ text: "las" }, { text: "mejores" }, { text: "marcas", bold: true }],
+  [{ text: "por" }, { text: "ti", bold: true }, { image: "manos", width: 735, height: 435 }],
+  [{ text: "Tu" }, { text: "cartera", bold: true }, { text: "se" }, { text: "encarga" }],
+  [{ text: "de" }, { text: "arder.", bold: true }],
 ];

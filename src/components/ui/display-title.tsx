@@ -5,15 +5,20 @@ type Props = {
   /** Líneas de palabras; las que empiezan por `*` van en negrita condensada, el resto en serif. */
   lines: readonly (readonly string[])[];
   as?: "h1" | "h2" | "h3";
+  id?: string;
   className?: string;
+  style?: CSSProperties;
+  /** `load`: las palabras suben al montarse (pantallas sin scroll), sin esperar a `data-in`. */
+  play?: "in" | "load";
 };
 
 /**
  * Titular editorial: Instrument Serif y TeX Gyre Heros Condensed Bold en la misma línea, por la
  * línea base y justificadas a todo el ancho. Cada palabra sube desde su máscara cuando el titular
- * o un ancestro lleva `data-in` (lo pone la sección que lo contiene).
+ * o un ancestro lleva `data-in` (lo pone la sección que lo contiene) o, con `play="load"`, al
+ * montarse.
  */
-export function DisplayTitle({ lines, as: Tag = "h2", className }: Props) {
+export function DisplayTitle({ lines, as: Tag = "h2", id, className, style, play = "in" }: Props) {
   let i = 0;
   const label = lines
     .flat()
@@ -21,7 +26,13 @@ export function DisplayTitle({ lines, as: Tag = "h2", className }: Props) {
     .join(" ");
 
   return (
-    <Tag className={`${styles.display} ${className ?? ""}`} aria-label={label}>
+    <Tag
+      id={id}
+      className={`${styles.display} ${className ?? ""}`}
+      style={style}
+      data-play={play}
+      aria-label={label}
+    >
       {lines.map((line) => (
         <Fragment key={line.join(" ")}>
           <span

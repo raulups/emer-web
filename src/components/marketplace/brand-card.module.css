@@ -46,16 +46,19 @@
 }
 
 .name {
-  font-weight: var(--w-active);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  line-height: var(--lh-editorial);
+  font-size: 22px;
+  letter-spacing: -0.01em;
 }
 
 .meta {
   color: var(--grey-text);
-  font-weight: var(--w-ui);
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   white-space: nowrap;
 }

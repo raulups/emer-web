@@ -29,9 +29,11 @@
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 
@@ -79,10 +81,12 @@
 .skipLabel,
 .autoLabel,
 .exitLabel {
-  font-weight: var(--w-text);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   line-height: 1;
-  letter-spacing: 0.28em;
   white-space: nowrap;
 }
 
@@ -185,14 +189,15 @@
   pointer-events: none;
 }
 
-/* Inter 900, display: EMER ocupa ~70 % del ancho (Inter es más ancha que League Gothic). */
+/* TeX Gyre Heros Condensed Bold, como las negritas de los titulares de Explora. */
 .wordText {
   display: block;
-  font-weight: var(--w-display);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
+  line-height: var(--lh-display-serif);
   font-size: min(27vw, 50vh);
-  line-height: var(--lh-display);
-  /* Algo más abierto que el token (−.06em) para que las letras respiren. */
-  letter-spacing: -0.035em;
   transform-origin: 50% 55%;
 }
 
@@ -230,10 +235,12 @@
   z-index: 3;
   max-width: 280px;
   margin: 0;
-  font-weight: var(--w-text);
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   line-height: 1.7;
-  letter-spacing: 0.28em;
 }
 
 .scrollHint {
@@ -246,9 +253,11 @@
   align-items: center;
   gap: 10px;
   padding-left: 0.28em;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   transform: translateX(-50%);
 }
 
@@ -313,21 +322,25 @@
 }
 
 .counterNumber {
-  font-weight: var(--w-display);
-  font-size: min(30vw, 52vh);
-  line-height: var(--lh-display);
-  letter-spacing: var(--track-display);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
+  line-height: var(--lh-display-serif);
   font-variant-numeric: tabular-nums;
+  font-size: min(30vw, 52vh);
 }
 
 .counterLabel {
   position: relative;
   padding: 10px 0;
   isolation: isolate;
-  font-weight: var(--w-text);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   line-height: 1.8;
-  letter-spacing: 0.3em;
   text-align: center;
 }
 
@@ -356,11 +369,12 @@
   align-items: center;
   gap: 0.06em;
   margin: 0;
-  font-weight: var(--w-title);
-  font-size: min(4.4vw, 9vh);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  font-family: var(--font-serif-display);
+  font-weight: 400;
+  letter-spacing: var(--track-serif-display);
   text-transform: uppercase;
+  line-height: var(--lh-display-serif);
+  font-size: min(5.4vw, 11vh);
   white-space: nowrap;
 }
 
@@ -370,8 +384,15 @@
 
 .line {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 0.26em;
+}
+
+/* Misma altura de mayúsculas que Instrument Serif: mismo cuerpo, por la línea base. */
+.wBold {
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
 }
 
 .w,
@@ -435,9 +456,11 @@
   position: absolute;
   right: 48px;
   bottom: 32px;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   font-variant-numeric: tabular-nums;
 }
 

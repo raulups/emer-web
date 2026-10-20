@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { DisplayTitle } from "@/components/ui/display-title";
 import { getBrands } from "@/lib/data";
 import { type Device, gridCookie, parseColumns } from "@/lib/grid";
 import { BRAND_PARAM, brandsFromParam, EMPTY_FILTERS, type Filters } from "@/lib/marketplace";
@@ -28,7 +29,7 @@ export async function MarketplaceSection({ searchParams, device }: Props) {
   if (!brands.ok || !initial.ok) {
     return (
       <div className={styles.error} role="alert">
-        <h1 className={styles.title}>SIN CONEXIÓN</h1>
+        <DisplayTitle as="h1" lines={[["SIN", "*CONEXIÓN"]]} className={styles.title} play="load" />
         <p className={styles.text}>
           No hemos podido cargar el catálogo. Vuelve a intentarlo en un momento.
         </p>
