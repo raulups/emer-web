@@ -10,7 +10,6 @@ import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { BrandImage } from "./brand-image";
-import { cursorLogo } from "./cursor-logo";
 import { NoStock } from "./no-stock";
 import styles from "./novedades.module.css";
 
@@ -132,7 +131,6 @@ export function Novedades({ newest }: Props) {
                 className={styles.row}
                 data-nv-row
                 data-scramble-hover
-                {...cursorLogo(item)}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
                 onFocus={() => setHovered(i)}

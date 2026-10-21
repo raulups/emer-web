@@ -408,7 +408,7 @@
   align-items: center;
 }
 
-/* Las palabras aparecen de golpe y barajan sus letras (lo escribe `landing.tsx`). */
+/* Las palabras aparecen de golpe, sin animación. */
 .w {
   opacity: 0;
 }
@@ -450,24 +450,29 @@
   transform: translate(-50%, -50%);
 }
 
-/* El coche entra parpadeando, como una imagen que se enciende a trompicones, y se queda. */
+/* El coche parpadea un segundo (después la Landing se va sola al Marketplace). */
 .maniStage[data-big] .big {
   opacity: 1;
-  animation: flicker 0.9s steps(1, end) both;
+  animation: flicker 1s steps(1, end) both;
 }
 
 @keyframes flicker {
   0%,
-  12%,
+  20%,
+  40%,
+  60%,
+  80% {
+    opacity: 1;
+  }
+
+  10%,
   30%,
-  48% {
+  50%,
+  70%,
+  90% {
     opacity: 0;
   }
 
-  6%,
-  20%,
-  38%,
-  60%,
   100% {
     opacity: 1;
   }

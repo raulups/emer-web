@@ -136,6 +136,11 @@ export function Explora({ data }: Props) {
         let marcasH = 1;
         let marcasTop = 0;
         let marcasScale = 1;
+        // Subtítulo de MARCAS (va encima) y scroll en el que Destacados queda sola en pantalla: la
+        // sección se solapa una pantalla con la intro (margin-top −100vh), así su escena ya está
+        // fija arriba y no sube desde abajo.
+        let subH = 0;
+        let popStart = 0;
         // Final de cada sección de SECTIONS (scrollY en el que termina).
         let ends: number[] = [];
         // Inicio de cada sección del índice (scrollY), por id.
@@ -161,6 +166,7 @@ export function Explora({ data }: Props) {
           if (spacer.style.marginTop !== pullMargin) spacer.style.marginTop = pullMargin;
           box.intro = [docTop(intro, scroll), intro.offsetHeight];
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
+          popStart = box.pop[0] + vh;
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
           pinTop = docTop(pin, scroll);
@@ -175,7 +181,8 @@ export function Explora({ data }: Props) {
           wordCenters = words.map(center);
           rowCenters = rows.map(center);
           marcasH = marcas.offsetHeight;
-          marcasTop = Math.max(84, vh * 0.09);
+          subH = marcasSub.offsetHeight;
+          marcasTop = Math.max(84, vh * 0.09) + subH + 10;
           // Hueco entre el borde de arriba y los nombres de Destacados (con la escena fija).
           const namesTop = docTop(nmBase, scroll) - docTop(stage, scroll);
           marcasScale = Math.min(
@@ -290,19 +297,15 @@ export function Explora({ data }: Props) {
             write(word, "transform", `translateX(${(t * t * stageW * 0.4).toFixed(1)}px)`);
           });
 
-          // MARCAS: centrada mientras suben las palabras; cuando la última llega al centro, sube con
-          // Destacados y se queda arriba, más pequeña, sobre los nombres.
+          // MARCAS: centrada mientras suben las palabras; cuando la última llega al centro, sube y
+          // se queda arriba, más pequeña, sobre los nombres. Su subtítulo va siempre encima.
           const mFrom = (wordCenters.at(-1) ?? 0) - vh / 2;
-          const m = easeInOutCubic(clamp01((s - mFrom) / Math.max(1, box.pop[0] - mFrom)));
+          const m = easeInOutCubic(clamp01((s - mFrom) / Math.max(1, popStart - mFrom)));
           const mScale = 1 + (marcasScale - 1) * m;
           const mY = (vh - marcasH) / 2 + (marcasTop - (vh - marcasH) / 2) * m;
           write(marcas, "transform", `translateY(${mY.toFixed(1)}px) scale(${mScale.toFixed(4)})`);
-          write(
-            marcasSub,
-            "transform",
-            `translateY(${(mY + marcasH * mScale + 18 - 6 * m).toFixed(1)}px)`,
-          );
-          // Destacados entra a la vez que MARCAS sube: la info y las piezas caen desde arriba.
+          write(marcasSub, "transform", `translateY(${(mY - subH - 10).toFixed(1)}px)`);
+          // Destacados entra a la vez que MARCAS sube: su escena ya está fija y todo cae desde arriba.
           const popIn = m > 0.82;
           pop.toggleAttribute("data-in", popIn);
           if (popIn !== shownInPop) {
@@ -313,7 +316,7 @@ export function Explora({ data }: Props) {
           // §4.2 Populares: interpola entre los `offsetLeft` medidos (activo en la línea del 50 %).
           const count = offsets.length;
           if (count > 0) {
-            const t = clamp01((s - box.pop[0]) / Math.max(1, box.pop[1] - vh));
+            const t = clamp01((s - popStart) / Math.max(1, box.pop[1] - 2 * vh));
             const p = t * (count - 1);
             const a = Math.min(count - 1, Math.floor(p));
             const b = Math.min(count - 1, a + 1);

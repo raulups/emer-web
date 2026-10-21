@@ -31,6 +31,8 @@ gsap.registerPlugin(useGSAP);
 const WORD_COUNT = MANIFESTO.flat().length;
 const SKIP_LABEL = "[ SALTAR ]";
 const SKIP_HOVER_LABEL = "[ IR AL MARKETPLACE ]";
+/** Segundos que parpadea el coche antes de ir solo al Marketplace. */
+const BIG_HOLD_S = 1;
 
 type Controls = { toggleAuto: () => void };
 
@@ -255,17 +257,8 @@ export function Landing({ tunnel }: Props) {
           let s = 0;
           const last = { a: Number.NaN, b: Number.NaN, c: Number.NaN };
           const wordOn: boolean[] = [];
-          // Manifiesto: cada palabra aparece barajando sus letras; las imágenes, sin animación.
-          const wordTexts = words.map((node) => node.firstChild?.textContent ?? "");
-          const wordStops: (() => void)[] = [];
-          const lightWord = (node: HTMLElement, i: number, on: boolean) => {
-            const text = node.firstChild;
-            if (!(text instanceof Text)) return;
-            wordStops[i]?.();
-            const final = wordTexts[i] ?? "";
-            if (on) wordStops[i] = scramble(text, final);
-            else if (text.data !== final) text.data = final;
-          };
+          // El coche del final: parpadea un segundo y desde ahí todo es automático (al Marketplace).
+          let bigAt = -1;
           const progress = (key: "hero" | "mani" | "exit") => {
             const [top, height] = geo[key];
             return clamp01((s - top) / (height - vh || 1));
@@ -293,6 +286,10 @@ export function Landing({ tunnel }: Props) {
               return;
             }
             if (left) return;
+            if (bigAt >= 0) {
+              if (time - bigAt >= BIG_HOLD_S) leave();
+              return;
+            }
 
             if (autoOn) {
               if (autoT0 < 0) autoT0 = time;
@@ -384,9 +381,13 @@ export function Landing({ tunnel }: Props) {
                 if (wordOn[i] === on) return;
                 wordOn[i] = on;
                 node.toggleAttribute("data-on", on);
-                lightWord(node, i, on);
               });
-              maniStage.toggleAttribute("data-big", pB > 0.66);
+              if (pB > 0.66) {
+                maniStage.setAttribute("data-big", "");
+                bigAt = time;
+                stopAuto();
+                lockScroll(true);
+              }
               writeText(pct, pad(Math.round(pB * 100), 3));
             }
 
@@ -411,11 +412,7 @@ export function Landing({ tunnel }: Props) {
             skip.removeEventListener("pointerleave", skipOut);
             skip.removeEventListener("focus", skipIn);
             skip.removeEventListener("blur", skipOut);
-            words.forEach((node, i) => {
-              wordStops[i]?.();
-              const text = node.firstChild;
-              if (text instanceof Text) text.data = wordTexts[i] ?? text.data;
-            });
+
             tunnelObserver.disconnect();
             window.removeEventListener("resize", measure);
             for (const type of inputs) window.removeEventListener(type, onUserInput);

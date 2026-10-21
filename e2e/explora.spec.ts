@@ -59,8 +59,8 @@ test.beforeEach(({ page: _page }, info) => {
 
 test("intro: las palabras suben en escalera y se alinean al cruzar el centro", async ({ page }) => {
   await openExplora(page);
-  // Empiezan bajo el pliegue y desplazadas a la derecha.
-  await expect.poll(() => wordX(page, 0)).toBeGreaterThan(100);
+  // Empiezan en escalera: la última, bajo el pliegue, desplazada a la derecha.
+  await expect.poll(() => wordX(page, 3)).toBeGreaterThan(100);
 
   const g = await geometry(page);
   // DOS termina a la altura de MARCAS (centrada): ahí todas las palabras tienen translateX 0.
@@ -120,7 +120,11 @@ test("Destacados: la copia negra de los nombres se recorta a la ventana 50–75 
   const clip = page.locator("[data-nm-top]").locator("xpath=..");
   await expect(clip).toHaveCSS("clip-path", /inset\(0px 25% 0px 50%\)|inset\(0px 25% 0px 50%\)/);
   const g = await geometry(page);
-  await page.evaluate((y) => window.scrollTo(0, y), g.pop.top + 0.4 * (g.pop.height - g.vh));
+  // Destacados se solapa una pantalla con la intro: su recorrido empieza una pantalla después.
+  await page.evaluate(
+    (y) => window.scrollTo(0, y),
+    g.pop.top + g.vh + 0.5 * (g.pop.height - 2 * g.vh),
+  );
   // La pista de imágenes avanza a la vez que los nombres.
   await expect
     .poll(

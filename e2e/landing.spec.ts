@@ -69,7 +69,9 @@ test("[ AUTOMÁTICO ] recorre la Landing sin parar y abre el Marketplace", async
   await page.waitForURL("**/web", { timeout: 30_000 });
 });
 
-test("manifiesto: palabras que se encienden y corte a la bomba", async ({ page }) => {
+test("manifiesto: palabras que se encienden, corte al coche y salida automática", async ({
+  page,
+}) => {
   await page.goto("/");
   await expect(page.locator("main[data-ready]")).toBeAttached({ timeout: 6000 });
   const words = page.locator("[data-w]");
@@ -91,6 +93,8 @@ test("manifiesto: palabras que se encienden y corte a la bomba", async ({ page }
   await page.evaluate((y) => window.scrollTo(0, y), at(0.8));
   await expect(page.locator("[data-mani-stage][data-big]")).toHaveCount(1, { timeout: 4000 });
   expect(await progress(page, "mani")).toBeGreaterThan(0.5);
+  // Con el coche a la vista ya es automático: parpadea un segundo y se va al Marketplace.
+  await page.waitForURL("**/web", { timeout: 6000 });
 });
 
 test("al llegar al final cae la cortina y navega a /web", async ({ page }) => {

@@ -10,7 +10,6 @@ import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
-import { cursorLogo } from "./cursor-logo";
 import { NoStock } from "./no-stock";
 import { peekProps } from "./product-peek";
 
@@ -109,7 +108,6 @@ export function Catalogo({ brands }: Props) {
                       className={styles.cell}
                       data-cat-cell
                       data-scramble-hover
-                      {...cursorLogo(brand)}
                       style={{ "--grow": height } as CSSProperties}
                       data-first={first || undefined}
                       data-on={on || undefined}

@@ -10,80 +10,14 @@
   background: #fff;
   mix-blend-mode: difference;
   pointer-events: none;
-  transition: opacity 0.25s var(--ease-out-expo);
 }
 
-/* Sobre una marca el punto cede su sitio al logo. */
-.dot[data-logo] {
-  opacity: 0;
-}
-
-.dot[hidden],
-.logo[hidden],
-.logoImage[hidden],
-.logoLabel[hidden] {
+.dot[hidden] {
   display: none;
 }
 
-/* Logo de la marca como cursor: tarjeta blanca centrada en el ratón (sin modo diferencia). */
-.logo {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9998;
-  pointer-events: none;
-}
-
-.logoCard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  width: 112px;
-  height: 112px;
-  margin: -56px 0 0 -56px;
-  padding: 12px;
-  border: 1px solid var(--black);
-  background: var(--paper);
-  color: var(--black);
-  opacity: 0;
-  transform: scale(0.4);
-  transition:
-    opacity 0.3s var(--ease-out-expo),
-    transform 0.5s var(--ease-out-expo);
-}
-
-.logo[data-on] .logoCard {
-  opacity: 1;
-  transform: none;
-}
-
-.logoImage {
-  display: block;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.logoLabel {
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  line-height: var(--lh-label);
-  letter-spacing: var(--track-label);
-  text-align: center;
-  text-transform: uppercase;
-}
-
 @media not (pointer: fine) {
-  .dot,
-  .logo {
+  .dot {
     display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .logoCard {
-    transform: none;
   }
 }

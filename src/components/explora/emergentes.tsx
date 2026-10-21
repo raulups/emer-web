@@ -9,7 +9,6 @@ import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
-import { cursorLogo } from "./cursor-logo";
 import styles from "./emergentes.module.css";
 import { NoStock } from "./no-stock";
 import { peekProps } from "./product-peek";
@@ -48,7 +47,6 @@ function Card({ brand, number, active, selected, onEnter, onLeave, onSelect, fir
       data-active={active || undefined}
       data-selected={selected || undefined}
       aria-pressed={selected}
-      {...cursorLogo(brand)}
       onClick={onSelect}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}

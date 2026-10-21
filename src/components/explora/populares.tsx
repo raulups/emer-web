@@ -9,7 +9,6 @@ import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
-import { cursorLogo } from "./cursor-logo";
 import styles from "./explora.module.css";
 import { NoStock } from "./no-stock";
 import { peekProps } from "./product-peek";
@@ -110,7 +109,7 @@ export function Populares({ popular, index }: Props) {
     <section
       className={styles.pop}
       data-pop
-      style={{ height: `${total * 75}vh` }}
+      style={{ height: `${200 + total * 60}vh` }}
       aria-label="Marcas destacadas"
     >
       <div ref={stage} className={styles.stage} data-pop-stage>
@@ -136,7 +135,7 @@ export function Populares({ popular, index }: Props) {
           </div>
         </div>
 
-        <div className={styles.imWindow} data-im-window {...cursorLogo(current)}>
+        <div className={styles.imWindow} data-im-window>
           <div className={styles.imTrack} data-im-track>
             {popular.map((brand) => (
               <div key={brand.id} className={styles.imTile}>
