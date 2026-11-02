@@ -33,10 +33,10 @@ src/
     landing/           Landing: `landing.tsx` (un bucle por tiempo): túnel de fotos de `src/img/` + contador mientras responde `/api/warm`; después «CARGANDO MARKETPLACE» y `/web`
     explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
     marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
-    ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal)
-  fonts/Inter.woff2    única fuente (variable 100–900, subconjunto latino)
+    ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal), type.module.css (jerarquía editorial), display-title (titular serif + negrita), scramble-text (etiqueta que se baraja)
+  fonts/               jerarquía editorial en toda la web: Inter (texto corrido), Geist Mono 300 (etiquetas, menús, botones, precios), Instrument Serif + TeX Gyre Heros Condensed Bold (titulares mezclados), Cormorant Garamond 300 (nombres de marca); woff2, subconjunto latino. Selección/hover en mono se marcan con subrayado, nunca con peso
   styles/
-    theme.css          tokens: color, --font, --w-*, tracking, easings, @font-face
+    theme.css          tokens: color, --font-sans/-mono/-serif-display/-sans-bold/-serif-editorial, --t-*, --w-*, tracking, easings, @font-face
     theme.ts           los mismos tokens para JS (EASE, LERP, WEIGHT)
   lib/
     data.ts            lecturas con la forma de las tablas del README del handoff (solo servidor)
@@ -45,7 +45,7 @@ src/
     marketplace.ts     filtros ↔ query de la API, validación de /api/products, tamaño de imagen
     explora-data.ts    Explora: Destacados, Populares, Novedades y Emergentes por tag de marca (`explora-tags.ts`), con sus piezas (solo servidor)
     marketplace-data.ts página del Marketplace + recuento de ofertas (solo servidor)
-    motion/            `ticker.ts` (único reloj), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings), `scroll.ts` (Lenis: `SMOOTH_SCROLL`, `scrollToY`, `lockScroll`; todo scroll programático pasa por aquí)
+    motion/            `ticker.ts` (único reloj), `scramble.ts` (barajado de letras sobre el ticker), `write.ts` (estilos cacheados), `math.ts` (lerp 0.14, easings), `scroll.ts` (Lenis: `SMOOTH_SCROLL`, `scrollToY`, `lockScroll`; todo scroll programático pasa por aquí)
     api/               cliente tipado del backend KMP (solo servidor)
 ```
 

@@ -1,3 +1,4 @@
+import { ScrambleText } from "@/components/ui/scramble-text";
 import styles from "./section-index.module.css";
 
 export type IndexItem = { id: string; label: string };
@@ -13,10 +14,10 @@ export function SectionIndex({ items }: { items: readonly IndexItem[] }) {
       <ol className={styles.list}>
         {items.map((item, i) => (
           <li key={item.id}>
-            <button type="button" className={styles.item} data-go={item.id}>
-              <span className={styles.label}>{item.label}</span>
+            <button type="button" className={styles.item} data-go={item.id} data-scramble-hover>
+              <ScrambleText text={item.label} view={false} className={styles.label} />
               <span className={styles.num} aria-hidden="true">
-                {String(i + 1).padStart(2, "0")}
+                A — {i + 1}
               </span>
               <span className={styles.tick} aria-hidden="true" />
             </button>

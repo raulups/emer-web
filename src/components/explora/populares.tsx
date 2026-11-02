@@ -1,6 +1,8 @@
 "use client";
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { isSectionTag } from "@/lib/explora-tags";
 import { price } from "@/lib/format";
@@ -9,6 +11,7 @@ import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./explora.module.css";
 import { NoStock } from "./no-stock";
+import { peekProps } from "./product-peek";
 
 /** «Estilo. etiquetas, sin repetir el estilo. Desde AAAA.» (README §4.2). */
 export function describe(brand: ExploraBrand): string {
@@ -106,7 +109,7 @@ export function Populares({ popular, index }: Props) {
     <section
       className={styles.pop}
       data-pop
-      style={{ height: `${total * 100}vh` }}
+      style={{ height: `${200 + total * 60}vh` }}
       aria-label="Marcas destacadas"
     >
       <div ref={stage} className={styles.stage} data-pop-stage>
@@ -163,8 +166,14 @@ export function Populares({ popular, index }: Props) {
         </div>
 
         <div ref={info} className={styles.info}>
-          <p className={styles.desc}>{describe(current)}</p>
-          {current.description && <p className={styles.about}>{current.description}</p>}
+          <p className={styles.desc}>
+            <ScrambleText text={describe(current)} hover={false} />
+          </p>
+          {current.description && (
+            <p className={styles.about}>
+              <ScrambleText text={current.description} hover={false} />
+            </p>
+          )}
           <BrandActions brand={current} />
         </div>
 
@@ -175,10 +184,12 @@ export function Populares({ popular, index }: Props) {
           style={fit.size > 0 ? ({ "--pw": `${fit.size}px` } as CSSProperties) : undefined}
           data-count={fit.count}
         >
-          {current.products.slice(0, fit.count).map((product) => (
-            <li key={product.id}>
+          {current.products.slice(0, fit.count).map((product, i) => (
+            <li key={product.id} style={{ "--i": i } as CSSProperties}>
               <a
                 className={styles.product}
+                data-scramble-hover
+                {...peekProps(product, current.name)}
                 href={product.url ?? current.url ?? undefined}
                 target="_blank"
                 rel="noopener"
@@ -193,18 +204,27 @@ export function Populares({ popular, index }: Props) {
                     className={styles.productImage}
                   />
                 </span>
-                <span className={styles.productName}>{product.name}</span>
-                <span className={styles.productPrice}>{price(product.price)}</span>
+                <ScrambleText
+                  text={product.name ?? ""}
+                  className={`${typo.label} ${styles.productName}`}
+                />
+                <ScrambleText
+                  text={price(product.price)}
+                  className={`${typo.label} ${styles.productPrice}`}
+                />
               </a>
             </li>
           ))}
         </ul>
 
-        <p className={styles.counter} aria-live="polite">
-          <span>{current.name}</span>
+        <p className="sr-only" aria-live="polite">
+          {current.name} · {pad(index + 1, 2)} / {pad(total, 2)}
+        </p>
+        <p className={`${typo.label} ${styles.counter}`} aria-hidden="true">
+          <ScrambleText text={current.name} view={false} />
           <span className={styles.counterNum}>
-            <span>{pad(index + 1, 2)}</span>
-            <span className={styles.counterBar} aria-hidden="true" />
+            <ScrambleText text={`A — ${pad(index + 1, 2)}`} view={false} />
+            <span className={styles.counterBar} />
             <span>{pad(total, 2)}</span>
           </span>
         </p>

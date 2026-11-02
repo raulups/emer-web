@@ -6,10 +6,7 @@
 
 .title {
   margin: 0;
-  font-weight: var(--w-display);
-  font-size: min(15vw, 72px);
-  line-height: var(--lh-display);
-  letter-spacing: var(--track-display);
+  --display-size: min(17vw, 96px);
 }
 
 .text {
@@ -40,9 +37,11 @@
   border: var(--line) solid var(--black);
   background: var(--black);
   color: var(--paper);
-  font-weight: var(--w-active);
-  font-size: 11px;
-  letter-spacing: 0.2em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
   text-decoration: none;
 }
 
@@ -50,13 +49,15 @@
   border-color: var(--hairline-strong);
   background: var(--paper);
   color: var(--grey-text);
-  font-weight: var(--w-text);
 }
 
 .soon {
   color: var(--grey-mute);
-  font-size: 9px;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 /* SEGUIR EN LA WEB: botón `text` de `ui/button.module.css`, centrado. */

@@ -14,6 +14,14 @@
   min-height: var(--btn-h);
 }
 
+/* Etiquetas de navegación: Geist Mono 300 (dos clases para ganar a `ui/button.module.css`). */
+.actions .button {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+}
+
 /* El principal (`box`) lleva el aire; el secundario (`text`) se pega a él. */
 .button:not([data-primary]) {
   padding: 0 12px;
@@ -38,7 +46,6 @@
   flex: 1 1 auto;
   padding: 0 8px;
   background: var(--paper);
-  letter-spacing: 0.12em;
 }
 
 .actions[data-tone="overlay"] .button[data-primary]:hover {

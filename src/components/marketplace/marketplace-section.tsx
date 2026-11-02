@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
+import { DisplayTitle } from "@/components/ui/display-title";
 import { getBrands } from "@/lib/data";
 import { type Device, gridCookie, parseColumns } from "@/lib/grid";
 import { BRAND_PARAM, brandsFromParam, EMPTY_FILTERS, type Filters } from "@/lib/marketplace";
 import { getMarketplacePage } from "@/lib/marketplace-data";
+import { GridLoader } from "./grid-loader";
 import { Marketplace } from "./marketplace";
 import styles from "./marketplace-section.module.css";
 
@@ -28,7 +30,7 @@ export async function MarketplaceSection({ searchParams, device }: Props) {
   if (!brands.ok || !initial.ok) {
     return (
       <div className={styles.error} role="alert">
-        <h1 className={styles.title}>SIN CONEXIÓN</h1>
+        <DisplayTitle as="h1" lines={[["SIN", "*CONEXIÓN"]]} className={styles.title} play="load" />
         <p className={styles.text}>
           No hemos podido cargar el catálogo. Vuelve a intentarlo en un momento.
         </p>
@@ -47,11 +49,17 @@ export async function MarketplaceSection({ searchParams, device }: Props) {
   );
 }
 
-/** Misma geometría que el Marketplace mientras llegan los datos (sin CLS). */
+/**
+ * Misma geometría que el Marketplace mientras llegan los datos (sin CLS), con el loader centrado en
+ * pantalla: al entrar desde la Landing (o con el backend dormido) se ve que está cargando.
+ */
 export function MarketplaceSkeleton() {
   return (
     <div className={styles.skeleton} aria-busy="true">
       <p className="sr-only">Cargando el catálogo</p>
+      <div className={styles.loading}>
+        <GridLoader words={[]} caption="CARGANDO MARCAS" />
+      </div>
       <div className={styles.aside} />
       <ul className={styles.grid}>
         {Array.from({ length: 8 }, (_, i) => (

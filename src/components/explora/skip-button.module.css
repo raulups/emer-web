@@ -1,4 +1,6 @@
+/* La etiqueta común (`--font`) se pinta aquí en Geist Mono, como el resto de la navegación. */
 .skip {
+  --font: var(--font-mono);
   position: fixed;
   top: 26px;
   right: 48px;

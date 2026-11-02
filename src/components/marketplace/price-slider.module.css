@@ -48,7 +48,9 @@
 }
 
 .value {
-  font-weight: var(--w-text);
-  font-size: 12px;
-  letter-spacing: 0.04em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }

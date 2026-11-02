@@ -3,9 +3,11 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import { bus } from "@/lib/bus";
 import type { ExploraData } from "@/lib/explora-data";
-import { clamp01, easeInOutCubic, easeInOutQuad } from "@/lib/motion/math";
+import { clamp01, easeInOutCubic, easeInOutQuad, pad } from "@/lib/motion/math";
 import { followScroll, getLenis, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write, writeText } from "@/lib/motion/write";
@@ -16,6 +18,7 @@ import styles from "./explora.module.css";
 import { Footer } from "./footer";
 import { Novedades } from "./novedades";
 import { describe, Populares } from "./populares";
+import { ProductPeek } from "./product-peek";
 import { type IndexItem, SectionIndex } from "./section-index";
 import { SkipButton } from "./skip-button";
 import { SuggestBrand } from "./suggest-brand";
@@ -84,6 +87,8 @@ export function Explora({ data }: Props) {
   const [index, setIndex] = useState(0);
   const [near, setNear] = useState(0);
   const [section, setSection] = useState(0);
+  // MARCAS ya arriba, sobre Destacados: su subtítulo pasa a ser el nombre de la marca activa.
+  const [inPop, setInPop] = useState(false);
 
   useGSAP(
     () => {
@@ -166,6 +171,11 @@ export function Explora({ data }: Props) {
         let marcasH = 1;
         let marcasTop = 0;
         let marcasScale = 1;
+        // Subtítulo de MARCAS (va encima) y scroll en el que Destacados queda sola en pantalla: la
+        // sección se solapa una pantalla con la intro (margin-top −100vh), así su escena ya está
+        // fija arriba y no sube desde abajo.
+        let subH = 0;
+        let popStart = 0;
         // Final de cada sección de SECTIONS (scrollY en el que termina).
         let ends: number[] = [];
         // Inicio de cada sección del índice (scrollY), por id.
@@ -190,6 +200,7 @@ export function Explora({ data }: Props) {
           const pullMargin = pull > 0 ? `${-pull}px` : "";
           if (spacer.style.marginTop !== pullMargin) spacer.style.marginTop = pullMargin;
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
+          popStart = box.pop[0] + vh;
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
           pinTop = docTop(pin, scroll);
@@ -203,7 +214,8 @@ export function Explora({ data }: Props) {
           };
           rowCenters = rows.map(center);
           marcasH = marcas.offsetHeight;
-          marcasTop = Math.max(84, vh * 0.09);
+          subH = marcasSub.offsetHeight;
+          marcasTop = Math.max(84, vh * 0.09) + subH + 10;
           // Hueco entre el borde de arriba y los nombres de Destacados (con la escena fija).
           const namesTop = docTop(nmBase, scroll) - docTop(stage, scroll);
           marcasScale = Math.min(
@@ -266,6 +278,7 @@ export function Explora({ data }: Props) {
         let shownIndex = 0;
         let shownNear = 0;
         let shownSection = 0;
+        let shownInPop = false;
         let target: number | undefined;
 
         // ---- [ SALTAR ]: scroll animado hasta el final de la sección actual ----
@@ -425,16 +438,19 @@ export function Explora({ data }: Props) {
           const mScale = 1 + (marcasScale - 1) * m;
           const mY = (vh - marcasH) / 2 + (marcasTop - (vh - marcasH) / 2) * m;
           write(marcas, "transform", `translateY(${mY.toFixed(1)}px) scale(${mScale.toFixed(4)})`);
-          write(
-            marcasSub,
-            "transform",
-            `translateY(${(mY + marcasH * mScale + 18 - 6 * m).toFixed(1)}px)`,
-          );
+          write(marcasSub, "transform", `translateY(${(mY - subH - 10).toFixed(1)}px)`);
+          // Destacados entra a la vez que MARCAS sube: su escena ya está fija y todo cae desde arriba.
+          const popIn = m > 0.82;
+          pop.toggleAttribute("data-in", popIn);
+          if (popIn !== shownInPop) {
+            shownInPop = popIn;
+            setInPop(popIn);
+          }
 
           // §4.2 Populares: interpola entre los `offsetLeft` medidos (activo en la línea del 50 %).
           const count = offsets.length;
           if (count > 0) {
-            const t = clamp01((s - box.pop[0]) / Math.max(1, box.pop[1] - vh));
+            const t = clamp01((s - popStart) / Math.max(1, box.pop[1] - 2 * vh));
             const p = t * (count - 1);
             const a = Math.min(count - 1, Math.floor(p));
             const b = Math.min(count - 1, a + 1);
@@ -500,17 +516,14 @@ export function Explora({ data }: Props) {
           write(nvRight, "pointer-events", fade > 0.5 ? "none" : "auto");
           write(ediv, "opacity", q >= 1 ? "1" : "0");
 
-          // Novedades → Emergentes: con Emergentes ya fija debajo, la escena de Novedades se queda
-          // quieta, sube un poco y se funde (sin pantalla en blanco ni fotos cortadas).
-          const x = clamp01((s - pinTop) / Math.max(1, hold * 0.75));
-          const xe = easeInOutCubic(x);
-          write(erStage, "opacity", (1 - xe).toFixed(3));
-          write(
-            erStage,
-            "transform",
-            x > 0 ? `translateY(${(-xe * vh * 0.05).toFixed(1)}px)` : "none",
-          );
+          // Novedades → Emergentes: sin fundido. Con Emergentes ya fija debajo, la escena de
+          // Novedades sigue al scroll (sube 1:1, como si se soltara) y deja ver Emergentes, cuyas
+          // piezas entran animadas según se baja.
+          const x = clamp01((s - pinTop) / Math.max(1, hold));
+          write(erStage, "transform", x > 0 ? `translateY(${(-x * hold).toFixed(1)}px)` : "none");
           write(er, "visibility", on && x < 1 ? "visible" : "hidden");
+          // Titular de Novedades: sus palabras suben cuando la línea casi ha terminado de girar.
+          er.toggleAttribute("data-in", on && q > 0.6);
 
           // [ SALTAR ]: la primera sección cuyo final aún queda por delante (scroll real).
           const y = window.scrollY;
@@ -569,6 +582,7 @@ export function Explora({ data }: Props) {
           // §4.5 Catálogo: durante el fundido aparecen la línea, el título y las columnas; después
           // la pista se desplaza.
           const kc = clamp01((s - pinTop) / Math.max(1, hold));
+          cat.toggleAttribute("data-in", kc > 0.3);
           write(
             catH,
             "transform",
@@ -580,11 +594,9 @@ export function Explora({ data }: Props) {
             write(node, "transform", `translateY(${((1 - e) * 14).toFixed(1)}px)`);
           });
           catCols.forEach((node, i) => {
-            write(
-              node,
-              "opacity",
-              easeOutCubic(clamp01((kc - 0.3 - Math.min(i, 3) * 0.08) / 0.45)).toFixed(3),
-            );
+            const e = easeOutCubic(clamp01((kc - 0.3 - Math.min(i, 3) * 0.08) / 0.45));
+            write(node, "opacity", e.toFixed(3));
+            write(node, "transform", e < 1 ? `translateY(${((1 - e) * 12).toFixed(2)}vh)` : "none");
           });
           const along = travel > 0 ? clamp01((s - pinTop - hold) / travel) : 0;
           write(track, "transform", `translateX(${(-along * travel).toFixed(1)}px)`);
@@ -635,8 +647,15 @@ export function Explora({ data }: Props) {
             <span className={styles.marcas} data-marcas>
               MARCAS
             </span>
-            <span className={styles.marcasSub} data-marcas-sub>
-              Destacados
+            <span className={`${typo.labelLg} ${styles.marcasSub}`} data-marcas-sub>
+              <ScrambleText text={inPop ? `A — 1 · ${pad(index + 1, 2)}` : "A — 1"} />
+              <ScrambleText
+                text={
+                  inPop
+                    ? (destacados[index]?.name ?? "Destacados")
+                    : `Destacados · ${pad(destacados.length, 2)}`
+                }
+              />
             </span>
             {INTRO_WORDS.map((word) => (
               <span key={word} className={styles.introWord} data-pw>
@@ -672,13 +691,14 @@ export function Explora({ data }: Props) {
           {novedades.map((brand) => (
             <li key={brand.id} className={styles.staticItem}>
               <span className={styles.staticName}>{brand.name}</span>
-              <span className={styles.desc}>
+              <span className={typo.label}>
                 Desde {brand.foundedYear ?? "—"} · {brand.count} piezas
               </span>
             </li>
           ))}
         </ul>
       )}
+      <ProductPeek />
       {/* Tras Emergentes en pantalla: las listas de arriba solo se ven con «reducir movimiento». */}
       <SuggestBrand brands={todas} />
       <Footer />

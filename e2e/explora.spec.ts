@@ -156,7 +156,11 @@ test("Destacados: la copia negra de los nombres se recorta a la ventana 50–75 
   const clip = page.locator("[data-nm-top]").locator("xpath=..");
   await expect(clip).toHaveCSS("clip-path", /inset\(0px 25% 0px 50%\)|inset\(0px 25% 0px 50%\)/);
   const g = await geometry(page);
-  await page.evaluate((y) => window.scrollTo(0, y), g.pop.top + 0.4 * (g.pop.height - g.vh));
+  // Destacados se solapa una pantalla con la intro: su recorrido empieza una pantalla después.
+  await page.evaluate(
+    (y) => window.scrollTo(0, y),
+    g.pop.top + g.vh + 0.5 * (g.pop.height - 2 * g.vh),
+  );
   // La pista de imágenes avanza a la vez que los nombres.
   await expect
     .poll(
@@ -206,7 +210,7 @@ test("Populares (2.ª sección): marcas con el tag, opacidad por distancia y fot
   const g = await geometry(page);
   await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + g.vh * 0.6);
   const rows = page.locator("[data-nv-row]");
-  await expect(page.locator("[data-nv] h2")).toHaveText("POPULARES");
+  await expect(page.locator("[data-nv] h2")).toHaveText("LAS MÁS POPULARES");
   await expect(rows).toHaveCount(POPULARES.length);
   for (const [i, name] of POPULARES.entries()) await expect(rows.nth(i)).toContainText(name);
   await expect(rows.first()).toContainText("Llegó el 01.09.26");
@@ -324,13 +328,13 @@ test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa
   await expect.poll(() => column("[data-er-a]"), { timeout: 4000 }).toBeGreaterThan(a0 + 100);
   await expect.poll(() => column("[data-er-b]"), { timeout: 4000 }).toBeLessThan(b0 - 100);
 
-  const cards = page.locator("[data-er-car] a");
+  const cards = page.locator("[data-er-car] button");
   const names = await cards.evaluateAll((els) =>
     els.map((el) => el.querySelectorAll("span")[2]?.textContent),
   );
   expect(new Set(names).size).toBe(names.length);
   expect(names.toSorted()).toEqual(NOVEDADES.toSorted());
-  await expect(page.locator("[data-er] h2")).toHaveText("NOVEDADES");
+  await expect(page.locator("[data-er] h2")).toHaveText("LO NUEVO EN EMER");
 
   // Hover: la tarjeta bajo el ratón pasa a ser la marca activa.
   await page.evaluate((v) => window.scrollTo(0, v), y(0.5));
@@ -338,14 +342,15 @@ test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa
   const point = { x: 180, y: 300 };
   await page.mouse.move(point.x, point.y);
   const under = await page.evaluate(({ x, y }) => {
-    const card = document.elementFromPoint(x, y)?.closest("[data-er-car] a");
-    return card?.querySelectorAll("span")[2]?.textContent ?? null;
+    const card = document.elementFromPoint(x, y)?.closest("[data-er-car] button");
+    // El nombre del pie se baraja con el hover: se lee el de la foto.
+    return card?.querySelector("img")?.alt ?? null;
   }, point);
   expect(under).toBeTruthy();
   await expect(page.locator("[data-er-info]")).toContainText(under as string);
 });
 
-test("Novedades → Emergentes: fundido con Emergentes ya fija debajo, sin pantalla en blanco", async ({
+test("Novedades → Emergentes: sin fundido, Novedades sube con el scroll sobre Emergentes ya fija", async ({
   page,
 }) => {
   await openExplora(page);
@@ -359,15 +364,14 @@ test("Novedades → Emergentes: fundido con Emergentes ya fija debajo, sin panta
   // Emergentes empieza fija justo cuando el carrusel de Novedades ha terminado (se solapan).
   expect(Math.abs(g.pin.top - (g.er.top + g.er.height - 2 * g.vh))).toBeLessThanOrEqual(2);
 
-  // A mitad del fundido: Novedades medio transparente y Emergentes asomando por debajo.
+  // A mitad del paso: sin fundido, Novedades sube con el scroll y Emergentes asoma por debajo.
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.4 * g.vh);
-  await expect.poll(() => opacity("[data-er-stage]"), { timeout: 4000 }).toBeLessThan(0.9);
-  await expect.poll(() => opacity("[data-er-stage]"), { timeout: 4000 }).toBeGreaterThan(0.1);
+  const stageTop = () =>
+    page.locator("[data-er-stage]").evaluate((el) => el.getBoundingClientRect().top);
+  await expect.poll(stageTop, { timeout: 4000 }).toBeLessThan(-0.3 * g.vh);
+  await expect.poll(stageTop, { timeout: 4000 }).toBeGreaterThan(-0.5 * g.vh);
+  expect(await opacity("[data-er-stage]")).toBe(1);
   expect(await opacity("[data-cat-g]")).toBeGreaterThan(0);
-  // La escena de Novedades sigue ocupando toda la pantalla (no se corta por abajo).
-  const stage = await page.locator("[data-er-stage]").boundingBox();
-  expect(stage?.y ?? 99).toBeLessThan(1);
-  expect((stage?.y ?? 0) + (stage?.height ?? 0)).toBeGreaterThan(g.vh * 0.9);
 
   // Al acabar, Novedades se oculta (no tapa el hover) y Emergentes está entera.
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.vh);
@@ -506,7 +510,7 @@ test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y a
     .locator("[data-cat] [data-cat-cell]")
     .evaluateAll((els) => els.map((el) => el.querySelector("img")?.getAttribute("alt") ?? ""));
   expect(names).toEqual(EMERGENTES);
-  await expect(page.locator("[data-cat] h2")).toHaveText("EMERGENTES");
+  await expect(page.locator("[data-cat] h2")).toHaveText("LA NUEVA OLA");
   await expect(
     page.locator("[data-cat] [data-cat-cell]", { hasText: "Inventario en camino" }),
   ).toHaveCount(1);

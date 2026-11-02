@@ -22,10 +22,11 @@
 .label {
   position: absolute;
   top: 2vw;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 
@@ -37,15 +38,29 @@
   right: 2vw;
 }
 
-/* Filas, slot, mirror y nombre comparten fuente: 500 F/1, tracking −.05em. */
+/* Filas en serif fina; slot, mirror y nombre en negrita condensada (misma altura de mayúsculas). */
 .row,
 .mirror,
 .name {
-  font-weight: 500;
   font-size: var(--f);
   line-height: 1;
-  letter-spacing: -0.05em;
   white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.row {
+  color: var(--black);
+  font-family: var(--font-serif-display);
+  font-weight: 400;
+  letter-spacing: var(--track-serif-display);
+}
+
+.mirror,
+.name,
+.sentText {
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  letter-spacing: var(--track-sans-bold);
 }
 
 .row {
@@ -74,20 +89,22 @@
   bottom: calc(100% + 5vh);
   left: 0;
   margin: 0;
-  font-weight: 400;
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: 0.28em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label-lg);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-align: center;
   text-transform: uppercase;
 }
 
-/* Corchetes: Inter 200 al tamaño F; el bucle los separa según el ancho del texto. */
+/* Corchetes: serif fina al tamaño F; el bucle los separa según el ancho del texto. */
 .bracket {
   position: absolute;
   top: 50%;
   left: 50%;
-  font-weight: 200;
+  font-family: var(--font-serif-display);
+  font-weight: 400;
   font-size: var(--f);
   line-height: 1;
   transform: translate(calc(var(--f) * 0.3), -50%);
@@ -148,14 +165,14 @@
   left: 12vw;
   box-sizing: border-box;
   height: 100%;
-  font-family: var(--font);
-  font-weight: 500;
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
   font-size: var(--f);
   line-height: 1;
-  letter-spacing: -0.05em;
+  letter-spacing: var(--track-sans-bold);
   text-align: center;
   text-transform: uppercase;
-  color: var(--ink);
+  color: var(--black);
   caret-color: transparent;
 }
 
@@ -184,18 +201,20 @@
 .instagramLabel {
   flex: none;
   width: 110px;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 
 .at,
 .instagramInput {
-  font-weight: 500;
-  font-size: 24px;
-  line-height: 1;
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: var(--lh-editorial);
 }
 
 .at {
@@ -206,11 +225,10 @@
   all: unset;
   flex: 1;
   min-width: 0;
-  font-family: var(--font);
-  font-weight: 500;
-  font-size: 24px;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: var(--lh-editorial);
   color: var(--ink);
 }
 
@@ -226,11 +244,11 @@
   align-items: center;
   padding: 18px 20px;
   border: 1px solid var(--ink);
-  font-family: var(--font);
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
   background: var(--paper);
   color: var(--grey-mute);
@@ -278,10 +296,11 @@
 
 .error {
   margin: 0;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1.4;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 
@@ -295,10 +314,8 @@
 }
 
 .sentText {
-  font-weight: 500;
   font-size: var(--f);
   line-height: 1;
-  letter-spacing: -0.05em;
   white-space: nowrap;
   text-transform: uppercase;
 }
@@ -316,10 +333,11 @@
 
 .thanksText {
   margin: 0;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
 

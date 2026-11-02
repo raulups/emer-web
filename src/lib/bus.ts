@@ -1,4 +1,12 @@
+import type { ExploraProduct } from "@/lib/explora-data";
 import type { Filters } from "@/lib/marketplace";
+
+/** Producto bajo el ratón en Explora y la caja de su foto (en pantalla) para colocar su detalle. */
+export type ProductPeekEvent = {
+  product: ExploraProduct;
+  brand: string;
+  rect: { left: number; top: number; width: number; height: number };
+};
 
 /** Eventos entre secciones (regla 11 de CLAUDE.md). */
 type Events = {
@@ -8,6 +16,8 @@ type Events = {
   "market:filters": Partial<Filters>;
   /** Llevar la vista hasta el formulario de Sugerir marca. */
   "suggest:open": null;
+  /** Detalle de un producto de Explora en hover (`null` al salir). */
+  "product:peek": ProductPeekEvent | null;
 };
 
 type Listener<K extends keyof Events> = (payload: Events[K]) => void;

@@ -33,23 +33,26 @@
 
 .label {
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 9px;
-  letter-spacing: 0.24em;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 .value {
   max-width: 100%;
   overflow: hidden;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-overflow: ellipsis;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
   text-transform: uppercase;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Con algo elegido el valor pasa a negrita y aparece una raya encima, como en el menú. */
+/* Con algo elegido aparece una raya encima, como en el menú, y el valor va subrayado. */
 .item {
   position: relative;
 }
@@ -72,7 +75,9 @@
 }
 
 .item[data-active] .value {
-  font-weight: var(--w-active);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 
 .columns {

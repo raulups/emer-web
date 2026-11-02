@@ -1,3 +1,4 @@
+import { DisplayTitle } from "@/components/ui/display-title";
 import { getExploraData } from "@/lib/explora-data";
 import { Explora } from "./explora";
 import styles from "./explora.module.css";
@@ -9,7 +10,12 @@ export async function ExploraSection() {
   if (!data) {
     return (
       <div className={styles.error} role="alert">
-        <h1 className={styles.errorTitle}>SIN CONEXIÓN</h1>
+        <DisplayTitle
+          as="h1"
+          lines={[["SIN", "*CONEXIÓN"]]}
+          className={styles.errorTitle}
+          play="load"
+        />
         <p className={styles.errorText}>
           No hemos podido cargar las marcas. Vuelve a intentarlo en un momento.
         </p>

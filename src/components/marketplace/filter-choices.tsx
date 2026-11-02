@@ -20,9 +20,7 @@ export function BracketChoice({ label, selected, onToggle }: BracketChoiceProps)
       <span className={styles.open} aria-hidden="true">
         [
       </span>
-      <span className={styles.label} data-text={label}>
-        {label}
-      </span>
+      <span className={styles.label}>{label}</span>
       <span className={styles.close} aria-hidden="true">
         ]
       </span>
@@ -57,9 +55,7 @@ export function ColorChoice({ name, hex, selected, onToggle }: ColorChoiceProps)
         style={{ "--swatch": hex, "--swatch-border": isLight(hex) ? "#000" : hex } as CSSProperties}
         aria-hidden="true"
       />
-      <span className={styles.label} data-text={name}>
-        {name}
-      </span>
+      <span className={styles.label}>{name}</span>
     </button>
   );
 }

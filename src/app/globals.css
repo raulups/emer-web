@@ -15,8 +15,6 @@
   --color-hairline-dark: var(--hairline-dark);
   --color-placeholder: var(--placeholder);
 
-  --font-sans: var(--font);
-
   --ease-out-expo: var(--ease-out-expo);
   --ease-load: var(--ease-load);
 
@@ -35,6 +33,7 @@
     color: var(--black);
     font-family: var(--font);
     font-weight: var(--w-text);
+    font-synthesis: none;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -88,6 +87,22 @@ html[data-slide]::view-transition-new(root) {
   animation-duration: 0.9s;
   animation-timing-function: var(--ease-out-expo);
   animation-fill-mode: both;
+}
+
+/* El cursor propio no se desliza con las vistas: se queda quieto donde está el ratón. */
+html::view-transition-group(cursor),
+html::view-transition-old(cursor),
+html::view-transition-new(cursor) {
+  animation: none;
+}
+
+html::view-transition-old(cursor) {
+  display: none;
+}
+
+/* La captura del cursor se mezcla igual que el cursor real (blanco en modo diferencia). */
+html::view-transition-new(cursor) {
+  mix-blend-mode: difference;
 }
 
 html[data-slide="forward"]::view-transition-old(root) {

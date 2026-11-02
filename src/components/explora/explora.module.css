@@ -19,18 +19,17 @@
 }
 
 .errorTitle {
-  margin: 0;
-  font-weight: var(--w-title);
-  font-size: min(7vw, 16vh);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
+  --display-size: min(9vw, 16vh);
 }
 
 .errorText {
   margin: 0;
-  color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 13px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
 }
 
 /* ---------- §4.1 Intro automática: MARCAS y DES / TA / CA / DOS → nombre de la 1.ª marca ---------- */
@@ -62,17 +61,18 @@
 
 /* Sin JS: arriba, como queda al acabar la intro. */
 .marcas {
-  font-weight: var(--w-title);
+  color: var(--black);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
   font-size: min(9vw, 30vh);
   line-height: var(--lh-title);
   letter-spacing: var(--track-title);
 }
 
 .marcasSub {
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
-  letter-spacing: -0.01em;
+  display: flex;
+  gap: 2.4em;
+  font-size: var(--t-label-lg);
 }
 
 .dest:has(.pop[data-live]) :is(.marcas, .marcasSub, .marcasLayer) {
@@ -94,8 +94,8 @@
 .introWord {
   font-weight: var(--w-title);
   font-size: min(9vw, 30vh);
-  line-height: var(--lh-title);
-  letter-spacing: var(--track-title);
+  line-height: var(--lh-display-serif);
+  letter-spacing: var(--track-serif-display);
 }
 
 /* La palabra entera, igual que los nombres de Destacados: el scramble acaba en el de la 1.ª marca. */
@@ -126,9 +126,11 @@
 
 /* ---------- §4.2 Populares ---------- */
 
+/* Se solapa una pantalla con la intro: su escena fija ya está arriba mientras se van DES/TA/CA/DOS
+   (sin fondo para no taparlas) y su contenido cae desde arriba al entrar (`data-in`). */
 .pop {
   position: relative;
-  background: var(--paper);
+  margin-top: -100vh;
 }
 
 /* `isolate`: sus capas (líneas, imagen) no asoman sobre Novedades durante la salida en parallax. */
@@ -169,10 +171,11 @@
   bottom: 53%;
   left: 0;
   padding-bottom: 3vh;
-  font-weight: var(--w-text);
-  font-size: min(5.6vw, 12vh);
-  line-height: 1;
-  letter-spacing: var(--track-name);
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: min(6.6vw, 14vh);
+  line-height: var(--lh-editorial);
+  letter-spacing: -0.01em;
   white-space: nowrap;
 }
 
@@ -205,6 +208,54 @@
 
 .pop[data-live] :is(.stage, .namesBase, .namesTop, .imTrack) {
   will-change: transform;
+}
+
+/* Hover en la foto: crece hacia arriba como un popup y vuelve a su sitio al salir. */
+.imWindow {
+  transform-origin: 50% 100%;
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.imWindow:hover {
+  z-index: 5;
+  outline: 1px solid var(--black);
+  transform: scale(1.5);
+}
+
+/* Destacados entra con MARCAS: todo cae desde arriba, en cascada. Al cambiar de marca las piezas
+   nuevas (otro `key`) repiten la caída. Solo el retraso usa los fotogramas de la animación
+   (`backwards`): al acabar manda el estilo normal (el popup de la foto sigue funcionando). */
+@keyframes drop {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+@media (scripting: enabled) {
+  .pop:not([data-in]) :is(.stage > :not(.products), .products > li) {
+    opacity: 0;
+  }
+
+  .pop[data-in] :is(.stage > :not(.products), .products > li) {
+    animation: drop 0.9s var(--ease-out-expo) backwards;
+  }
+
+  .pop[data-in] .stage > :nth-child(2) {
+    animation-delay: 0.05s;
+  }
+
+  .pop[data-in] :is(.names, .imWindow) {
+    animation-delay: 0.1s;
+  }
+
+  .pop[data-in] .info {
+    animation-delay: 0.18s;
+  }
+
+  .pop[data-in] .products > li {
+    animation-delay: calc(0.26s + var(--i, 0) * 0.08s);
+  }
 }
 
 /* Imagen de marca en la ventana 50–75 %, bajo la línea; una foto por marca, sincronizada. */
@@ -247,12 +298,13 @@
   max-width: min(30vw, 420px);
 }
 
+/* Cita de la marca: serif editorial fina. */
 .desc {
   margin: 0;
-  font-weight: var(--w-text);
-  font-size: clamp(15px, 1.3vw, 20px);
-  line-height: 1.3;
-  letter-spacing: -0.01em;
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: clamp(20px, 1.8vw, 30px);
+  line-height: var(--lh-editorial);
   text-wrap: pretty;
 }
 
@@ -335,9 +387,6 @@
 
 .productName {
   overflow: hidden;
-  font-weight: var(--w-text);
-  font-size: 11px;
-  line-height: 1.3;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -345,9 +394,6 @@
 .productPrice {
   margin-top: -4px;
   color: var(--grey-text);
-  font-weight: var(--w-text);
-  font-size: 11px;
-  line-height: 1;
 }
 
 .counter {
@@ -358,9 +404,6 @@
   gap: 14px;
   align-items: center;
   margin: 0;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1;
 }
 
 .counterNum {
@@ -421,9 +464,9 @@
   }
 
   .staticName {
-    font-weight: var(--w-text);
-    font-size: min(8vw, 12vh);
-    line-height: 1;
-    letter-spacing: var(--track-name);
+    font-family: var(--font-serif-editorial);
+    font-weight: 300;
+    font-size: min(9vw, 13vh);
+    line-height: var(--lh-editorial);
   }
 }

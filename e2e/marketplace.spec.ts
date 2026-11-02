@@ -314,7 +314,9 @@ test("en hover las etiquetas no cambian de tamaño", async ({ page }) => {
     .nth(1);
   const before = await label.boundingBox();
   await label.hover();
-  await expect(label).toHaveCSS("font-weight", "500");
+  // Geist Mono va siempre a 300: el hover se marca con el subrayado, no con el peso.
+  await expect(label).toHaveCSS("font-weight", "300");
+  await expect(label).not.toHaveCSS("text-decoration-color", "rgba(0, 0, 0, 0)");
   const after = await label.boundingBox();
   expect(after?.width).toBe(before?.width);
   expect(after?.height).toBe(before?.height);

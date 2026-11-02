@@ -1,6 +1,9 @@
 "use client";
 
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
+import { DisplayTitle } from "@/components/ui/display-title";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
@@ -8,9 +11,10 @@ import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./emergentes.module.css";
 import { NoStock } from "./no-stock";
+import { peekProps } from "./product-peek";
 
 /** Tope solo para pantallas enormes: por debajo manda el hueco libre. */
-const PRODUCT_MAX = 360;
+const PRODUCT_MAX = 560;
 const PRODUCT_MIN = 40;
 const PRODUCT_COUNT = 3;
 const PRODUCT_GAP = 10;
@@ -25,16 +29,21 @@ type CardProps = {
   brand: ExploraBrand;
   number: number;
   active: boolean;
+  selected: boolean;
   onEnter: () => void;
   onLeave: () => void;
+  onSelect: () => void;
   first?: boolean;
 };
 
-function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
+/** Tarjeta del carrusel: al pulsarla se selecciona (o se deselecciona si ya lo estaba). */
+function Card({ brand, number, active, selected, onEnter, onLeave, onSelect, first }: CardProps) {
   return (
-    <a
+    <button
+      type="button"
       className={styles.card}
       data-ea={first ? "" : undefined}
+      data-scramble-hover
       data-active={active || undefined}
       data-cursor-logo={brand.logo ?? undefined}
       href={brand.url ?? undefined}
@@ -55,11 +64,11 @@ function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
           className={styles.photoImage}
         />
       </span>
-      <span className={styles.caption}>
-        <span>{brand.name}</span>
-        <span>{pad(number, 2)}</span>
+      <span className={`${typo.label} ${styles.caption}`}>
+        <ScrambleText text={brand.name} view={false} />
+        <ScrambleText text={`B — ${pad(number, 2)}`} view={false} />
       </span>
-    </a>
+    </button>
   );
 }
 
@@ -77,9 +86,15 @@ type Props = {
  */
 export function Emergentes({ brands, near }: Props) {
   const [hovered, setHovered] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const columnA = brands.filter((_, i) => i % 2 === 0);
   const columnB = brands.filter((_, i) => i % 2 === 1);
-  const active = brands.find((b) => b.id === hovered) ?? columnA[near] ?? brands[0];
+  // La seleccionada manda (sus piezas se quedan a la derecha); si no, la del hover o la del centro.
+  const active =
+    brands.find((b) => b.id === selected) ??
+    brands.find((b) => b.id === hovered) ??
+    columnA[near] ??
+    brands[0];
   const activeNumber = active ? brands.indexOf(active) + 1 : 1;
 
   const block = useRef<HTMLDivElement>(null);
@@ -119,12 +134,14 @@ export function Emergentes({ brands, near }: Props) {
   if (!active) return null;
 
   const leave = () => setHovered(null);
+  const select = (id: string) => () => setSelected((prev) => (prev === id ? null : id));
   const showProducts = size >= PRODUCT_MIN;
 
   return (
     <section
       className={styles.er}
       data-er
+      data-scramble-in
       style={{ height: `${100 + ER_HOLD_VH + brands.length * ER_VH_PER_BRAND}vh` }}
       aria-label="Novedades"
     >
@@ -132,7 +149,7 @@ export function Emergentes({ brands, near }: Props) {
         <span className={styles.divider} data-ediv aria-hidden="true" />
         <span className={styles.hline} aria-hidden="true" />
 
-        <div className={styles.car} data-er-car>
+        <div className={styles.car} data-er-car data-selecting={selected ? "" : undefined}>
           <span className={styles.carLine} aria-hidden="true" />
           <div className={styles.colA} data-er-a>
             {columnA.map((brand, i) => (
@@ -141,9 +158,11 @@ export function Emergentes({ brands, near }: Props) {
                 brand={brand}
                 number={brands.indexOf(brand) + 1}
                 active={active.id === brand.id}
+                selected={selected === brand.id}
                 first={i === 0}
                 onEnter={() => setHovered(brand.id)}
                 onLeave={leave}
+                onSelect={select(brand.id)}
               />
             ))}
           </div>
@@ -154,28 +173,44 @@ export function Emergentes({ brands, near }: Props) {
                 brand={brand}
                 number={brands.indexOf(brand) + 1}
                 active={active.id === brand.id}
+                selected={selected === brand.id}
                 onEnter={() => setHovered(brand.id)}
                 onLeave={leave}
+                onSelect={select(brand.id)}
               />
             ))}
           </div>
         </div>
 
-        <h2 className={styles.title}>NOVEDADES</h2>
+        <div className={styles.head}>
+          <p className={`${typo.label} ${styles.kicker}`}>
+            <ScrambleText text="A — 3" onIn />
+            <ScrambleText text="Novedades" onIn />
+            <ScrambleText text={`${pad(brands.length, 2)} marcas`} onIn />
+          </p>
+          <DisplayTitle
+            lines={[
+              ["LO", "*NUEVO"],
+              ["EN", "*EMER"],
+            ]}
+            className={styles.title}
+          />
+        </div>
         <div ref={block} className={styles.block}>
           <p ref={text} className={styles.text}>
-            Las últimas marcas en llegar a EMER. Baja para recorrerlas.
+            <ScrambleText
+              text="Las últimas marcas en llegar a EMER. Pulsa una foto para quedarte con sus piezas."
+              hover={false}
+              onIn
+            />
           </p>
           <div ref={info} className={styles.info} data-er-info>
-            <span
-              className={styles.name}
-              style={{ "--len": Math.max(8, active.name.length) } as CSSProperties}
-            >
-              {active.name}
-            </span>
-            <span className={styles.meta}>
-              Desde {active.foundedYear ?? "—"} · {active.count} piezas
-            </span>
+            <span className="sr-only">{active.name}</span>
+            <ScrambleText
+              text={`Desde ${active.foundedYear ?? "—"} · ${active.count} piezas`}
+              view={false}
+              className={`${typo.label} ${styles.meta}`}
+            />
             <div
               className={styles.products}
               data-er-products
@@ -183,7 +218,11 @@ export function Emergentes({ brands, near }: Props) {
             >
               {hasProducts && showProducts ? (
                 products.map((product) => (
-                  <span key={product.id} className={styles.product}>
+                  <span
+                    key={product.id}
+                    className={styles.product}
+                    {...peekProps(product, active.name)}
+                  >
                     <span className={styles.productPhoto}>
                       <BrandImage
                         sources={product.image ? [product.image] : []}
@@ -194,17 +233,26 @@ export function Emergentes({ brands, near }: Props) {
                         className={styles.productImage}
                       />
                     </span>
-                    <span className={styles.productPrice}>{price(product.price)}</span>
+                    <ScrambleText
+                      text={price(product.price)}
+                      className={`${typo.label} ${styles.productPrice}`}
+                    />
                   </span>
                 ))
               ) : !hasProducts ? (
-                <NoStock />
+                <NoStock key={active.id} />
               ) : null}
             </div>
             <BrandActions brand={active} />
           </div>
-          <p className={styles.count} aria-live="polite">
+          <p className="sr-only" aria-live="polite">
             {pad(activeNumber, 2)} / {pad(brands.length, 2)}
+          </p>
+          <p className={`${typo.labelLg} ${styles.count}`} aria-hidden="true">
+            <ScrambleText
+              text={`B — ${pad(activeNumber, 2)} / ${pad(brands.length, 2)}`}
+              view={false}
+            />
           </p>
         </div>
       </div>

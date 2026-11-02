@@ -1,8 +1,14 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import Link from "next/link";
+import { type CSSProperties, type MouseEvent, useState } from "react";
+import { DisplayTitle } from "@/components/ui/display-title";
+import { ScrambleText } from "@/components/ui/scramble-text";
+import typo from "@/components/ui/type.module.css";
+import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
+import { pad } from "@/lib/motion/math";
 import { BrandImage } from "./brand-image";
 import { NoStock } from "./no-stock";
 import styles from "./novedades.module.css";
@@ -13,6 +19,15 @@ function arrival(iso: string): string {
 }
 
 type Props = { newest: readonly ExploraBrand[] };
+
+/** «Ver productos»: el Marketplace filtrado por la marca, sin salir del Shell (como «Ver marca»). */
+const openMarketplace = (id: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+    return;
+  event.preventDefault();
+  bus.emit("market:filters", { brands: [id] });
+  bus.emit("view", "market");
+};
 
 /**
  * §4.3: Novedades con fondo negro. Título sticky a la izquierda, lista de marcas por `created_at`
@@ -28,6 +43,7 @@ export function Novedades({ newest }: Props) {
     <section
       className={styles.nv}
       data-nv
+      data-scramble-in
       onMouseLeave={() => setHovered(null)}
       aria-label="Populares"
     >
@@ -36,9 +52,20 @@ export function Novedades({ newest }: Props) {
           <div className={styles.panel}>
             <span className={styles.vline} aria-hidden="true" />
             <span className={styles.hline} aria-hidden="true" />
-            <h2 className={styles.title}>POPULARES</h2>
+            <div className={styles.head}>
+              <p className={`${typo.label} ${styles.kicker}`}>
+                <ScrambleText text="A — 2" onIn />
+                <ScrambleText text="Populares" onIn />
+                <ScrambleText text={`${pad(newest.length, 2)} marcas`} onIn />
+              </p>
+              <DisplayTitle lines={[["LAS", "MÁS"], ["*POPULARES"]]} className={styles.title} />
+            </div>
             <p className={styles.text}>
-              Las últimas marcas en llegar a EMER. Pasa por encima de un nombre para verla.
+              <ScrambleText
+                text="Las marcas que más se mueven en EMER. Pasa por encima de un nombre para verla."
+                hover={false}
+                onIn
+              />
             </p>
 
             <div className={styles.preview} data-on={brand ? "" : undefined} aria-hidden="true">
@@ -70,8 +97,12 @@ export function Novedades({ newest }: Props) {
                           />
                         </span>
                         <span className={styles.previewMeta}>
-                          <span className={styles.previewName}>{product.name}</span>
-                          <span className={styles.previewPrice}>{price(product.price)}</span>
+                          <span className={`${typo.label} ${styles.previewName}`}>
+                            {product.name}
+                          </span>
+                          <span className={`${typo.label} ${styles.previewPrice}`}>
+                            {price(product.price)}
+                          </span>
                         </span>
                       </li>
                     ))}
@@ -95,7 +126,8 @@ export function Novedades({ newest }: Props) {
               className={styles.rowWrap}
               style={{ "--delay": `${300 + i * 110}ms` } as CSSProperties}
             >
-              <a
+              {/* biome-ignore lint/a11y/noStaticElementInteractions: el hover solo es visual; el foco llega de su enlace */}
+              <div
                 className={styles.row}
                 data-nv-row
                 data-cursor-logo={item.logo ?? undefined}
@@ -107,14 +139,23 @@ export function Novedades({ newest }: Props) {
                 onFocus={() => setHovered(i)}
                 onBlur={() => setHovered(null)}
               >
-                <span className={styles.rowName}>{item.name}</span>
+                <span className={`${typo.editorial} ${styles.rowName}`}>{item.name}</span>
                 <span className={styles.plus} aria-hidden="true">
                   +
                 </span>
-                <span className={styles.rowMeta}>
-                  Llegó el {arrival(item.createdAt)} · {item.count} piezas
-                </span>
-              </a>
+                <ScrambleText
+                  text={`${pad(i + 1, 2)} — Llegó el ${arrival(item.createdAt)} · ${item.count} piezas`}
+                  className={`${typo.label} ${styles.rowMeta}`}
+                />
+                <Link
+                  className={`${typo.label} ${styles.cta}`}
+                  href={`/marketplace?brand=${item.id}`}
+                  onClick={openMarketplace(item.id)}
+                >
+                  <ScrambleText text="Ver productos" view={false} />
+                  <span className="sr-only"> de {item.name}</span>
+                </Link>
+              </div>
             </li>
           ))}
         </ul>

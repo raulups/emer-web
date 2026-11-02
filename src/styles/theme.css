@@ -1,11 +1,51 @@
 /*
  * Tokens de EMER (design_handoff_emer_web/README.md → Design Tokens).
- * Una sola familia: Inter variable, autoalojada. Titulares muy gordos, el resto muy fino.
+ * Inter variable para la web. Explora usa además la jerarquía editorial (signal-a.studio):
+ * etiquetas en Geist Mono 300, titulares en Instrument Serif + TeX Gyre Heros Condensed Bold
+ * mezcladas en la misma línea y nombres en Cormorant Garamond 300.
  */
 
 @font-face {
   font-family: "Inter";
-  src: url("../fonts/Inter.woff2") format("woff2");
+  src:
+    url("../fonts/Inter.woff2") format("woff2-variations"),
+    url("../fonts/Inter.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src:
+    url("../fonts/GeistMono-VariableFont_wght.woff2") format("woff2-variations"),
+    url("../fonts/GeistMono-VariableFont_wght.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../fonts/InstrumentSerif-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "TeX Gyre Heros Condensed";
+  src: url("../fonts/TeXGyreHerosCondensed-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  src:
+    url("../fonts/CormorantGaramond-VariableFont_wght.woff2") format("woff2-variations"),
+    url("../fonts/CormorantGaramond-VariableFont_wght.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -31,7 +71,12 @@
   --link-hover: #3f3f3f;
 
   /* Tipografía */
-  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Inter", Helvetica, Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-serif-display: "Instrument Serif", "Times New Roman", serif;
+  --font-sans-bold: "TeX Gyre Heros Condensed", Helvetica, Arial, sans-serif;
+  --font-serif-editorial: "Cormorant Garamond", "Times New Roman", serif;
+  --font: var(--font-sans);
   --w-display: 900;
   --w-title: 800;
   --w-text: 300;
@@ -43,6 +88,18 @@
   --track-name: -0.035em;
   --lh-display: 0.8;
   --lh-title: 0.84;
+
+  /* Jerarquía editorial (Explora) */
+  --t-label: 12px;
+  --t-label-lg: 14px;
+  --track-label: 0.02em;
+  --lh-label: 1.2;
+  --t-display: clamp(48px, 9vw, 160px);
+  --t-display-half: min(clamp(40px, 7.4vw, 132px), 15vh);
+  --lh-display-serif: 0.9;
+  --track-serif-display: -0.01em;
+  --track-sans-bold: -0.02em;
+  --lh-editorial: 1;
 
   /* Movimiento */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);

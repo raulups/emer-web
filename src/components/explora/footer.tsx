@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import type { MouseEvent, ReactNode } from "react";
+import { ScrambleText } from "@/components/ui/scramble-text";
 import { bus } from "@/lib/bus";
 import styles from "./footer.module.css";
 
@@ -108,15 +109,16 @@ export function Footer() {
         <nav className={styles.door} aria-label="Pie de página">
           {COLUMNS.map((column) => (
             <div key={column.title} className={styles.column}>
-              <span className={styles.title}>{column.title}</span>
+              <ScrambleText text={column.title} className={styles.title} />
               {column.items.map((item) => (
                 <a
                   key={item.label}
                   className={styles.link}
                   href={item.href}
                   onClick={item.onClick && run(item.onClick)}
+                  data-scramble-hover
                 >
-                  {item.label}
+                  <ScrambleText text={item.label} view={false} />
                 </a>
               ))}
             </div>

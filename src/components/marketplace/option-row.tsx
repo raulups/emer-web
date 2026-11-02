@@ -42,9 +42,7 @@ export function OptionRow({
       onMouseLeave={onMouseLeave}
     >
       <span className={styles.line} aria-hidden="true" />
-      <span className={styles.label} data-text={label}>
-        {label}
-      </span>
+      <span className={styles.label}>{label}</span>
       {count !== undefined && (
         <span className={styles.count}>
           <span className="sr-only">, </span>
