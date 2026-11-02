@@ -93,6 +93,7 @@ export function Catalogo({ brands }: Props) {
                       key={brand.id}
                       className={styles.cell}
                       data-cat-cell
+                      data-cursor-logo={brand.logo ?? undefined}
                       style={{ "--grow": height } as CSSProperties}
                       data-first={first || undefined}
                       data-on={on || undefined}
@@ -104,7 +105,7 @@ export function Catalogo({ brands }: Props) {
                     >
                       <span className={styles.frame}>
                         <BrandImage
-                          sources={brand.sources}
+                          sources={brand.portrait}
                           alt={brand.name}
                           width={480}
                           height={640}

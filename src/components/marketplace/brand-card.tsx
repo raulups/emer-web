@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { BrandLogo } from "@/components/ui/brand-logo";
 import type { Brand } from "@/lib/data";
-import { brandImage } from "@/lib/format";
+import { portraitSources } from "@/lib/format";
 import { sizedImage } from "@/lib/marketplace";
 import styles from "./brand-card.module.css";
 
@@ -13,12 +13,12 @@ const IMAGE_WIDTH = 380;
 /**
  * Ficha de marca bajo FILTROS: imagen 4:5, logo en caja de 64×40 (recortado y con el mismo peso
  * visual en todas las marcas: `BrandLogo`), nombre y «estilo · año».
- * Si la imagen de la marca falla, usa la del primer producto.
+ * Imagen vertical (`img_mobile`; si falta, `img_desktop`). Si falla, usa la del primer producto.
  */
 export function BrandCard({ brand }: { brand: Brand }) {
   const [failed, setFailed] = useState<ReadonlySet<string>>(new Set());
   const fallback = brand.preview_products[0]?.main_image_url ?? null;
-  const src = failed.has(brand.id) ? fallback : brandImage(brand, fallback);
+  const src = failed.has(brand.id) ? fallback : (portraitSources(brand, fallback)[0] ?? null);
   const meta = [brand.style, brand.founded_year].filter(Boolean).join(" · ");
 
   return (
@@ -36,7 +36,9 @@ export function BrandCard({ brand }: { brand: Brand }) {
             onError={() => setFailed((prev) => new Set(prev).add(brand.id))}
           />
         )}
-        {brand.logo && <BrandLogo src={brand.logo} width={54} height={30} className={styles.logo} />}
+        {brand.logo && (
+          <BrandLogo src={brand.logo} width={54} height={30} className={styles.logo} />
+        )}
       </div>
       <figcaption className={styles.caption}>
         <span className={styles.name}>{brand.name}</span>

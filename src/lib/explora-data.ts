@@ -1,6 +1,6 @@
 import { type Brand, getBrandProducts, getBrands } from "@/lib/data";
 import { type ExploraSection, sectionsOf } from "@/lib/explora-tags";
-import { emergentBrands, newestBrands, popularBrands } from "@/lib/format";
+import { emergentBrands, newestBrands, popularBrands, portraitSources } from "@/lib/format";
 
 /** Piezas por marca: Destacados elige cuántas caben; las demás secciones enseñan hasta 3. */
 export const BRAND_PRODUCTS = 3;
@@ -18,8 +18,10 @@ export type ExploraBrand = {
   id: string;
   name: string;
   url: string | null;
-  /** Imagen de la marca y, por si falla, la de su primer producto. */
-  sources: string[];
+  /** Imagen vertical de la marca (`img_mobile`; si falta, `img_desktop`) y, por si falla, la de su primer producto. */
+  portrait: string[];
+  /** Logo de la marca: es el cursor al pasar por encima (`data-cursor-logo`). */
+  logo: string | null;
   style: string | null;
   /** Texto de la marca (aún no llega del backend). */
   description: string | null;
@@ -57,7 +59,8 @@ function fromPreview(brand: Brand): ExploraBrand {
     id: brand.id,
     name: brand.name,
     url: brand.url,
-    sources: [brand.img, products[0]?.image].filter((src): src is string => Boolean(src)),
+    portrait: portraitSources(brand, products[0]?.image),
+    logo: brand.logo,
     style: brand.style,
     description: brand.description,
     tags: brand.tags,

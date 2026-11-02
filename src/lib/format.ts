@@ -10,7 +10,7 @@ type Priced = {
 
 type Dated = { name: string; created_at: string; founded_year: number | null };
 type Counted = { name: string; product_count: number };
-type Imaged = { img: string | null };
+type Imaged = { img_desktop: string | null; img_mobile: string | null };
 
 /** `34 €` / `25,60 €`; `—` si no hay precio. */
 export function price(value: number | null | undefined): string {
@@ -48,10 +48,15 @@ export function emergentBrands<T extends Dated>(brands: readonly T[]): T[] {
   );
 }
 
-/** Imagen de marca; si falta, el `main_image_url` del primer producto de la marca. */
-export function brandImage(
+/**
+ * Imágenes de marca por orden de preferencia, siempre en vertical: `img_mobile` (en cualquier
+ * pantalla); si falta, `img_desktop`; y si falla, el `main_image_url` del primer producto.
+ */
+export function portraitSources(
   brand: Imaged,
   firstProductImage: string | null | undefined,
-): string | null {
-  return brand.img || firstProductImage || null;
+): string[] {
+  return [brand.img_mobile || brand.img_desktop, firstProductImage].filter((src): src is string =>
+    Boolean(src),
+  );
 }

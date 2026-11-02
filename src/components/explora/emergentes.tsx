@@ -36,6 +36,7 @@ function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
       className={styles.card}
       data-ea={first ? "" : undefined}
       data-active={active || undefined}
+      data-cursor-logo={brand.logo ?? undefined}
       href={brand.url ?? undefined}
       target="_blank"
       rel="noopener"
@@ -46,7 +47,7 @@ function Card({ brand, number, active, onEnter, onLeave, first }: CardProps) {
     >
       <span className={styles.photo}>
         <BrandImage
-          sources={brand.sources}
+          sources={brand.portrait}
           alt={brand.name}
           width={360}
           height={480}

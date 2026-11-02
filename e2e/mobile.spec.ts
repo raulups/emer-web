@@ -27,7 +27,7 @@ test.describe("móvil", () => {
     await expect(page.getByRole("heading", { name: "Marketplace", level: 1 })).toBeAttached();
     await expect(page.getByRole("navigation", { name: "Vista" })).toHaveCount(0);
     await expect(page.getByRole("button", { name: "Explora" })).toHaveCount(0);
-    await expect(page.locator("[data-intro]")).toHaveCount(0);
+    await expect(page.locator("[data-dest]")).toHaveCount(0);
   });
 
   test("cabecera [ MARKETPLACE ] arriba al centro y barra inferior sin menú lateral", async ({
@@ -296,7 +296,7 @@ test.describe("escritorio sin cambios", () => {
   test("ni aviso ni redirección: Landing en / y switch en /web", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL("/");
-    await expect(page.locator("[data-intro-count]")).toBeAttached();
+    await expect(page.locator("[data-cnt-number]")).toBeAttached();
     await page.goto("/web");
     await expect(page.getByRole("navigation", { name: "Vista" })).toBeVisible();
     await expect(page.locator("dialog")).toHaveCount(0);
@@ -327,7 +327,7 @@ test.describe("ventana estrecha de escritorio y tablet", () => {
       const page = await context.newPage();
       await page.goto("/");
       await expect(page).toHaveURL("/");
-      await expect(page.locator("[data-intro-count]")).toBeAttached();
+      await expect(page.locator("[data-cnt-number]")).toBeAttached();
       await page.goto("/web");
       await expect(page.getByRole("navigation", { name: "Vista" })).toBeVisible();
       await expect(page.locator("dialog")).toHaveCount(0);

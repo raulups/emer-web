@@ -80,24 +80,86 @@ const ALL_COLORS = [...COLORS, ...EXTRA_COLORS];
 const PRICES = [19, 25.5, 45, 64.9, 89, 120, 34.99, 55];
 const SIZE_LABELS = ["S", "M", "L", "XL"];
 
-type FixtureBrand = { id: string; name: string; products: number; img: string | null };
+type FixtureBrand = {
+  id: string;
+  name: string;
+  products: number;
+  /** `img_desktop` (horizontal) e `img_mobile` (vertical); alguna marca trae solo una, o ninguna. */
+  desktop: string | null;
+  mobile: string | null;
+};
 
 const BRANDS: FixtureBrand[] = [
-  { id: "0208bdca-c705-491b-82fa-76123232670b", name: "Satenier", products: 12, img: image(0) },
-  { id: "30995220-a71b-416a-8123-63e9b0037919", name: "Scuffers", products: 10, img: image(1) },
-  { id: "5b7e7f3a-1c0d-4a8e-9b1f-2d3c4e5f6a7b", name: "Nocturna", products: 8, img: image(2) },
+  {
+    id: "0208bdca-c705-491b-82fa-76123232670b",
+    name: "Satenier",
+    products: 12,
+    desktop: image(0),
+    mobile: image(1),
+  },
+  {
+    id: "30995220-a71b-416a-8123-63e9b0037919",
+    name: "Scuffers",
+    products: 10,
+    desktop: image(1),
+    mobile: image(2),
+  },
+  {
+    id: "5b7e7f3a-1c0d-4a8e-9b1f-2d3c4e5f6a7b",
+    name: "Nocturna",
+    products: 8,
+    desktop: image(2),
+    mobile: image(3),
+  },
   {
     id: "6c8f8a4b-2d1e-4b9f-8c2a-3e4d5f6a7b8c",
     name: "Imagen Rota",
     products: 2,
-    img: "/assets/no-existe.png",
+    desktop: "/assets/no-existe.png",
+    mobile: "/assets/no-existe-movil.png",
   },
-  { id: "7d9a9b5c-3e2f-4ca0-9d3b-4f5e6a7b8c9d", name: "Bajo Cero", products: 0, img: image(3) },
-  { id: "8e0bac6d-4f3a-4db1-8e4c-5a6b7c8d9e0f", name: "Solar Club", products: 6, img: image(4) },
-  { id: "9f1cbd7e-5a4b-4ec2-9f5d-6b7c8d9e0f1a", name: "Ruido", products: 4, img: image(5) },
-  { id: "a02dce8f-6b5c-4fd3-8a6e-7c8d9e0f1a2b", name: "Calma", products: 3, img: null },
-  { id: "b13edf90-7c6d-4fe4-9b7f-8d9e0f1a2b3c", name: "Marea", products: 2, img: image(6) },
-  { id: "c24fe0a1-8d7e-4af5-8c80-9e0f1a2b3c4d", name: "Tinta", products: 2, img: image(7) },
+  {
+    id: "7d9a9b5c-3e2f-4ca0-9d3b-4f5e6a7b8c9d",
+    name: "Bajo Cero",
+    products: 0,
+    desktop: image(3),
+    mobile: image(4),
+  },
+  {
+    id: "8e0bac6d-4f3a-4db1-8e4c-5a6b7c8d9e0f",
+    name: "Solar Club",
+    products: 6,
+    desktop: image(4),
+    mobile: image(5),
+  },
+  {
+    id: "9f1cbd7e-5a4b-4ec2-9f5d-6b7c8d9e0f1a",
+    name: "Ruido",
+    products: 4,
+    desktop: image(5),
+    mobile: null,
+  },
+  {
+    id: "a02dce8f-6b5c-4fd3-8a6e-7c8d9e0f1a2b",
+    name: "Calma",
+    products: 3,
+    desktop: null,
+    mobile: null,
+  },
+  {
+    id: "b13edf90-7c6d-4fe4-9b7f-8d9e0f1a2b3c",
+    name: "Marea",
+    products: 2,
+    desktop: null,
+    mobile: image(6),
+  },
+  {
+    id: "c24fe0a1-8d7e-4af5-8c80-9e0f1a2b3c4d",
+    name: "Tinta",
+    products: 2,
+    desktop: image(7),
+    mobile: image(0),
+  },
 ];
 
 const productId = (b: number, i: number) =>
@@ -175,7 +237,8 @@ const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
     id: brand.id,
     name: brand.name,
     url: `https://${brand.name.toLowerCase().replace(/\s+/g, "")}.example`,
-    img: brand.img,
+    img_desktop: brand.desktop,
+    img_mobile: brand.mobile,
     logo: b % 3 === 0 ? image(b + 2) : null,
     color: null,
     ...(TAGS[brand.name] ? { tags: TAGS[brand.name] } : {}),

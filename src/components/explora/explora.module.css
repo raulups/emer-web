@@ -33,7 +33,7 @@
   font-size: 13px;
 }
 
-/* ---------- §4.1 Intro: MARCAS fija y DES / TA / CA / DOS en escalera ---------- */
+/* ---------- §4.1 Intro automática: MARCAS y DES / TA / CA / DOS → nombre de la 1.ª marca ---------- */
 
 /* Intro + Destacados. `isolate`: la capa de MARCAS no asoma sobre Populares (que va encima). */
 .dest {
@@ -41,7 +41,7 @@
   isolation: isolate;
 }
 
-/* Capa fija durante la intro y Destacados; el bucle mueve MARCAS del centro a arriba. */
+/* Capa fija sobre Destacados; el bucle mueve MARCAS del centro a arriba durante la intro. */
 .marcasLayer {
   position: sticky;
   top: 0;
@@ -60,13 +60,12 @@
   transform-origin: 0 0;
 }
 
-/* Sin JS: centrada, como al empezar. */
+/* Sin JS: arriba, como queda al acabar la intro. */
 .marcas {
   font-weight: var(--w-title);
   font-size: min(9vw, 30vh);
   line-height: var(--lh-title);
   letter-spacing: var(--track-title);
-  transform: translateY(calc(50vh - 50%));
 }
 
 .marcasSub {
@@ -76,66 +75,53 @@
   letter-spacing: -0.01em;
 }
 
-.dest:has(.intro[data-live], .pop[data-live]) :is(.marcas, .marcasSub, .marcasLayer) {
+.dest:has(.pop[data-live]) :is(.marcas, .marcasSub, .marcasLayer) {
   will-change: transform;
 }
 
-.intro {
-  position: relative;
-  overflow-x: clip;
-  background: var(--paper);
-}
-
-/* Cuadrícula 2×2 sticky: queda detrás de todo el recorrido de la intro. */
-.grid {
-  position: sticky;
-  top: 0;
-  z-index: 0;
-  height: 100vh;
-  margin-bottom: -100vh;
-  pointer-events: none;
-}
-
-.gridV,
-.lineV,
-.lineH {
+/* Sílabas: bajan en escalera (columna) y pasan a fila (al tamaño de los nombres). Las mueve el bucle. */
+.introWord,
+.introName {
   position: absolute;
-  background: var(--hairline);
-}
-
-.gridV {
   top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
+  left: 0;
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 0;
+  transform-origin: 0 0;
 }
 
-.introRow {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+.introWord {
   font-weight: var(--w-title);
   font-size: min(9vw, 30vh);
   line-height: var(--lh-title);
   letter-spacing: var(--track-title);
 }
 
-/* Empiezan bajo el pliegue; DOS acaba a la altura de MARCAS (padding-bottom .42em). */
-.introWords {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12em;
-  padding: 100vh 0 0.42em 1vw;
-  white-space: nowrap;
+/* La palabra entera, igual que los nombres de Destacados: el scramble acaba en el de la 1.ª marca. */
+.introName {
+  color: var(--ink);
+  font-weight: var(--w-text);
+  font-size: min(5.6vw, 12vh);
+  letter-spacing: var(--track-name);
 }
 
-.introWord {
-  display: block;
+.dest[data-intro-on] :is(.introWord, .introName) {
+  will-change: transform, opacity;
 }
 
-.intro[data-live] .introWord {
-  will-change: transform;
+/* Al acabar la intro, la palabra se funde con el nombre real (que está debajo). */
+.dest:not([data-intro-on]) .introName {
+  transition: opacity 0.5s linear;
+}
+
+/* Durante la intro la escena de Destacados espera oculta; se descubre al acabar. */
+.dest[data-intro-on] .stage > * {
+  opacity: 0;
+}
+
+.dest:not([data-intro-on]) .stage > * {
+  transition: opacity 0.6s linear;
 }
 
 /* ---------- §4.2 Populares ---------- */
@@ -152,6 +138,12 @@
   isolation: isolate;
   height: 100vh;
   overflow: hidden;
+}
+
+.lineV,
+.lineH {
+  position: absolute;
+  background: var(--hairline);
 }
 
 .lineV {
@@ -390,8 +382,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .grid,
-  .pop {
+  .pop,
+  .introWord,
+  .introName {
     display: none;
   }
 
@@ -409,10 +402,6 @@
   .marcasSub {
     position: static;
     transform: none;
-  }
-
-  .introWords {
-    padding-top: 12vh;
   }
 
   .staticList {

@@ -8,7 +8,7 @@ import type { ExploraData } from "@/lib/explora-data";
 import { clamp01, easeInOutCubic, easeInOutQuad } from "@/lib/motion/math";
 import { followScroll, getLenis, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
-import { write } from "@/lib/motion/write";
+import { write, writeText } from "@/lib/motion/write";
 import { BrandActions } from "./brand-actions";
 import { Catalogo } from "./catalogo";
 import { Emergentes, ER_HOLD_VH } from "./emergentes";
@@ -23,6 +23,32 @@ import { SuggestBrand } from "./suggest-brand";
 gsap.registerPlugin(useGSAP);
 
 const INTRO_WORDS = ["DES", "TA", "CA", "DOS"] as const;
+const INTRO_TEXT = INTRO_WORDS.join("");
+
+/**
+ * Intro automática (s desde que se monta Explora). Es la escalera de la intro original, invertida:
+ * la columna DES / TA / CA / DOS baja desde arriba y cada sílaba se desplaza a la derecha t²·0.4·vw
+ * según lo que le falta para el centro, así que se alinean al llegar (DES a la altura de MARCAS).
+ * Después pasan a una fila (DESTACADOS, al tamaño de los nombres y en el sitio de la primera marca)
+ * mientras MARCAS sube, la palabra se «desordena» hasta el nombre de la primera marca y se descubre
+ * Destacados. Cualquier rueda, tecla o clic la termina.
+ */
+const INTRO = {
+  /** Bajada de la columna. */
+  fallS: 1.6,
+  /** De columna a fila (y MARCAS arriba). */
+  formAt: 1.75,
+  formS: 0.9,
+  /** Scramble: empieza, retardo por letra y lo que tarda cada letra en fijarse. */
+  scrambleAt: 2.7,
+  scrambleStagger: 0.06,
+  scrambleS: 0.45,
+  /** Cada cuánto cambia el carácter aleatorio (s). */
+  scrambleTick: 0.05,
+  /** Pausa con el nombre ya fijo antes de descubrir la escena. */
+  holdS: 0.3,
+} as const;
+const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*/";
 
 /**
  * Secciones que [ SALTAR ] lleva a su final, en orden de scroll (por posición: 1.ª `Populares`,
@@ -68,7 +94,8 @@ export function Explora({ data }: Props) {
       const one = <T extends HTMLElement>(name: string) =>
         el.querySelector<T>(`[data-${name}]`) ??
         (document.createElement("div") as HTMLElement as T);
-      const intro = one("intro");
+      const dest = one("dest");
+      const introName = one("intro-name");
       const marcasLayer = one("marcas-layer");
       const marcas = one("marcas");
       const marcasSub = one("marcas-sub");
@@ -114,14 +141,22 @@ export function Explora({ data }: Props) {
         let vh = 0;
         let stageW = 0;
         let winW = 0;
-        const box = { intro: [0, 0], pop: [0, 1], nv: [0, 0], er: [0, 1] } as Record<
-          "intro" | "pop" | "nv" | "er",
+        const box = { pop: [0, 1], nv: [0, 0], er: [0, 1] } as Record<
+          "pop" | "nv" | "er",
           [number, number]
         >;
         let spacerTop = 0;
         let spacerH = 1;
         let rowCenters: number[] = [];
-        let wordCenters: number[] = [];
+        // Intro: sílabas (alto y ancho de cada una) y sitio y escala de la primera marca.
+        let wordH = 1;
+        let wordW: number[] = [];
+        let wordGap = 0;
+        let wordDy = 0;
+        let colX = 0;
+        let nameK = 1;
+        let nameX = 0;
+        let nameY = 0;
         let offsets: number[] = [];
         let tile = 1;
         let pinTop = 0;
@@ -154,7 +189,6 @@ export function Explora({ data }: Props) {
           const pull = Math.round(Math.max(0, Math.min(vh, listEnd - nvTop - vh * 0.6)));
           const pullMargin = pull > 0 ? `${-pull}px` : "";
           if (spacer.style.marginTop !== pullMargin) spacer.style.marginTop = pullMargin;
-          box.intro = [docTop(intro, scroll), intro.offsetHeight];
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
@@ -167,7 +201,6 @@ export function Explora({ data }: Props) {
             const rect = node.getBoundingClientRect();
             return rect.top + scroll + rect.height / 2;
           };
-          wordCenters = words.map(center);
           rowCenters = rows.map(center);
           marcasH = marcas.offsetHeight;
           marcasTop = Math.max(84, vh * 0.09);
@@ -183,9 +216,25 @@ export function Explora({ data }: Props) {
               : vh;
           // `offsetLeft` de cada nombre respecto a la pista (ambos se mueven juntos con el transform).
           const base = nmBase.getBoundingClientRect().left;
-          offsets = [...nmBase.querySelectorAll<HTMLElement>("[data-nm]")].map(
-            (name) => name.getBoundingClientRect().left - base,
-          );
+          const nameNodes = [...nmBase.querySelectorAll<HTMLElement>("[data-nm]")];
+          offsets = nameNodes.map((name) => name.getBoundingClientRect().left - base);
+          // Intro: la palabra acaba donde está la primera marca con la escena arriba (borde
+          // izquierdo en la línea del 50 %) y con el tamaño de los nombres.
+          const layer = marcasLayer.getBoundingClientRect();
+          const fontPx = (node: HTMLElement | undefined) =>
+            node ? Number.parseFloat(getComputedStyle(node).fontSize) || 1 : 1;
+          wordH = words[0]?.offsetHeight || 1;
+          wordGap = fontPx(words[0]) * 0.12;
+          wordW = words.map((word) => word.offsetWidth);
+          nameK = fontPx(introName) / fontPx(words[0]);
+          const first = nameNodes[0]?.getBoundingClientRect();
+          colX = stage.getBoundingClientRect().left - layer.left + stageW * 0.5;
+          nameX = colX;
+          // Las sílabas tienen el interlineado de los títulos y el nombre el de los nombres: se
+          // centran en su línea para que la letra caiga en el mismo sitio.
+          nameY = (first?.top ?? 0) - layer.top;
+          wordDy = (introName.offsetHeight - wordH * nameK) / 2;
+          colX += window.innerWidth * 0.01;
           // Destacados acaba cuando Populares llega arriba; Populares, con la transición completa
           // (q = 1); Novedades, al acabar el fundido a Emergentes; Emergentes, al acabar su pista.
           const last = document.documentElement.scrollHeight - vh;
@@ -198,7 +247,7 @@ export function Explora({ data }: Props) {
             [],
           );
           starts = {
-            destacados: box.intro[0],
+            destacados: box.pop[0],
             populares: box.nv[0],
             novedades: spacerTop + spacerH - vh,
             emergentes: shown,
@@ -266,28 +315,113 @@ export function Explora({ data }: Props) {
         const live = (node: HTMLElement, from: number, height: number) =>
           node.toggleAttribute("data-live", s > from - vh && s < from + height);
 
-        const frame: Tick = (_time, deltaMs) => {
+        // ---- Intro automática (ver INTRO) ----
+        const brandName = el.querySelector("[data-nm-base] [data-nm]")?.textContent ?? "";
+        let introOn = words.length > 0 && brandName !== "";
+        let introT0 = -1;
+        let introSkip = false;
+        // MARCAS: 0 = centrada (al empezar la intro), 1 = arriba, sobre los nombres.
+        let marcasM = introOn ? 0 : 1;
+        const endIntro = () => {
+          if (!introOn) return;
+          introOn = false;
+          marcasM = 1;
+          for (const word of words) write(word, "opacity", "0");
+          writeText(introName, brandName);
+          dest.removeAttribute("data-intro-on");
+          write(introName, "opacity", "0");
+          dirty = true;
+        };
+        const skipIntro = () => {
+          introSkip = true;
+        };
+        const introInputs = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
+        if (introOn) {
+          // Sin `lockScroll`: Lenis parado pone `overflow: clip` en <html>, quita la barra de scroll
+          // y al volver desplaza el carrusel. Toda rueda, tecla o toque acaba la intro, y mientras
+          // dura el scroll se devuelve a 0.
+          dest.setAttribute("data-intro-on", "");
+          writeText(introName, INTRO_TEXT);
+          for (const type of introInputs) {
+            window.addEventListener(type, skipIntro, { passive: true });
+          }
+        }
+        const scrambleLength = Math.max(INTRO_TEXT.length, brandName.length);
+        /** Texto del scramble a los `t` s de empezar: cada letra se fija en orden. */
+        const scrambled = (t: number) => {
+          const tick = Math.floor(t / INTRO.scrambleTick);
+          let out = "";
+          for (let i = 0; i < scrambleLength; i++) {
+            const from = i * INTRO.scrambleStagger;
+            const to = brandName[i];
+            if (t < from) out += INTRO_TEXT[i] ?? "";
+            else if (t >= from + INTRO.scrambleS) out += to ?? "";
+            else if (to === " ") out += " ";
+            else {
+              // Pseudoaleatorio estable por letra y tick (no cambia en cada frame).
+              const pick = Math.abs(Math.sin((i + 1) * 12.9898 + tick * 78.233)) * 43758.5453;
+              out += SCRAMBLE_CHARS[Math.floor(pick % SCRAMBLE_CHARS.length)] ?? "";
+            }
+          }
+          return out;
+        };
+        const introEnd =
+          INTRO.scrambleAt + scrambleLength * INTRO.scrambleStagger + INTRO.scrambleS + INTRO.holdS;
+        const introFrame = (time: number) => {
+          if (introT0 < 0) introT0 = time;
+          if (window.scrollY !== 0) scrollToY(0, { immediate: true });
+          const t = time - introT0;
+          if (introSkip || t >= introEnd) {
+            endIntro();
+            return;
+          }
+          dirty = true;
+          const form = easeInOutCubic(clamp01((t - INTRO.formAt) / INTRO.formS));
+          marcasM = form;
+          // Columna en la mitad derecha: baja desde fuera de pantalla hasta que DES queda a la altura
+          // de MARCAS (centrada). Por encima del centro, cada sílaba va desplazada t²·0.4·vw.
+          const colH = words.length * wordH + (words.length - 1) * wordGap;
+          const colTop = (vh - wordH) / 2;
+          const fall = easeOutCubic(clamp01(t / INTRO.fallS));
+          const drop = (1 - fall) * (colTop + colH);
+          const scrambling = t >= INTRO.scrambleAt;
+          let rowX = 0;
+          words.forEach((word, i) => {
+            const yCol = colTop + i * (wordH + wordGap) - drop;
+            const k = Math.max(0, Math.min(1.4, (vh / 2 - (yCol + wordH / 2)) / (vh / 2)));
+            const xCol = colX + k * k * stageW * 0.4;
+            const x = xCol + (nameX + rowX * nameK - xCol) * form;
+            const y = yCol + (nameY + wordDy - yCol) * form;
+            const scale = 1 + (nameK - 1) * form;
+            rowX += wordW[i] ?? 0;
+            write(
+              word,
+              "transform",
+              `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${scale.toFixed(4)})`,
+            );
+            write(word, "opacity", scrambling ? "0" : "1");
+          });
+          // Ya en fila, la palabra entera (con el estilo de los nombres) toma el relevo y se desordena.
+          write(introName, "transform", `translate(${nameX.toFixed(1)}px,${nameY.toFixed(1)}px)`);
+          write(introName, "opacity", scrambling ? "1" : "0");
+          if (scrambling) writeText(introName, scrambled(t - INTRO.scrambleAt));
+        };
+
+        const frame: Tick = (time, deltaMs) => {
+          if (introOn) introFrame(time);
           const next = followScroll(s, deltaMs);
           if (next === s && !dirty) return;
           s = next;
           dirty = false;
 
-          live(intro, box.intro[0], box.intro[1]);
           live(pop, box.pop[0], box.pop[1]);
           live(nv, box.nv[0], box.nv[1]);
           live(er, box.er[0] + vh, box.er[1]);
           live(cat, pinTop, pin.offsetHeight);
 
-          // §4.1 Intro: cada palabra se desplaza t²·0.4·vw según su distancia al centro.
-          words.forEach((word, i) => {
-            const t = Math.max(0, Math.min(1.4, ((wordCenters[i] ?? 0) - s - vh / 2) / (vh / 2)));
-            write(word, "transform", `translateX(${(t * t * stageW * 0.4).toFixed(1)}px)`);
-          });
-
-          // MARCAS: centrada mientras suben las palabras; cuando la última llega al centro, sube con
-          // Destacados y se queda arriba, más pequeña, sobre los nombres.
-          const mFrom = (wordCenters.at(-1) ?? 0) - vh / 2;
-          const m = easeInOutCubic(clamp01((s - mFrom) / Math.max(1, box.pop[0] - mFrom)));
+          // MARCAS: centrada al empezar la intro; sube mientras DESTACADOS pasa a fila y se queda
+          // arriba, más pequeña, sobre los nombres.
+          const m = marcasM;
           const mScale = 1 + (marcasScale - 1) * m;
           const mY = (vh - marcasH) / 2 + (marcasTop - (vh - marcasH) / 2) * m;
           write(marcas, "transform", `translateY(${mY.toFixed(1)}px) scale(${mScale.toFixed(4)})`);
@@ -460,6 +594,8 @@ export function Explora({ data }: Props) {
         return () => {
           unsubscribe();
           stop();
+          for (const type of introInputs) window.removeEventListener(type, skipIntro);
+          dest.removeAttribute("data-intro-on");
           skip.removeEventListener("click", jump);
           index.removeEventListener("click", go);
           spacer.style.marginTop = "";
@@ -493,8 +629,8 @@ export function Explora({ data }: Props) {
       <h1 className="sr-only">Explora</h1>
 
       {destacados.length > 0 && (
-        // Intro y Destacados comparten MARCAS: una capa fija que cruza las dos secciones.
-        <div className={styles.dest}>
+        // MARCAS y la intro automática van en una capa fija sobre Destacados.
+        <div className={styles.dest} data-dest>
           <div className={styles.marcasLayer} data-marcas-layer aria-hidden="true">
             <span className={styles.marcas} data-marcas>
               MARCAS
@@ -502,22 +638,15 @@ export function Explora({ data }: Props) {
             <span className={styles.marcasSub} data-marcas-sub>
               Destacados
             </span>
+            {INTRO_WORDS.map((word) => (
+              <span key={word} className={styles.introWord} data-pw>
+                {word}
+              </span>
+            ))}
+            <span className={styles.introName} data-intro-name>
+              {INTRO_TEXT}
+            </span>
           </div>
-          <section className={styles.intro} data-intro aria-label="Destacados">
-            <div className={styles.grid} aria-hidden="true">
-              <span className={styles.gridV} />
-            </div>
-            <div className={styles.introRow}>
-              <div />
-              <div className={styles.introWords} aria-hidden="true">
-                {INTRO_WORDS.map((word) => (
-                  <span key={word} className={styles.introWord} data-pw>
-                    {word}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </section>
           <Populares popular={destacados} index={index} />
         </div>
       )}

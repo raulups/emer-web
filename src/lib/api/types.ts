@@ -42,7 +42,10 @@ export type RawBrand = {
   id: string;
   name: string;
   url: string | null;
-  img: string | null;
+  /** Imagen horizontal (pantallas anchas). */
+  img_desktop: string | null;
+  /** Imagen vertical (móvil). */
+  img_mobile: string | null;
   logo: string | null;
   color: string | null;
   is_emergent?: boolean;
@@ -153,7 +156,10 @@ export type Brand = {
   id: string;
   name: string;
   url: string | null;
-  img: string | null;
+  /** Imagen horizontal (pantallas anchas). */
+  imgDesktop: string | null;
+  /** Imagen vertical (móvil). */
+  imgMobile: string | null;
   logo: string | null;
   color: string | null;
   isEmergent: boolean;

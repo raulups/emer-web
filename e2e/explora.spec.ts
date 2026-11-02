@@ -19,12 +19,16 @@ const NOVEDADES = [
 ];
 const EMERGENTES = ["Bajo Cero", "Imagen Rota", "Tinta", "Marea", "Calma", "Satenier"];
 
-async function openExplora(page: Page) {
+/** Abre Explora. Salvo `{ intro: true }`, se salta la intro automática (cualquier tecla). */
+async function openExplora(page: Page, { intro = false } = {}) {
   await page.goto("/web");
   await page.getByRole("button", { name: "Explora" }).click();
-  await expect(page.locator("[data-intro]")).toBeVisible();
+  await expect(page.locator("[data-dest]")).toBeVisible();
   // El slide Marketplace → Explora (View Transition) captura el puntero mientras dura.
   await expect(page.locator("html")).not.toHaveAttribute("data-slide");
+  if (intro) return;
+  await page.keyboard.press("Shift");
+  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on");
 }
 
 const geometry = (page: Page) =>
@@ -35,7 +39,6 @@ const geometry = (page: Page) =>
       return { top: el.getBoundingClientRect().top + window.scrollY, height: el.offsetHeight };
     };
     return {
-      intro: top("[data-intro]"),
       pop: top("[data-pop]"),
       nv: top("[data-nv]"),
       sp: top("[data-sp]"),
@@ -47,26 +50,58 @@ const geometry = (page: Page) =>
 
 const counter = (page: Page) =>
   page.getByRole("region", { name: "Marcas destacadas" }).locator("p[aria-live]");
-const wordX = (page: Page, index: number) =>
-  page
-    .locator("[data-pw]")
-    .nth(index)
-    .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41);
+const wordBox = (page: Page, index: number) => page.locator("[data-pw]").nth(index).boundingBox();
 
 test.beforeEach(({ page: _page }, info) => {
   test.skip(info.project.name === "mobile", "el diseño de Explora es de escritorio");
 });
 
-test("intro: las palabras suben en escalera y se alinean al cruzar el centro", async ({ page }) => {
-  await openExplora(page);
-  // Empiezan bajo el pliegue y desplazadas a la derecha.
-  await expect.poll(() => wordX(page, 0)).toBeGreaterThan(100);
+test("intro automática: columna → fila → scramble hasta la primera marca y se descubre", async ({
+  page,
+}) => {
+  await openExplora(page, { intro: true });
+  const dest = page.locator("[data-dest]");
+  const name = page.locator("[data-intro-name]");
+  await expect(dest).toHaveAttribute("data-intro-on", "");
+  // En columna: DES encima de DOS, a la derecha del centro.
+  await expect.poll(async () => (await wordBox(page, 0))?.x ?? 0).toBeGreaterThan(600);
+  const des = await wordBox(page, 0);
+  const dos = await wordBox(page, 3);
+  expect(des?.y ?? 0).toBeLessThan(dos?.y ?? 0);
+  // La escena de Destacados espera oculta y el scroll está bloqueado.
+  await expect(page.locator("[data-pop-stage] [data-im-window]")).toHaveCSS("opacity", "0");
+  await page.evaluate(() => window.scrollTo(0, 400));
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 
-  const g = await geometry(page);
-  // DOS termina a la altura de MARCAS (centrada): ahí todas las palabras tienen translateX 0.
-  await page.evaluate((y) => window.scrollTo(0, y), g.intro.top + g.intro.height - g.vh / 2 - 60);
-  await expect.poll(() => wordX(page, 0), { timeout: 4000 }).toBeLessThan(2);
-  await expect.poll(() => wordX(page, 3), { timeout: 4000 }).toBeLessThan(2);
+  // En fila: todas a la misma altura, DES a la izquierda de DOS.
+  await expect
+    .poll(
+      async () => {
+        const [a, b] = [await wordBox(page, 0), await wordBox(page, 3)];
+        return Math.abs((a?.y ?? 0) - (b?.y ?? 99)) < 2 && (a?.x ?? 0) < (b?.x ?? 0);
+      },
+      { timeout: 3000 },
+    )
+    .toBe(true);
+
+  // Scramble hasta el nombre de la primera marca, encima del nombre real.
+  await expect(name).toHaveText(DESTACADOS[0] as string, { timeout: 4000 });
+  const real = await page.locator("[data-nm-base] [data-nm]").first().boundingBox();
+  const word = await name.boundingBox();
+  expect(Math.abs((word?.x ?? 0) - (real?.x ?? 99))).toBeLessThan(2);
+  expect(Math.abs((word?.y ?? 0) - (real?.y ?? 99))).toBeLessThan(2);
+
+  await expect(dest).not.toHaveAttribute("data-intro-on", { timeout: 3000 });
+  await expect(page.locator("[data-pop-stage] [data-im-window]")).toHaveCSS("opacity", "1");
+  await expect(counter(page)).toContainText(DESTACADOS[0] as string);
+});
+
+test("intro: una tecla la termina y deja Destacados listo", async ({ page }) => {
+  await openExplora(page, { intro: true });
+  await page.keyboard.press("Shift");
+  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on");
+  await expect(page.locator("[data-intro-name]")).toHaveText(DESTACADOS[0] as string);
 });
 
 test("Destacados: nombres, descripción, piezas y contador de la marca activa", async ({ page }) => {
@@ -92,15 +127,16 @@ test("Destacados: nombres, descripción, piezas y contador de la marca activa", 
   await expect(counter(page)).toContainText("03");
 });
 
-test("intro → Destacados: MARCAS sube con la sección y se queda arriba, sobre los nombres", async ({
-  page,
-}) => {
-  await openExplora(page);
+test("intro → Destacados: MARCAS sube y se queda arriba, sobre los nombres", async ({ page }) => {
+  await openExplora(page, { intro: true });
   const marcas = page.locator("[data-marcas]");
   const g = await geometry(page);
-  // Al empezar, centrada.
+  // Al empezar la intro, centrada.
   const start = await marcas.boundingBox();
   expect(Math.abs((start?.y ?? 0) + (start?.height ?? 0) / 2 - g.vh / 2)).toBeLessThan(4);
+  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on", {
+    timeout: 6000,
+  });
 
   // Con Destacados fija: arriba, más pequeña y por encima de los nombres.
   await page.evaluate((y) => window.scrollTo(0, y), g.pop.top + 0.3 * (g.pop.height - g.vh));
@@ -366,6 +402,52 @@ test("Catálogo: el alto sale del recorrido medido y la pista llega justo al fin
   // Justo cuando se suelta la escena, la pista está en su final (ni antes ni después).
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.pin.height - g.vh);
   await expect.poll(trackX, { timeout: 5000 }).toBeCloseTo(-travel, -1);
+});
+
+test("cursor: logo de la marca sobre ella, punto sobre sus botones y al salir", async ({
+  page,
+}, info) => {
+  test.skip(info.project.name === "mobile", "el cursor propio solo va con pointer fine");
+  await openExplora(page);
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * (g.pin.height - g.vh));
+  await page.waitForTimeout(1500);
+
+  const dot = page.locator("[data-cursor]");
+  const badge = page.locator("[data-cursor] + div");
+  const cells = page.locator("[data-cat] [data-cat-cell][data-cursor-logo]");
+  const index = await cells.evaluateAll((els) =>
+    els.findIndex((el) => {
+      const r = el.getBoundingClientRect();
+      return r.left >= 0 && r.right <= innerWidth && r.width > 40;
+    }),
+  );
+  expect(index).toBeGreaterThanOrEqual(0);
+  const cell = cells.nth(index);
+  // Imagen vertical en cualquier pantalla: sin <picture>.
+  expect(
+    await cell
+      .locator("img")
+      .first()
+      .evaluate((img) => img.parentElement?.tagName),
+  ).not.toBe("PICTURE");
+
+  await cell.hover({ position: { x: 12, y: 12 } });
+  await expect(dot).toHaveAttribute("data-off", "");
+  await expect(badge).toHaveAttribute("data-on", "");
+  await expect(badge.locator("img")).toBeVisible();
+  await expect(badge.locator("img")).toHaveCSS("opacity", "1");
+
+  await cell.locator("a, button").first().hover();
+  await expect(dot).not.toHaveAttribute("data-off");
+  await expect(badge).not.toHaveAttribute("data-on");
+
+  await cell.hover({ position: { x: 12, y: 12 } });
+  await expect(dot).toHaveAttribute("data-off", "");
+
+  await page.mouse.move(5, 5);
+  await expect(dot).not.toHaveAttribute("data-off");
+  await expect(badge).not.toHaveAttribute("data-on");
 });
 
 test("Catálogo: hover con zoom, atenuado, miniaturas y botones sin cambiar el tamaño de las celdas", async ({

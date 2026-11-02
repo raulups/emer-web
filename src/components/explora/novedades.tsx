@@ -46,7 +46,7 @@ export function Novedades({ newest }: Props) {
                 <>
                   <BrandImage
                     key={brand.id}
-                    sources={brand.sources}
+                    sources={brand.portrait}
                     alt={brand.name}
                     width={960}
                     height={1080}
@@ -98,6 +98,7 @@ export function Novedades({ newest }: Props) {
               <a
                 className={styles.row}
                 data-nv-row
+                data-cursor-logo={item.logo ?? undefined}
                 href={item.url ?? undefined}
                 target="_blank"
                 rel="noopener"

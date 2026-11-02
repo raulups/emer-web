@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
 import {
-  brandImage,
   discount,
   emergentBrands,
   newestBrands,
   popularBrands,
+  portraitSources,
   price,
 } from "@/lib/format";
 
@@ -39,9 +39,14 @@ test.describe("reglas de datos", () => {
     expect(names(brands)).toEqual(["B", "A", "C"]);
   });
 
-  test("imagen de marca con fallback al primer producto", () => {
-    expect(brandImage({ img: "marca.jpg" }, "producto.jpg")).toBe("marca.jpg");
-    expect(brandImage({ img: null }, "producto.jpg")).toBe("producto.jpg");
-    expect(brandImage({ img: null }, undefined)).toBeNull();
+  test("imagen de marca: vertical, la horizontal si falta y el primer producto si falla", () => {
+    const both = { img_desktop: "h.jpg", img_mobile: "v.jpg" };
+    expect(portraitSources(both, "p.jpg")).toEqual(["v.jpg", "p.jpg"]);
+    expect(portraitSources({ img_desktop: "h.jpg", img_mobile: null }, "p.jpg")).toEqual([
+      "h.jpg",
+      "p.jpg",
+    ]);
+    expect(portraitSources({ img_desktop: null, img_mobile: null }, "p.jpg")).toEqual(["p.jpg"]);
+    expect(portraitSources({ img_desktop: null, img_mobile: null }, undefined)).toEqual([]);
   });
 });

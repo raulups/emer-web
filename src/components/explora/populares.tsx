@@ -116,7 +116,12 @@ export function Populares({ popular, index }: Props) {
         <div className={styles.names}>
           <div className={styles.namesBase} data-nm-base>
             {popular.map((brand) => (
-              <span key={brand.id} className={styles.name} data-nm>
+              <span
+                key={brand.id}
+                className={styles.name}
+                data-nm
+                data-cursor-logo={brand.logo ?? undefined}
+              >
                 {brand.name}
               </span>
             ))}
@@ -124,7 +129,11 @@ export function Populares({ popular, index }: Props) {
           <div className={styles.namesClip} aria-hidden="true">
             <div className={styles.namesTop} data-nm-top>
               {popular.map((brand) => (
-                <span key={brand.id} className={styles.name}>
+                <span
+                  key={brand.id}
+                  className={styles.name}
+                  data-cursor-logo={brand.logo ?? undefined}
+                >
                   {brand.name}
                 </span>
               ))}
@@ -135,9 +144,13 @@ export function Populares({ popular, index }: Props) {
         <div className={styles.imWindow} data-im-window>
           <div className={styles.imTrack} data-im-track>
             {popular.map((brand) => (
-              <div key={brand.id} className={styles.imTile}>
+              <div
+                key={brand.id}
+                className={styles.imTile}
+                data-cursor-logo={brand.logo ?? undefined}
+              >
                 <BrandImage
-                  sources={brand.sources}
+                  sources={brand.portrait}
                   alt={brand.name}
                   width={480}
                   height={900}

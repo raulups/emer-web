@@ -116,7 +116,8 @@ Ejemplo real (recortado; `category_counts` y `preview_products` abreviados):
       "id": "0208bdca-c705-491b-82fa-76123232670b",
       "name": "Satenier",
       "url": "https://satenier.com",
-      "img": "https://aidisezaeymiesrdfnza.supabase.co/storage/v1/object/public/brands/satenier_image.png",
+      "img_desktop": "https://aidisezaeymiesrdfnza.supabase.co/storage/v1/object/public/brands/satenier_image.png",
+      "img_mobile": null,
       "logo": "https://aidisezaeymiesrdfnza.supabase.co/storage/v1/object/public/brands/satenier_logo.webp",
       "color": "#e1609f",
       "is_emergent": true,
@@ -149,7 +150,8 @@ Ejemplo real (recortado; `category_counts` y `preview_products` abreviados):
 | `id` | string (UUID) | Sí | |
 | `name` | string | Sí | |
 | `url` | string \| null | Sí (puede ser `null`) | Web oficial de la marca |
-| `img` | string \| null | Sí (puede ser `null`) | Imagen de portada. Supabase Storage |
+| `img_desktop` | string \| null | Sí (puede ser `null`) | Imagen de portada horizontal (pantallas anchas). Supabase Storage. Antes `img` |
+| `img_mobile` | string \| null | Sí (puede ser `null`) | Imagen de portada vertical (móvil). Supabase Storage |
 | `logo` | string \| null | Sí (puede ser `null`) | Logo. Supabase Storage |
 | `color` | string \| null | Sí (puede ser `null`) | Hex tipo `#e1609f` |
 | `is_emergent` | boolean | Sí | |
@@ -358,7 +360,7 @@ El servidor **no sirve imágenes ni las transforma**. Solo devuelve URLs absolut
 
 | Origen | Host | Campos | Notas |
 |---|---|---|---|
-| Marcas | Supabase Storage: `https://aidisezaeymiesrdfnza.supabase.co/storage/v1/object/public/brands/<archivo>` | `Brand.img`, `Brand.logo` | Formatos vistos: `.png`, `.webp`. Respuesta con `access-control-allow-origin: *` y `cache-control: no-cache`. Tamaño sin documentar. |
+| Marcas | Supabase Storage: `https://aidisezaeymiesrdfnza.supabase.co/storage/v1/object/public/brands/<archivo>` | `Brand.img_desktop`, `Brand.img_mobile`, `Brand.logo` | Formatos vistos: `.png`, `.webp`. Respuesta con `access-control-allow-origin: *` y `cache-control: no-cache`. Tamaño sin documentar. |
 | Productos | CDN de Shopify: `https://cdn.shopify.com/s/files/1/<id-tienda>/files/<archivo>?v=<versión>` | `main_image_url`, `thumbnail_image_url`, `image_urls[]`, `ProductPreview.main_image_url` | En una muestra de 100 productos, el 100 % usaba `cdn.shopify.com` y todos tenían `main_image_url`. |
 
 Consideraciones para Next.js:

@@ -36,7 +36,10 @@ export type Brand = {
   id: string;
   name: string;
   url: string | null;
-  img: string | null;
+  /** Imagen horizontal (pantallas anchas). */
+  img_desktop: string | null;
+  /** Imagen vertical (móvil). */
+  img_mobile: string | null;
   logo: string | null;
   color: string | null;
   tags: string[];
@@ -95,7 +98,8 @@ function toBrand(b: ApiBrand): Brand {
     id: b.id,
     name: b.name,
     url: b.url,
-    img: b.img,
+    img_desktop: b.imgDesktop,
+    img_mobile: b.imgMobile,
     logo: b.logo,
     color: b.color,
     tags: b.tags,

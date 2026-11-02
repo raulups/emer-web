@@ -10,14 +10,67 @@
   background: #fff;
   mix-blend-mode: difference;
   pointer-events: none;
+  /* `scale` va aparte de `transform` (que es la posición): así no se pisan. */
+  transition:
+    scale 0.35s var(--ease-out-expo),
+    opacity 0.2s linear;
 }
 
-.dot[hidden] {
+/* Sobre una marca: el punto se recoge y deja paso al logo. */
+.dot[data-off] {
+  scale: 0;
+  opacity: 0;
+}
+
+/* Logo de la marca: capa aparte (sin `difference`) que sigue al puntero. */
+.logo {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* El logo tal cual (PNG sin fondo): sin caja ni borde, acotado y centrado en el puntero. */
+.logoImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: auto;
+  max-width: 120px;
+  height: auto;
+  max-height: 56px;
+  translate: -50% -50%;
+  opacity: 0;
+  scale: 0.4;
+  transition:
+    scale 0.35s var(--ease-out-expo),
+    opacity 0.2s linear;
+}
+
+.logo[data-on] .logoImage {
+  opacity: 1;
+  scale: 1;
+}
+
+.dot[hidden],
+.logo[hidden] {
   display: none;
 }
 
 @media not (pointer: fine) {
-  .dot {
+  .dot,
+  .logo {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .logoImage {
+    transition: none;
   }
 }

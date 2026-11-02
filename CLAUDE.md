@@ -26,10 +26,11 @@ src/
   proxy.ts             web de móvil: en un teléfono (user-agent) `/` y `/web` se sirven desde `/m`; tablets y ordenadores, web completa
   app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí), `/m` web de móvil (interna, solo Marketplace)
   app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
+  app/api/warm/        lo pide la Landing: deja en caché marcas + 1.ª página del Marketplace y avisa al acabar
   components/          componentes; cursor.tsx = cursor propio global (layout)
     shell/             Shell + switch MARKETPLACE / EXPLORA
     mobile/            web de móvil: shell sin switch + aviso «descarga la app» (una vez por sesión; enlaces en `lib/app-links.ts`)
-    landing/           Landing: `landing.tsx` (un bucle por scroll), túnel de marcas (servidor + Suspense)
+    landing/           Landing: `landing.tsx` (un bucle por tiempo): túnel de fotos de `src/img/` + contador mientras responde `/api/warm`; después «CARGANDO MARKETPLACE» y `/web`
     explora/           Explora: `explora.tsx` (un bucle por scroll). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
     marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
     ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal)
