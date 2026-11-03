@@ -3,14 +3,13 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { useRef, useState } from "react";
-import { ScrambleText } from "@/components/ui/scramble-text";
 import typo from "@/components/ui/type.module.css";
 import { bus } from "@/lib/bus";
 import type { ExploraData } from "@/lib/explora-data";
-import { clamp01, easeInOutCubic, easeInOutQuad, pad } from "@/lib/motion/math";
+import { clamp01, easeInOutCubic, easeInOutQuad, easeOutCubic } from "@/lib/motion/math";
 import { followScroll, getLenis, scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
-import { write, writeText } from "@/lib/motion/write";
+import { write } from "@/lib/motion/write";
 import { BrandActions } from "./brand-actions";
 import { Catalogo } from "./catalogo";
 import { Emergentes, ER_HOLD_VH } from "./emergentes";
@@ -25,34 +24,6 @@ import { SuggestBrand } from "./suggest-brand";
 
 gsap.registerPlugin(useGSAP);
 
-const INTRO_WORDS = ["DES", "TA", "CA", "DOS"] as const;
-const INTRO_TEXT = INTRO_WORDS.join("");
-
-/**
- * Intro automática (s desde que se monta Explora). Es la escalera de la intro original, invertida:
- * la columna DES / TA / CA / DOS baja desde arriba y cada sílaba se desplaza a la derecha t²·0.4·vw
- * según lo que le falta para el centro, así que se alinean al llegar (DES a la altura de MARCAS).
- * Después pasan a una fila (DESTACADOS, al tamaño de los nombres y en el sitio de la primera marca)
- * mientras MARCAS sube, la palabra se «desordena» hasta el nombre de la primera marca y se descubre
- * Destacados. Cualquier rueda, tecla o clic la termina.
- */
-const INTRO = {
-  /** Bajada de la columna. */
-  fallS: 1.6,
-  /** De columna a fila (y MARCAS arriba). */
-  formAt: 1.75,
-  formS: 0.9,
-  /** Scramble: empieza, retardo por letra y lo que tarda cada letra en fijarse. */
-  scrambleAt: 2.7,
-  scrambleStagger: 0.06,
-  scrambleS: 0.45,
-  /** Cada cuánto cambia el carácter aleatorio (s). */
-  scrambleTick: 0.05,
-  /** Pausa con el nombre ya fijo antes de descubrir la escena. */
-  holdS: 0.3,
-} as const;
-const SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*/";
-
 /**
  * Secciones que [ SALTAR ] lleva a su final, en orden de scroll (por posición: 1.ª `Populares`,
  * 2.ª `Novedades`, 3.ª `Emergentes` y 4.ª `Catalogo` como componentes).
@@ -61,34 +32,23 @@ const SECTIONS = ["Destacados", "Populares", "Novedades", "Emergentes"] as const
 
 type Props = { data: ExploraData };
 
-const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
-
-/**
- * Destacados: entre dos marcas el paso va con curva para que cada una «asiente» en la línea del
- * 50 %, mezclado con el avance lineal para que el recorrido nunca llegue a pararse.
- */
-const settle = (t: number) => t * 0.45 + easeInOutCubic(t) * 0.55;
-
 /** Duración (s) de un salto animado según la distancia (en pantallas). */
 const jumpDuration = (distance: number, vh: number) =>
   Math.min(2.2, 0.6 + (0.12 * Math.abs(distance)) / Math.max(1, vh));
 
 /**
- * Explora §4.1–§4.5: intro y cuatro secciones filtradas por tag (`lib/explora-data.ts`). Los
+ * Explora §4.2–§4.5: cuatro secciones filtradas por tag (`lib/explora-data.ts`). Los
  * componentes conservan el nombre de su posición original: `Populares` pinta Destacados,
  * `Novedades` pinta Populares, `Emergentes` pinta Novedades (con la transición entre estas dos) y
- * `Catalogo` pinta Emergentes. Una sección sin marcas no se pinta. Un único bucle (`gsap.ticker`)
- * sigue el scroll (`followScroll`) y escribe estilos en los nodos con geometría medida; React solo
+ * `Catalogo` pinta Emergentes. Una sección sin marcas no se pinta. Destacados es un carrusel con
+ * su propio bucle (no depende del scroll); para lo demás, un único bucle (`gsap.ticker`) sigue el scroll (`followScroll`) y escribe estilos en los nodos con geometría medida; React solo
  * guarda las marcas activas.
  */
 export function Explora({ data }: Props) {
   const { destacados, populares, novedades, emergentes, todas } = data;
   const root = useRef<HTMLDivElement>(null);
-  const [index, setIndex] = useState(0);
   const [near, setNear] = useState(0);
   const [section, setSection] = useState(0);
-  // MARCAS ya arriba, sobre Destacados: su subtítulo pasa a ser el nombre de la marca activa.
-  const [inPop, setInPop] = useState(false);
 
   useGSAP(
     () => {
@@ -99,18 +59,8 @@ export function Explora({ data }: Props) {
       const one = <T extends HTMLElement>(name: string) =>
         el.querySelector<T>(`[data-${name}]`) ??
         (document.createElement("div") as HTMLElement as T);
-      const dest = one("dest");
-      const introName = one("intro-name");
-      const marcasLayer = one("marcas-layer");
-      const marcas = one("marcas");
-      const marcasSub = one("marcas-sub");
       const pop = one("pop");
       const stage = one("pop-stage");
-      const words = [...el.querySelectorAll<HTMLElement>("[data-pw]")];
-      const nmBase = one("nm-base");
-      const nmTop = one("nm-top");
-      const imWindow = one("im-window");
-      const imTrack = one("im-track");
       const nv = one("nv");
       const rows = [...el.querySelectorAll<HTMLElement>("[data-nv-row]")];
       const stk = one("stk");
@@ -144,8 +94,6 @@ export function Explora({ data }: Props) {
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         // ---- Geometría: se mide al montar, al cargar la fuente y al cambiar el tamaño ----
         let vh = 0;
-        let stageW = 0;
-        let winW = 0;
         const box = { pop: [0, 1], nv: [0, 0], er: [0, 1] } as Record<
           "pop" | "nv" | "er",
           [number, number]
@@ -153,29 +101,10 @@ export function Explora({ data }: Props) {
         let spacerTop = 0;
         let spacerH = 1;
         let rowCenters: number[] = [];
-        // Intro: sílabas (alto y ancho de cada una) y sitio y escala de la primera marca.
-        let wordH = 1;
-        let wordW: number[] = [];
-        let wordGap = 0;
-        let wordDy = 0;
-        let colX = 0;
-        let nameK = 1;
-        let nameX = 0;
-        let nameY = 0;
-        let offsets: number[] = [];
         let tile = 1;
         let pinTop = 0;
         let travel = 0;
         let hold = 0;
-        // MARCAS: alto, hueco de arriba y escala con la que se queda sobre los nombres.
-        let marcasH = 1;
-        let marcasTop = 0;
-        let marcasScale = 1;
-        // Subtítulo de MARCAS (va encima) y scroll en el que Destacados queda sola en pantalla: la
-        // sección se solapa una pantalla con la intro (margin-top −100vh), así su escena ya está
-        // fija arriba y no sube desde abajo.
-        let subH = 0;
-        let popStart = 0;
         // Final de cada sección de SECTIONS (scrollY en el que termina).
         let ends: number[] = [];
         // Inicio de cada sección del índice (scrollY), por id.
@@ -200,53 +129,20 @@ export function Explora({ data }: Props) {
           const pullMargin = pull > 0 ? `${-pull}px` : "";
           if (spacer.style.marginTop !== pullMargin) spacer.style.marginTop = pullMargin;
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
-          popStart = box.pop[0] + vh;
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
           pinTop = docTop(pin, scroll);
           spacerTop = docTop(spacer, scroll);
           spacerH = spacer.offsetHeight;
-          stageW = stage.clientWidth;
-          winW = imWindow.clientWidth;
           const center = (node: HTMLElement) => {
             const rect = node.getBoundingClientRect();
             return rect.top + scroll + rect.height / 2;
           };
           rowCenters = rows.map(center);
-          marcasH = marcas.offsetHeight;
-          subH = marcasSub.offsetHeight;
-          marcasTop = Math.max(84, vh * 0.09) + subH + 10;
-          // Hueco entre el borde de arriba y los nombres de Destacados (con la escena fija).
-          const namesTop = docTop(nmBase, scroll) - docTop(stage, scroll);
-          marcasScale = Math.min(
-            0.62,
-            Math.max(0.3, (namesTop - marcasTop - vh * 0.04) / Math.max(1, marcasH)),
-          );
           tile =
             colA.firstElementChild instanceof HTMLElement
               ? colA.firstElementChild.offsetHeight
               : vh;
-          // `offsetLeft` de cada nombre respecto a la pista (ambos se mueven juntos con el transform).
-          const base = nmBase.getBoundingClientRect().left;
-          const nameNodes = [...nmBase.querySelectorAll<HTMLElement>("[data-nm]")];
-          offsets = nameNodes.map((name) => name.getBoundingClientRect().left - base);
-          // Intro: la palabra acaba donde está la primera marca con la escena arriba (borde
-          // izquierdo en la línea del 50 %) y con el tamaño de los nombres.
-          const layer = marcasLayer.getBoundingClientRect();
-          const fontPx = (node: HTMLElement | undefined) =>
-            node ? Number.parseFloat(getComputedStyle(node).fontSize) || 1 : 1;
-          wordH = words[0]?.offsetHeight || 1;
-          wordGap = fontPx(words[0]) * 0.12;
-          wordW = words.map((word) => word.offsetWidth);
-          nameK = fontPx(introName) / fontPx(words[0]);
-          const first = nameNodes[0]?.getBoundingClientRect();
-          colX = stage.getBoundingClientRect().left - layer.left + stageW * 0.5;
-          nameX = colX;
-          // Las sílabas tienen el interlineado de los títulos y el nombre el de los nombres: se
-          // centran en su línea para que la letra caiga en el mismo sitio.
-          nameY = (first?.top ?? 0) - layer.top;
-          wordDy = (introName.offsetHeight - wordH * nameK) / 2;
-          colX += window.innerWidth * 0.01;
           // Destacados acaba cuando Populares llega arriba; Populares, con la transición completa
           // (q = 1); Novedades, al acabar el fundido a Emergentes; Emergentes, al acabar su pista.
           const last = document.documentElement.scrollHeight - vh;
@@ -275,10 +171,8 @@ export function Explora({ data }: Props) {
 
         // ---- Bucle ----
         let s = window.scrollY;
-        let shownIndex = 0;
         let shownNear = 0;
         let shownSection = 0;
-        let shownInPop = false;
         let target: number | undefined;
 
         // ---- [ SALTAR ]: scroll animado hasta el final de la sección actual ----
@@ -328,100 +222,7 @@ export function Explora({ data }: Props) {
         const live = (node: HTMLElement, from: number, height: number) =>
           node.toggleAttribute("data-live", s > from - vh && s < from + height);
 
-        // ---- Intro automática (ver INTRO) ----
-        const brandName = el.querySelector("[data-nm-base] [data-nm]")?.textContent ?? "";
-        let introOn = words.length > 0 && brandName !== "";
-        let introT0 = -1;
-        let introSkip = false;
-        // MARCAS: 0 = centrada (al empezar la intro), 1 = arriba, sobre los nombres.
-        let marcasM = introOn ? 0 : 1;
-        const endIntro = () => {
-          if (!introOn) return;
-          introOn = false;
-          marcasM = 1;
-          for (const word of words) write(word, "opacity", "0");
-          writeText(introName, brandName);
-          dest.removeAttribute("data-intro-on");
-          write(introName, "opacity", "0");
-          dirty = true;
-        };
-        const skipIntro = () => {
-          introSkip = true;
-        };
-        const introInputs = ["wheel", "keydown", "pointerdown", "touchstart"] as const;
-        if (introOn) {
-          // Sin `lockScroll`: Lenis parado pone `overflow: clip` en <html>, quita la barra de scroll
-          // y al volver desplaza el carrusel. Toda rueda, tecla o toque acaba la intro, y mientras
-          // dura el scroll se devuelve a 0.
-          dest.setAttribute("data-intro-on", "");
-          writeText(introName, INTRO_TEXT);
-          for (const type of introInputs) {
-            window.addEventListener(type, skipIntro, { passive: true });
-          }
-        }
-        const scrambleLength = Math.max(INTRO_TEXT.length, brandName.length);
-        /** Texto del scramble a los `t` s de empezar: cada letra se fija en orden. */
-        const scrambled = (t: number) => {
-          const tick = Math.floor(t / INTRO.scrambleTick);
-          let out = "";
-          for (let i = 0; i < scrambleLength; i++) {
-            const from = i * INTRO.scrambleStagger;
-            const to = brandName[i];
-            if (t < from) out += INTRO_TEXT[i] ?? "";
-            else if (t >= from + INTRO.scrambleS) out += to ?? "";
-            else if (to === " ") out += " ";
-            else {
-              // Pseudoaleatorio estable por letra y tick (no cambia en cada frame).
-              const pick = Math.abs(Math.sin((i + 1) * 12.9898 + tick * 78.233)) * 43758.5453;
-              out += SCRAMBLE_CHARS[Math.floor(pick % SCRAMBLE_CHARS.length)] ?? "";
-            }
-          }
-          return out;
-        };
-        const introEnd =
-          INTRO.scrambleAt + scrambleLength * INTRO.scrambleStagger + INTRO.scrambleS + INTRO.holdS;
-        const introFrame = (time: number) => {
-          if (introT0 < 0) introT0 = time;
-          if (window.scrollY !== 0) scrollToY(0, { immediate: true });
-          const t = time - introT0;
-          if (introSkip || t >= introEnd) {
-            endIntro();
-            return;
-          }
-          dirty = true;
-          const form = easeInOutCubic(clamp01((t - INTRO.formAt) / INTRO.formS));
-          marcasM = form;
-          // Columna en la mitad derecha: baja desde fuera de pantalla hasta que DES queda a la altura
-          // de MARCAS (centrada). Por encima del centro, cada sílaba va desplazada t²·0.4·vw.
-          const colH = words.length * wordH + (words.length - 1) * wordGap;
-          const colTop = (vh - wordH) / 2;
-          const fall = easeOutCubic(clamp01(t / INTRO.fallS));
-          const drop = (1 - fall) * (colTop + colH);
-          const scrambling = t >= INTRO.scrambleAt;
-          let rowX = 0;
-          words.forEach((word, i) => {
-            const yCol = colTop + i * (wordH + wordGap) - drop;
-            const k = Math.max(0, Math.min(1.4, (vh / 2 - (yCol + wordH / 2)) / (vh / 2)));
-            const xCol = colX + k * k * stageW * 0.4;
-            const x = xCol + (nameX + rowX * nameK - xCol) * form;
-            const y = yCol + (nameY + wordDy - yCol) * form;
-            const scale = 1 + (nameK - 1) * form;
-            rowX += wordW[i] ?? 0;
-            write(
-              word,
-              "transform",
-              `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${scale.toFixed(4)})`,
-            );
-            write(word, "opacity", scrambling ? "0" : "1");
-          });
-          // Ya en fila, la palabra entera (con el estilo de los nombres) toma el relevo y se desordena.
-          write(introName, "transform", `translate(${nameX.toFixed(1)}px,${nameY.toFixed(1)}px)`);
-          write(introName, "opacity", scrambling ? "1" : "0");
-          if (scrambling) writeText(introName, scrambled(t - INTRO.scrambleAt));
-        };
-
-        const frame: Tick = (time, deltaMs) => {
-          if (introOn) introFrame(time);
+        const frame: Tick = (_time, deltaMs) => {
           const next = followScroll(s, deltaMs);
           if (next === s && !dirty) return;
           s = next;
@@ -432,42 +233,6 @@ export function Explora({ data }: Props) {
           live(er, box.er[0] + vh, box.er[1]);
           live(cat, pinTop, pin.offsetHeight);
 
-          // MARCAS: centrada al empezar la intro; sube mientras DESTACADOS pasa a fila y se queda
-          // arriba, más pequeña, sobre los nombres.
-          const m = marcasM;
-          const mScale = 1 + (marcasScale - 1) * m;
-          const mY = (vh - marcasH) / 2 + (marcasTop - (vh - marcasH) / 2) * m;
-          write(marcas, "transform", `translateY(${mY.toFixed(1)}px) scale(${mScale.toFixed(4)})`);
-          write(marcasSub, "transform", `translateY(${(mY - subH - 10).toFixed(1)}px)`);
-          // Destacados entra a la vez que MARCAS sube: su escena ya está fija y todo cae desde arriba.
-          const popIn = m > 0.82;
-          pop.toggleAttribute("data-in", popIn);
-          if (popIn !== shownInPop) {
-            shownInPop = popIn;
-            setInPop(popIn);
-          }
-
-          // §4.2 Populares: interpola entre los `offsetLeft` medidos (activo en la línea del 50 %).
-          const count = offsets.length;
-          if (count > 0) {
-            const t = clamp01((s - popStart) / Math.max(1, box.pop[1] - 2 * vh));
-            const p = t * (count - 1);
-            const a = Math.min(count - 1, Math.floor(p));
-            const b = Math.min(count - 1, a + 1);
-            const f = settle(p - a);
-            const from = offsets[a] ?? 0;
-            const off = from + ((offsets[b] ?? from) - from) * f;
-            const names = `translateX(${(stageW * 0.5 - off).toFixed(1)}px)`;
-            write(nmBase, "transform", names);
-            write(nmTop, "transform", names);
-            write(imTrack, "transform", `translateX(${(-(a + f) * winW).toFixed(1)}px)`);
-            const idx = Math.max(0, Math.min(count - 1, Math.round(p)));
-            if (idx !== shownIndex) {
-              shownIndex = idx;
-              setIndex(idx);
-            }
-          }
-
           // Salida de Destacados: mientras el negro sube por encima, la escena se queda atrás (va a
           // un 45 % de la velocidad del scroll) y se apaga un poco, sin corte seco.
           const out = clamp01((s - (box.nv[0] - vh)) / Math.max(1, vh));
@@ -477,14 +242,6 @@ export function Explora({ data }: Props) {
             out > 0 ? `translateY(${(out * vh * 0.55).toFixed(1)}px)` : "none",
           );
           write(stage, "opacity", (1 - out * 0.5).toFixed(3));
-          // La capa de MARCAS (sticky con margin-bottom negativo) se suelta una pantalla más tarde
-          // que la escena: aquí se le aplica el mismo movimiento neto (sube al 45 %).
-          write(
-            marcasLayer,
-            "transform",
-            out > 0 ? `translateY(${(-out * vh * 0.45).toFixed(1)}px)` : "none",
-          );
-          write(marcasLayer, "opacity", (1 - out * 0.5).toFixed(3));
 
           // §4.3 Novedades: entrada al llegar al 75 % y opacidad de cada fila según su distancia.
           nv.toggleAttribute("data-in", box.nv[0] - s < vh * 0.75);
@@ -529,7 +286,8 @@ export function Explora({ data }: Props) {
           const y = window.scrollY;
           const current = ends.findIndex((end) => end - y > 2);
           target = ends[current];
-          skip.toggleAttribute("data-on", current >= 0);
+          // En Destacados no: abajo ya está [ BAJAR ].
+          skip.toggleAttribute("data-on", current >= 1);
           if (current >= 0 && current !== shownSection) {
             shownSection = current;
             setSection(current);
@@ -606,8 +364,6 @@ export function Explora({ data }: Props) {
         return () => {
           unsubscribe();
           stop();
-          for (const type of introInputs) window.removeEventListener(type, skipIntro);
-          dest.removeAttribute("data-intro-on");
           skip.removeEventListener("click", jump);
           index.removeEventListener("click", go);
           spacer.style.marginTop = "";
@@ -640,35 +396,7 @@ export function Explora({ data }: Props) {
     <div ref={root} className={styles.root}>
       <h1 className="sr-only">Explora</h1>
 
-      {destacados.length > 0 && (
-        // MARCAS y la intro automática van en una capa fija sobre Destacados.
-        <div className={styles.dest} data-dest>
-          <div className={styles.marcasLayer} data-marcas-layer aria-hidden="true">
-            <span className={styles.marcas} data-marcas>
-              MARCAS
-            </span>
-            <span className={`${typo.labelLg} ${styles.marcasSub}`} data-marcas-sub>
-              <ScrambleText text={inPop ? `A — 1 · ${pad(index + 1, 2)}` : "A — 1"} />
-              <ScrambleText
-                text={
-                  inPop
-                    ? (destacados[index]?.name ?? "Destacados")
-                    : `Destacados · ${pad(destacados.length, 2)}`
-                }
-              />
-            </span>
-            {INTRO_WORDS.map((word) => (
-              <span key={word} className={styles.introWord} data-pw>
-                {word}
-              </span>
-            ))}
-            <span className={styles.introName} data-intro-name>
-              {INTRO_TEXT}
-            </span>
-          </div>
-          <Populares popular={destacados} index={index} />
-        </div>
-      )}
+      {destacados.length > 0 && <Populares popular={destacados} />}
       {populares.length > 0 && <Novedades newest={populares} />}
       {novedades.length > 0 && <Emergentes brands={novedades} near={near} />}
       {emergentes.length > 0 && <Catalogo brands={emergentes} />}

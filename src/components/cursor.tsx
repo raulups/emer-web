@@ -51,9 +51,11 @@ export function Cursor() {
     const move = (e: PointerEvent) => {
       x = e.clientX;
       y = e.clientY;
-      const at = `translate3d(${x}px, ${y}px, 0)`;
-      el.style.transform = at;
-      box.style.transform = at;
+      // En `translate`, no en `transform`: `scale` (al recogerse sobre una marca) se aplica por fuera
+      // de `transform` y encogería también el desplazamiento, llevando el punto hacia (0,0).
+      const at = `${x}px ${y}px`;
+      el.style.translate = at;
+      box.style.translate = at;
       el.hidden = false;
       box.hidden = false;
     };

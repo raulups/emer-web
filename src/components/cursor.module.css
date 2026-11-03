@@ -10,7 +10,7 @@
   background: #fff;
   mix-blend-mode: difference;
   pointer-events: none;
-  /* `scale` va aparte de `transform` (que es la posición): así no se pisan. */
+  /* La posición va en `translate` (lo escribe el JS) y el tamaño en `scale`: así no se pisan. */
   transition:
     scale 0.35s var(--ease-out-expo),
     opacity 0.2s linear;

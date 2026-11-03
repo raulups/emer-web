@@ -19,16 +19,21 @@ const NOVEDADES = [
 ];
 const EMERGENTES = ["Bajo Cero", "Imagen Rota", "Tinta", "Marea", "Calma", "Satenier"];
 
-/** Abre Explora. Salvo `{ intro: true }`, se salta la intro automática (cualquier tecla). */
-async function openExplora(page: Page, { intro = false } = {}) {
+/**
+ * Abre Explora (Destacados, arriba del todo) con el foco neutro: el carrusel atiende al teclado.
+ * Salvo `{ deal: true }`, espera a que acabe la entrada en baraja (cada test es una sesión nueva).
+ */
+async function openExplora(page: Page, { deal = false } = {}) {
   await page.goto("/web");
   await page.getByRole("button", { name: "Explora" }).click();
-  await expect(page.locator("[data-dest]")).toBeVisible();
+  await expect(page.locator("[data-pop]")).toBeVisible();
+  if (!deal)
+    await expect(page.locator("[data-pop]")).toHaveAttribute("data-ready", "true", {
+      timeout: 8000,
+    });
   // El slide Marketplace → Explora (View Transition) captura el puntero mientras dura.
   await expect(page.locator("html")).not.toHaveAttribute("data-slide");
-  if (intro) return;
-  await page.keyboard.press("Shift");
-  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on");
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
 }
 
 const geometry = (page: Page) =>
@@ -50,158 +55,217 @@ const geometry = (page: Page) =>
 
 const counter = (page: Page) =>
   page.getByRole("region", { name: "Marcas destacadas" }).locator("p[aria-live]");
-const wordBox = (page: Page, index: number) => page.locator("[data-pw]").nth(index).boundingBox();
 
 test.beforeEach(({ page: _page }, info) => {
   test.skip(info.project.name === "mobile", "el diseño de Explora es de escritorio");
 });
 
-test("intro automática: columna → fila → scramble hasta la primera marca y se descubre", async ({
+const cardBox = (page: Page, index: number) => page.locator("[data-card]").nth(index).boundingBox();
+
+test("Destacados: carrusel sin título; ficha y contador de la marca activa", async ({ page }) => {
+  await openExplora(page);
+  const pop = page.getByRole("region", { name: "Marcas destacadas" });
+  await expect(page.locator("[data-marcas], [data-intro-name]")).toHaveCount(0);
+  await expect(pop.locator("[data-card]")).toHaveCount(DESTACADOS.length);
+  await expect(pop.getByRole("heading", { level: 2 })).toHaveText(DESTACADOS[0] as string);
+  await expect(counter(page)).toHaveText(`${DESTACADOS[0]} · 01 / 03`);
+  await expect(pop.getByRole("link", { name: "Ver marca", exact: true })).toBeVisible();
+  // Bajo el título, entre dos rayas, hasta 3 artículos en fila con nombre y precio.
+  const products = pop.locator("ul a");
+  await expect(products).toHaveCount(3);
+  await expect(products.first()).toContainText("€");
+  const [p0, p2] = [await products.first().boundingBox(), await products.last().boundingBox()];
+  expect(Math.abs((p0?.y ?? 0) - (p2?.y ?? 99))).toBeLessThan(1);
+
+  // La activa, en el centro; la siguiente, arriba a la derecha y más grande.
+  const vw = page.viewportSize()?.width ?? 0;
+  const first = await cardBox(page, 0);
+  const second = await cardBox(page, 1);
+  expect(Math.abs((first?.x ?? 0) + (first?.width ?? 0) / 2 - vw * 0.53)).toBeLessThan(vw * 0.05);
+  expect(second?.x ?? 0).toBeGreaterThan((first?.x ?? 0) + (first?.width ?? 0) / 2);
+  expect(second?.y ?? 0).toBeLessThan(first?.y ?? 0);
+  expect(second?.width ?? 0).toBeGreaterThan(first?.width ?? 0);
+});
+
+test("Destacados: entrada en baraja la primera vez; mientras, no se mueve", async ({ page }) => {
+  await page.goto("/web");
+  // Primer frame con la baraja ya visible: centros de las dos primeras fotos y opacidad de la ficha.
+  const deck = page.evaluate(
+    () =>
+      new Promise<{ spread: number; info: number }>((resolve) => {
+        const look = () => {
+          const cards = [...document.querySelectorAll<HTMLElement>("[data-card]")];
+          const [a, b] = cards.map((card) => card.getBoundingClientRect());
+          const visible = cards[1] && Number(getComputedStyle(cards[1]).opacity) > 0.5;
+          if (!a || !b || !visible) return requestAnimationFrame(look);
+          const info = document.querySelector("[data-pop] h2")?.parentElement;
+          resolve({
+            spread: Math.abs(a.left + a.width / 2 - (b.left + b.width / 2)),
+            info: Number(info ? getComputedStyle(info).opacity : 1),
+          });
+        };
+        look();
+      }),
+  );
+  await page.getByRole("button", { name: "Explora" }).click();
+  const vw = page.viewportSize()?.width ?? 0;
+  const first = await deck;
+  // Apiladas en el centro (donde queda la activa), con la ficha aún oculta.
+  expect(first.spread).toBeLessThan(vw * 0.05);
+  expect(first.info).toBeLessThan(0.1);
+
+  const pop = page.locator("[data-pop]");
+  await expect(pop).toHaveAttribute("data-ready", "false");
+  // La rueda no avanza ni mueve la página durante la entrada.
+  await page.mouse.move(400, 400);
+  await page.mouse.wheel(0, 120);
+  await expect(pop).toHaveAttribute("data-ready", "true", { timeout: 8000 });
+  await expect(counter(page)).toContainText("01 / 03");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  // Ya repartidas: la siguiente, arriba a la derecha.
+  const mid = (b: { x: number; width: number } | null) => (b?.x ?? 0) + (b?.width ?? 0) / 2;
+  expect(mid(await cardBox(page, 1))).toBeGreaterThan(mid(await cardBox(page, 0)) + vw * 0.1);
+
+  // Volver a abrir Explora en la misma sesión: sin baraja.
+  await page.getByRole("button", { name: "Marketplace" }).click();
+  await page.getByRole("button", { name: "Explora" }).click();
+  await expect(pop).toHaveAttribute("data-ready", "true");
+});
+
+test("Destacados: rueda y flechas pasan de marca sin mover la página; al final, baja", async ({
   page,
 }) => {
-  await openExplora(page, { intro: true });
-  const dest = page.locator("[data-dest]");
-  const name = page.locator("[data-intro-name]");
-  await expect(dest).toHaveAttribute("data-intro-on", "");
-  // En columna: DES encima de DOS, a la derecha del centro.
-  await expect.poll(async () => (await wordBox(page, 0))?.x ?? 0).toBeGreaterThan(600);
-  const des = await wordBox(page, 0);
-  const dos = await wordBox(page, 3);
-  expect(des?.y ?? 0).toBeLessThan(dos?.y ?? 0);
-  // La escena de Destacados espera oculta y el scroll está bloqueado.
-  await expect(page.locator("[data-pop-stage] [data-im-window]")).toHaveCSS("opacity", "0");
-  await page.evaluate(() => window.scrollTo(0, 400));
+  await openExplora(page);
+  const g = await geometry(page);
+  await page.mouse.move(g.vh / 2, g.vh / 2);
+  await page.mouse.wheel(0, 120);
+  await expect(counter(page)).toHaveText(`${DESTACADOS[1]} · 02 / 03`);
+  // Un gesto es un paso: la inercia que sigue no avanza más.
+  await page.mouse.wheel(0, 40);
   await page.waitForTimeout(100);
+  await expect(counter(page)).toContainText("02 / 03");
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
 
-  // En fila: todas a la misma altura, DES a la izquierda de DOS.
+  await page.waitForTimeout(250);
+  await page.keyboard.press("ArrowDown");
+  await expect(counter(page)).toHaveText(`${DESTACADOS[2]} · 03 / 03`);
+  await page.keyboard.press("ArrowUp");
+  await expect(counter(page)).toContainText("02 / 03");
+  await page.keyboard.press("ArrowRight");
+  await expect(counter(page)).toContainText("03 / 03");
+  await expect(page.locator("[data-pop]")).toHaveAttribute("data-last", "true");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+
+  // Pasada la última, scroll animado hasta la siguiente sección.
+  await page.keyboard.press("ArrowDown");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(50);
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(g.nv.top - 20);
   await expect
-    .poll(
-      async () => {
-        const [a, b] = [await wordBox(page, 0), await wordBox(page, 3)];
-        return Math.abs((a?.y ?? 0) - (b?.y ?? 99)) < 2 && (a?.x ?? 0) < (b?.x ?? 0);
-      },
-      { timeout: 3000 },
-    )
-    .toBe(true);
-
-  // Scramble hasta el nombre de la primera marca, encima del nombre real.
-  await expect(name).toHaveText(DESTACADOS[0] as string, { timeout: 4000 });
-  const real = await page.locator("[data-nm-base] [data-nm]").first().boundingBox();
-  const word = await name.boundingBox();
-  expect(Math.abs((word?.x ?? 0) - (real?.x ?? 99))).toBeLessThan(2);
-  expect(Math.abs((word?.y ?? 0) - (real?.y ?? 99))).toBeLessThan(2);
-
-  await expect(dest).not.toHaveAttribute("data-intro-on", { timeout: 3000 });
-  await expect(page.locator("[data-pop-stage] [data-im-window]")).toHaveCSS("opacity", "1");
-  await expect(counter(page)).toContainText(DESTACADOS[0] as string);
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeCloseTo(g.nv.top, -1);
 });
 
-test("intro: una tecla la termina y deja Destacados listo", async ({ page }) => {
-  await openExplora(page, { intro: true });
-  await page.keyboard.press("Shift");
-  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on");
-  await expect(page.locator("[data-intro-name]")).toHaveText(DESTACADOS[0] as string);
-});
-
-test("Destacados: nombres, descripción, piezas y contador de la marca activa", async ({ page }) => {
+test("Destacados: el título mide siempre dos líneas y nunca pasa de ahí", async ({ page }) => {
   await openExplora(page);
-  const g = await geometry(page);
-  const at = (p: number) => g.pop.top + p * (g.pop.height - g.vh);
-
-  await page.evaluate((y) => window.scrollTo(0, y), at(0));
-  await expect(counter(page)).toContainText(DESTACADOS[0] as string);
-  await expect(counter(page)).toContainText("01");
-  await expect(counter(page)).toContainText("03");
-  // Los nombres de la pista son exactamente las marcas con el tag, en orden.
-  expect(await page.locator("[data-nm-base] [data-nm]").allTextContents()).toEqual(DESTACADOS);
-  const pop = page.getByRole("region", { name: "Marcas destacadas" });
-  // La descripción no enseña los tags de sección.
-  await expect(pop.locator("p").first()).not.toContainText(/destacad|popular|novedad|emergente/i);
-  await expect(pop.getByRole("link", { name: "Ver marca", exact: true })).toBeVisible();
-  await expect(pop.locator("ul a")).toHaveCount(3);
-  await expect(pop.locator("ul a").first()).toContainText("€");
-
-  await page.evaluate((y) => window.scrollTo(0, y), at(1));
-  await expect(counter(page)).toContainText(DESTACADOS[2] as string, { timeout: 4000 });
-  await expect(counter(page)).toContainText("03");
-});
-
-test("intro → Destacados: MARCAS sube y se queda arriba, sobre los nombres", async ({ page }) => {
-  await openExplora(page, { intro: true });
-  const marcas = page.locator("[data-marcas]");
-  const g = await geometry(page);
-  // Al empezar la intro, centrada.
-  const start = await marcas.boundingBox();
-  expect(Math.abs((start?.y ?? 0) + (start?.height ?? 0) / 2 - g.vh / 2)).toBeLessThan(4);
-  await expect(page.locator("[data-dest]")).not.toHaveAttribute("data-intro-on", {
-    timeout: 6000,
+  const title = page.getByRole("region", { name: "Marcas destacadas" }).getByRole("heading");
+  const lines = () =>
+    title.evaluate(
+      (el) =>
+        el.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(el).lineHeight),
+    );
+  expect(await lines()).toBeCloseTo(2, 1);
+  // Con un nombre largo sigue igual de alto (se corta a dos líneas).
+  await title.evaluate((el) => {
+    (el.firstChild as HTMLElement).textContent =
+      "Un nombre de marca larguísimo que no cabe en dos líneas";
   });
-
-  // Con Destacados fija: arriba, más pequeña y por encima de los nombres.
-  await page.evaluate((y) => window.scrollTo(0, y), g.pop.top + 0.3 * (g.pop.height - g.vh));
-  await expect
-    .poll(async () => (await marcas.boundingBox())?.y ?? 999, { timeout: 4000 })
-    .toBeLessThan(g.vh * 0.15);
-  const top = await marcas.boundingBox();
-  const names = await page.locator("[data-nm-base]").boundingBox();
-  expect(top?.height ?? 999).toBeLessThan(start?.height ?? 0);
-  expect((top?.y ?? 0) + (top?.height ?? 0)).toBeLessThanOrEqual(names?.y ?? 0);
+  expect(await lines()).toBeCloseTo(2, 1);
 });
 
-test("Destacados: la copia negra de los nombres se recorta a la ventana 50–75 %", async ({
+test("Destacados: con el ratón encima la foto se endereza y sigue al cursor", async ({ page }) => {
+  await openExplora(page);
+  const card = page.locator("[data-card]").first();
+  const angles = () =>
+    card.evaluate((el) => {
+      const t = el.style.transform;
+      const deg = (axis: string) =>
+        Number(new RegExp(`rotate${axis}\\((-?[\\d.]+)deg`).exec(t)?.[1]);
+      return { x: deg("X"), y: deg("Y") };
+    });
+  const rest = await angles();
+  const box = await card.boundingBox();
+  const cx = (box?.x ?? 0) + (box?.width ?? 0) / 2;
+  const cy = (box?.y ?? 0) + (box?.height ?? 0) / 2;
+  await page.mouse.move(cx, cy);
+  await expect.poll(async () => Math.abs((await angles()).x)).toBeLessThan(Math.abs(rest.x) / 3);
+  // Hacia la derecha gira hacia la derecha; hacia la izquierda, al revés.
+  await page.mouse.move(cx + 80, cy);
+  await page.waitForTimeout(800);
+  const right = (await angles()).y;
+  await page.mouse.move(cx - 80, cy);
+  await page.waitForTimeout(800);
+  expect(right - (await angles()).y).toBeGreaterThan(5);
+  // Al salir vuelve a su inclinación.
+  await page.mouse.move(5, 5);
+  await expect.poll(angles).toEqual(rest);
+});
+
+test("Destacados: entrar con el ratón en la siguiente o la anterior navega a ella (una vez)", async ({
   page,
 }) => {
   await openExplora(page);
-  const clip = page.locator("[data-nm-top]").locator("xpath=..");
-  await expect(clip).toHaveCSS("clip-path", /inset\(0px 25% 0px 50%\)|inset\(0px 25% 0px 50%\)/);
-  const g = await geometry(page);
-  // Destacados se solapa una pantalla con la intro: su recorrido empieza una pantalla después.
-  await page.evaluate(
-    (y) => window.scrollTo(0, y),
-    g.pop.top + g.vh + 0.5 * (g.pop.height - 2 * g.vh),
-  );
-  // La pista de imágenes avanza a la vez que los nombres.
-  await expect
-    .poll(
-      () =>
-        page
-          .locator("[data-im-track]")
-          .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41),
-      { timeout: 4000 },
-    )
-    .toBeLessThan(-100);
+  const center = async (i: number) => {
+    const box = await cardBox(page, i);
+    return { x: (box?.x ?? 0) + (box?.width ?? 0) / 2, y: (box?.y ?? 0) + (box?.height ?? 0) / 2 };
+  };
+  const next = await center(1);
+  await page.mouse.move(5, 5);
+  await page.mouse.move(next.x, next.y, { steps: 4 });
+  await expect(counter(page)).toContainText("02 / 03");
+  // Con el cursor quieto, la foto que se desliza debajo no encadena otro salto.
+  await page.waitForTimeout(1500);
+  await expect(counter(page)).toContainText("02 / 03");
+
+  // La anterior, medida ya en su sitio; se entra por la izquierda, sin cruzar las demás.
+  const prev = await center(0);
+  await page.mouse.move(2, prev.y);
+  await page.mouse.move(prev.x, prev.y, { steps: 4 });
+  await expect(counter(page)).toContainText("01 / 03");
 });
 
-test("sin movimiento: lista estática en lugar del recorrido", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("Destacados: pulsar una foto la trae al centro", async ({ page }) => {
   await openExplora(page);
+  await page.locator("[data-card]").nth(1).click();
+  await expect(counter(page)).toContainText(DESTACADOS[1] as string);
+  await expect(page.locator("[data-card]").nth(1)).toHaveAttribute("aria-current", "true");
+});
+
+test("[ BAJAR ]: abajo al centro, animado, lleva a la siguiente sección", async ({ page }) => {
+  await openExplora(page);
+  const down = page.getByRole("button", { name: "Bajar a la siguiente sección" });
+  await expect(down).toBeVisible();
+  await expect(down).toHaveCSS("mix-blend-mode", "difference");
+  await expect(down.locator("span span").last()).not.toHaveCSS("animation-name", "none");
+  const box = await down.boundingBox();
+  const vw = page.viewportSize()?.width ?? 0;
+  expect(Math.abs((box?.x ?? 0) + (box?.width ?? 0) / 2 - vw / 2)).toBeLessThan(2);
+  // En Destacados no hay [ SALTAR ]: lo hace este botón.
+  await expect(page.locator("[data-skip]")).not.toHaveAttribute("data-on");
+
+  const g = await geometry(page);
+  await down.click();
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeCloseTo(g.nv.top, -1);
+});
+
+test("sin movimiento: lista estática en lugar del carrusel", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/web");
+  await page.getByRole("button", { name: "Explora" }).click();
   await expect(page.getByRole("region", { name: "Marcas destacadas" })).toBeHidden();
   await expect(page.locator("[data-static]").getByText("Scuffers", { exact: true })).toBeVisible();
 });
-
-for (const size of [
-  { width: 1440, height: 900 },
-  { width: 924, height: 540 },
-]) {
-  test(`Destacados ${size.width}×${size.height}: las piezas caben sin pisar la descripción`, async ({
-    page,
-  }) => {
-    await page.setViewportSize(size);
-    await openExplora(page);
-    const g = await geometry(page);
-    await page.evaluate((y) => window.scrollTo(0, y), g.pop.top);
-    const pop = page.getByRole("region", { name: "Marcas destacadas" });
-    await expect(pop.locator("ul a").first()).toBeVisible();
-    const link = await pop.getByRole("link", { name: /Ver marca/ }).boundingBox();
-    const list = await pop.locator("ul").boundingBox();
-    const lastCard = await pop.locator("ul a").last().boundingBox();
-    expect(list?.y ?? 0).toBeGreaterThanOrEqual((link?.y ?? 0) + (link?.height ?? 0));
-    // No llegan a la línea central ni se salen de la pantalla.
-    expect((lastCard?.x ?? 0) + (lastCard?.width ?? 0)).toBeLessThanOrEqual(size.width / 2);
-    expect((list?.y ?? 0) + (list?.height ?? 0)).toBeLessThanOrEqual(size.height);
-  });
-}
 
 test("Populares (2.ª sección): marcas con el tag, opacidad por distancia y foto en hover sin animación", async ({
   page,
@@ -259,7 +323,10 @@ test("[ SALTAR ]: scroll animado al final de la sección; controles en modo dife
   page,
 }) => {
   await openExplora(page);
-  const skip = page.getByRole("button", { name: "Saltar al final de Destacados" });
+  const g = await geometry(page);
+  // En Destacados lo hace [ BAJAR ]; aparece desde Populares.
+  await page.evaluate((y) => window.scrollTo(0, y), g.nv.top);
+  const skip = page.getByRole("button", { name: "Saltar al final de Populares" });
   const nav = page.getByRole("navigation", { name: "Vista" });
   await expect(skip).toBeVisible();
   // Blanco en modo diferencia: se lee sobre blanco, negro o foto sin halo ni sombra.
@@ -269,16 +336,16 @@ test("[ SALTAR ]: scroll animado al final de la sección; controles en modo dife
   }
   await expect(nav.locator("span").first()).toHaveCSS("text-shadow", "none");
 
-  const g = await geometry(page);
+  const end = g.sp.top + g.sp.height - g.vh;
   await skip.click();
   // No es un salto seco: a mitad del recorrido el scroll aún no ha llegado.
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(g.nv.top - 50);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(g.nv.top + 100);
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThan(end - 50);
   await expect
     .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
-    .toBeCloseTo(g.nv.top, -1);
+    .toBeCloseTo(end, -1);
 
-  await expect(page.getByRole("button", { name: "Saltar al final de Populares" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Saltar al final de Novedades" })).toBeVisible();
 });
 
 test("índice: discreto en reposo, marca la sección actual y lleva a cada una", async ({ page }) => {

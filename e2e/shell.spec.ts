@@ -33,7 +33,7 @@ test("cursor propio: sigue al ratón solo con pointer fine", async ({ page }, in
   await expect(dot).toBeVisible();
   await expect(dot).toHaveCSS("mix-blend-mode", "difference");
   await expect(dot).toHaveCSS("width", "12px");
-  await expect(dot).toHaveCSS("transform", "matrix(1, 0, 0, 1, 200, 150)");
+  await expect(dot).toHaveCSS("translate", "200px 150px");
 });
 
 test("sin errores en consola (solo el 404 de la imagen rota de las fixtures) ni fuentes ajenas", async ({

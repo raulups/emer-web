@@ -51,6 +51,8 @@ type ScrollToOptions = {
   immediate?: boolean;
   duration?: number;
   easing?: (t: number) => number;
+  /** Ignora la rueda del usuario hasta llegar (la inercia del gesto que lo lanzó no lo corta). */
+  lock?: boolean;
   onComplete?: () => void;
 };
 
@@ -59,9 +61,9 @@ type ScrollToOptions = {
  * inercia); sin él, scroll nativo.
  */
 export function scrollToY(y: number, options: ScrollToOptions = {}): void {
-  const { immediate = false, duration = SCROLL_TO_DURATION, easing, onComplete } = options;
+  const { immediate = false, duration = SCROLL_TO_DURATION, easing, lock, onComplete } = options;
   if (lenis) {
-    lenis.scrollTo(y, { immediate, duration, easing, force: true, onComplete });
+    lenis.scrollTo(y, { immediate, duration, easing, lock, force: true, onComplete });
     return;
   }
   window.scrollTo({ top: y, behavior: immediate ? "instant" : "smooth" });
