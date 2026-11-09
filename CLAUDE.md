@@ -23,14 +23,14 @@ Web de marketing/descubrimiento de **Emer** (marketplace de marcas de streetwear
 
 ```
 src/
-  proxy.ts             web de móvil: en un teléfono (user-agent) `/` y `/web` se sirven desde `/m`; tablets y ordenadores, web completa
+  proxy.ts             web de móvil: en un teléfono (user-agent) `/` es la Landing y `/web` se sirve desde `/m`; tablets y ordenadores, web completa
   app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí), `/m` web de móvil (interna, solo Marketplace)
   app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
   app/api/warm/        lo pide la Landing: deja en caché marcas + 1.ª página del Marketplace y avisa al acabar
   components/          componentes; cursor.tsx = cursor propio global (layout); backend-wake.tsx = pantalla con contador mientras despierta el backend (layout); wake-retry.tsx = lo que pinta una sección de servidor sin datos (reintenta y refresca)
     shell/             Shell + switch MARKETPLACE / EXPLORA
     mobile/            web de móvil: shell sin switch + aviso «descarga la app» (una vez por sesión; enlaces en `lib/app-links.ts`)
-    landing/           Landing: `landing.tsx` (un bucle por tiempo): túnel de fotos de `src/img/` + contador mientras responde `/api/warm`; después «CARGANDO MARKETPLACE» y `/web`
+    landing/           Landing (también en móvil): `landing.tsx` (un bucle por tiempo): túnel con los logos de las marcas (`/api/logos`) + contador mientras responde `/api/warm`; después «CARGANDO MARKETPLACE» y `/web`
     explora/           Explora: `explora.tsx` (un bucle por scroll). Destacados es un carrusel (`populares.tsx` + `carousel-path.ts` / `carousel-input.ts`) con su propio bucle: rueda/teclas/swipe arriba del todo, al final baja a la sección siguiente. Orden en pantalla: Destacados (tag «destacada») → Populares («popular») → Emergentes («emergente», por año de fundación) → Novedades («novedad», las 12 últimas en llegar; una pantalla que se recorre a mano: botones, flechas, deslizar y miniaturas) → Catálogo (todas las marcas: grid asimétrico de fotos, `LAYOUT` en `emergentes.tsx`, con «Ver más»). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `catalogo`→Emergentes, `llegadas`→Novedades, `emergentes`→Catálogo
     marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
     ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal), type.module.css (jerarquía editorial), display-title (titular serif + negrita), scramble-text (etiqueta que se baraja)

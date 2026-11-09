@@ -20,14 +20,20 @@ async function holdWarm(page: Page) {
 }
 
 test.beforeEach(({ page: _page }, info) => {
-  test.skip(info.project.name === "mobile", "en el móvil no hay Landing (ver e2e/mobile.spec.ts)");
+  test.skip(
+    info.project.name === "mobile",
+    "en el móvil, la Landing se prueba en e2e/mobile.spec.ts",
+  );
 });
 
-test("túnel: las fotos de src/img con el contador de marcas", async ({ page }) => {
+test("túnel: los logos de las marcas (repetidos hasta llenarlo) con el contador", async ({
+  page,
+}) => {
   await holdWarm(page);
   await page.goto("/");
-  await expect(page.locator("[data-tile]")).toHaveCount(38);
-  await expect(page.locator("[data-tile] img").first()).toHaveAttribute("src", /_next\/image/);
+  // Las fixtures traen 4 logos: se repiten hasta el mínimo del túnel.
+  await expect(page.locator("[data-tile]")).toHaveCount(18);
+  await expect(page.locator("[data-tile] img").first()).not.toHaveAttribute("src", /_next\/image/);
   await expect(page.locator("[data-cnt-number]")).not.toHaveText("00");
   await expect
     .poll(() =>
@@ -36,6 +42,16 @@ test("túnel: las fotos de src/img con el contador de marcas", async ({ page }) 
     .toBe(true);
   const box = await skip(page).boundingBox();
   expect(box?.y).toBeLessThan(40);
+});
+
+test("sin logos (backend dormido): el túnel arranca igual, solo con el contador", async ({
+  page,
+}) => {
+  await holdWarm(page);
+  await page.route("**/api/logos", (route) => route.fulfill({ json: { logos: [] } }));
+  await page.goto("/");
+  await expect(page.locator("[data-cnt-number]")).not.toHaveText("00");
+  await expect(page.locator("[data-tile]")).toHaveCount(0);
 });
 
 test("con la respuesta ya recibida: la barra se llena rápido y abre el Marketplace", async ({

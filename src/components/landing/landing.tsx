@@ -2,10 +2,10 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import type { LogosResponse } from "@/app/api/logos/route";
 import type { WarmResponse } from "@/app/api/warm/route";
 import { wakeFetch } from "@/lib/backend-wake";
 import { clamp01, easeInOutCubic, easeOutCubic, pad } from "@/lib/motion/math";
@@ -22,16 +22,32 @@ import {
   TUNNEL_S,
 } from "./content";
 import styles from "./landing.module.css";
-import { TUNNEL_IMAGES } from "./tunnel-images";
 
 gsap.registerPlugin(useGSAP);
+
+/** `/web` con los parámetros con los que se abrió la Landing (p. ej. `?brand=`, que preselecciona). */
+const webUrl = () => `/web${window.location.search}`;
 
 /** Estado de `/api/warm`: `done` en cuanto responde (bien o mal). */
 type Warm = { done: boolean; total: number | null };
 
+/** El túnel espera a los logos como mucho esto (ms); si no llegan, sale sin ellos. */
+const LOGOS_WAIT_MS = 1_500;
+/** Piezas del túnel: con pocos logos se repiten hasta este mínimo; nunca más del máximo. */
+const TUNNEL_MIN = 18;
+const TUNNEL_MAX = 36;
+
+/** Los logos, repetidos si hacen falta para llenar el túnel. */
+function tunnelLogos(logos: readonly string[]): string[] {
+  if (logos.length === 0) return [];
+  const count = Math.min(TUNNEL_MAX, Math.max(TUNNEL_MIN, logos.length));
+  return Array.from({ length: count }, (_, i) => logos[i % logos.length] ?? "");
+}
+
 /**
  * Landing: mientras `/api/warm` deja en caché las marcas y la primera página del Marketplace,
- * el túnel de fotos (`src/img/`) con el contador de marcas. Al acabar, «CARGANDO MARKETPLACE»
+ * el túnel con los logos de las marcas (`/api/logos`, en caché; si el backend duerme, sin logos) y
+ * el contador de marcas. Los logos se pintan a su tamaño final y se reducen: siempre nítidos. Al acabar, «CARGANDO MARKETPLACE»
  * con una barra: si ya hay respuesta se llena rápido; si no, avanza despacio y se completa al
  * llegar. Entonces cae la cortina y se abre `/web`. [ SALTAR ] va directo a la barra.
  * Todo en un único bucle (`gsap.ticker`) que escribe estilos con `write`.
@@ -42,10 +58,40 @@ export function Landing() {
   const skipTunnel = useRef<(() => void) | null>(null);
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
+  // `null` mientras se esperan: el túnel no arranca hasta tenerlos (o pasar `LOGOS_WAIT_MS`).
+  const [logos, setLogos] = useState<string[] | null>(null);
+  const tiles = useRef<HTMLElement[]>([]);
+  const logosReady = useRef(false);
 
   useEffect(() => {
     const controller = new AbortController();
-    router.prefetch("/web");
+    const done = (list: string[]) => {
+      if (logosReady.current) return;
+      logosReady.current = true;
+      setLogos(tunnelLogos(list));
+    };
+    const timer = window.setTimeout(() => done([]), LOGOS_WAIT_MS);
+    fetch("/api/logos", { cache: "no-store", signal: controller.signal })
+      .then((res) => res.json() as Promise<LogosResponse>)
+      .then((body) => done(body.logos))
+      .catch(() => {
+        if (!controller.signal.aborted) done([]);
+      });
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  // Las piezas del túnel se leen cuando ya están pintadas; el bucle las usa desde aquí.
+  useEffect(() => {
+    if (logos === null) return;
+    tiles.current = [...(root.current?.querySelectorAll<HTMLElement>("[data-tile]") ?? [])];
+  }, [logos]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    router.prefetch(webUrl());
     // Si el backend duerme, `wakeFetch` repite hasta que responda; el aviso sale al acabar el túnel.
     wakeFetch("/api/warm", {
       cache: "no-store",
@@ -72,7 +118,6 @@ export function Landing() {
         if (!node) throw new Error(`Landing: falta [data-${name}]`);
         return node;
       };
-      const tiles = [...el.querySelectorAll<HTMLElement>("[data-tile]")];
       const cnt = one("cnt");
       const cntNumber = one("cnt-number");
       const fill = one("loading-fill");
@@ -93,7 +138,7 @@ export function Landing() {
             if (left) return;
             left = true;
             setLeaving(true);
-            window.setTimeout(() => router.push("/web"), reduce ? 0 : CURTAIN_MS);
+            window.setTimeout(() => router.push(webUrl()), reduce ? 0 : CURTAIN_MS);
           };
 
           // Sin movimiento no hay túnel: directamente la pantalla de carga.
@@ -108,17 +153,19 @@ export function Landing() {
           let readyT = -1;
           let readyFrom = 0;
           let k = 0;
-          const count = tiles.length || 1;
 
           const frame: Tick = (time) => {
             if (left) return;
-            if (t0 < 0) t0 = time;
 
             if (phase === "tunnel") {
+              // Espera a los logos (o a que se agote su espera) antes de arrancar.
+              if (!logosReady.current) return;
+              if (t0 < 0) t0 = time;
               const t = clamp01((time - t0) / TUNNEL_S);
               // Fotos: salen del centro una tras otra y crecen hacia fuera (ángulo áureo), en tres
               // órbitas bien separadas: entre foto y foto queda aire.
-              tiles.forEach((node, i) => {
+              const count = tiles.current.length || 1;
+              tiles.current.forEach((node, i) => {
                 const u = clamp01(t * 1.7 - (i / count) * 0.7);
                 const angle = i * GOLDEN_ANGLE;
                 const radius = TUNNEL_ORBIT.base + (i % 3) * TUNNEL_ORBIT.step;
@@ -206,9 +253,11 @@ export function Landing() {
 
       <div className={styles.stage}>
         <div className={styles.tunnel} aria-hidden="true">
-          {TUNNEL_IMAGES.map((image) => (
-            <div key={image.src} className={styles.tile} data-tile>
-              <Image src={image} alt="" sizes="43vw" loading="eager" className={styles.tileImage} />
+          {logos?.map((logo, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: un logo puede repetirse; el orden es fijo
+            <div key={i} className={styles.tile} data-tile>
+              {/* biome-ignore lint/performance/noImgElement: logos remotos (SVG) a tamaño final */}
+              <img src={logo} alt="" decoding="async" className={styles.tileImage} />
             </div>
           ))}
         </div>

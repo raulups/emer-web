@@ -84,20 +84,16 @@
 }
 
 /*
- * Pintada a su tamaño final (11vw × TUNNEL_MAX_SCALE) y reducida con `scale`: así se ve nítida al
- * crecer. Marco blanco fino (escala con la foto): aunque se crucen, entre foto y foto queda aire.
+ * Logo de una marca, pintado a su tamaño final (11vw × TUNNEL_MAX_SCALE) y reducido con `scale`:
+ * siempre nítido al crecer. Sin marco ni fondo: solo el logo sobre el blanco.
  */
 .tile {
   position: absolute;
   top: 50%;
   left: 50%;
   z-index: 4;
-  box-sizing: border-box;
   width: 42.7vw;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  border: 1.94vw solid var(--paper);
-  background: var(--paper);
+  aspect-ratio: 3 / 2;
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.0206);
 }
@@ -106,7 +102,7 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 /* will-change solo mientras corre el túnel. */

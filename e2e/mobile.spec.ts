@@ -1,7 +1,7 @@
 import { devices, expect, type Page, test } from "@playwright/test";
 import { APP_PROMPT_KEY } from "@/lib/app-links";
 
-/** Web de móvil (`src/proxy.ts` → `src/app/m`): solo Marketplace y el aviso de la app. */
+/** Web de móvil: Landing en `/`; `/web` → `src/app/m` (`src/proxy.ts`): Marketplace y aviso de la app. */
 
 const SATENIER = "0208bdca-c705-491b-82fa-76123232670b";
 const MAREA = "b13edf90-7c6d-4fe4-9b7f-8d9e0f1a2b3c";
@@ -18,11 +18,14 @@ test.describe("móvil", () => {
     test.skip(info.project.name !== "mobile", "solo con un teléfono");
   });
 
-  test("/ muestra el Marketplace sin redirigir, sin Landing ni Explora", async ({ page }) => {
+  test("/ muestra la Landing y al acabar abre /web: el Marketplace de móvil, sin Explora", async ({
+    page,
+  }) => {
     await skipPrompt(page);
-    const response = await page.goto("/");
-    expect(response?.request().redirectedFrom()).toBeNull();
+    await page.goto("/");
     await expect(page).toHaveURL("/");
+    await expect(page.locator("[data-cnt-number]")).not.toHaveText("00");
+    await page.waitForURL("**/web", { timeout: 12_000 });
     await expect(products(page).first()).toBeVisible();
     await expect(page.getByRole("heading", { name: "Marketplace", level: 1 })).toBeAttached();
     await expect(page.getByRole("navigation", { name: "Vista" })).toHaveCount(0);
@@ -174,12 +177,14 @@ test.describe("móvil", () => {
     await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 4000 }).toBe(0);
   });
 
+  // `/?brand=` pasa por la Landing y acaba en `/web?brand=`.
   for (const path of ["/", "/web"]) {
     test(`${path}?brand= preselecciona la marca y se conserva en la URL`, async ({ page }) => {
       await skipPrompt(page);
       await page.goto(`${path}?brand=${SATENIER}`);
+      if (path === "/") await page.waitForURL("**/web?brand=*", { timeout: 12_000 });
       await expect(products(page).first()).toContainText("Satenier");
-      await expect(page).toHaveURL(`${path}?brand=${SATENIER}`);
+      await expect(page).toHaveURL(`/web?brand=${SATENIER}`);
       await expect(page.getByRole("button", { name: "Marketplace: volver arriba" })).toBeVisible();
     });
   }
@@ -277,7 +282,7 @@ test.describe("móvil", () => {
         problems.push(message.text());
       }
     });
-    await page.goto("/");
+    await page.goto("/web");
     await expect(prompt(page)).toBeVisible();
     await prompt(page).getByRole("button", { name: "SEGUIR EN LA WEB" }).click();
     await bar(page)
