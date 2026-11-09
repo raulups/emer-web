@@ -83,17 +83,23 @@
   transition: opacity 0.5s linear;
 }
 
+/*
+ * Pintada a su tamaño final (11vw × TUNNEL_MAX_SCALE) y reducida con `scale`: así se ve nítida al
+ * crecer. Marco blanco fino (escala con la foto): aunque se crucen, entre foto y foto queda aire.
+ */
 .tile {
   position: absolute;
   top: 50%;
   left: 50%;
   z-index: 4;
-  width: 14vw;
+  box-sizing: border-box;
+  width: 42.7vw;
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background: var(--placeholder);
+  border: 1.94vw solid var(--paper);
+  background: var(--paper);
   opacity: 0;
-  transform: translate(-50%, -50%) scale(0.08);
+  transform: translate(-50%, -50%) scale(0.0206);
 }
 
 .tileImage {

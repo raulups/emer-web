@@ -1,261 +1,189 @@
 "use client";
 
-import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
-import { DisplayTitle } from "@/components/ui/display-title";
-import { ScrambleText } from "@/components/ui/scramble-text";
+import Link from "next/link";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
-import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
-import { BrandActions } from "./brand-actions";
+import { brandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./emergentes.module.css";
-import { NoStock } from "./no-stock";
-import { peekProps } from "./product-peek";
+import { openMarketplace } from "./novedades";
 
-/** Tope solo para pantallas enormes: por debajo manda el hueco libre. */
-const PRODUCT_MAX = 560;
-const PRODUCT_MIN = 40;
-const PRODUCT_COUNT = 3;
-const PRODUCT_GAP = 10;
-/** Precio + hueco bajo la foto de cada pieza. */
-const PRICE_HEIGHT = 20;
-/** Scroll por marca del carrusel (vh): cuanto menos, más rápido se recorre. */
-export const ER_VH_PER_BRAND = 32;
-/** Pantalla extra al final con la escena quieta, para el fundido a Emergentes (Catálogo). */
-export const ER_HOLD_VH = 100;
+/**
+ * Composición del grid (12 columnas), que se repite cada 7 fotos: columna de inicio, ancho,
+ * proporción y desfase vertical. Las columnas crecen dentro de cada fila; al volver atrás empieza
+ * una fila nueva. Así ninguna fila se parece a la anterior y queda aire entre fotos.
+ */
+const LAYOUT: readonly { col: number; span: number; ratio: string; shift: number }[] = [
+  { col: 1, span: 4, ratio: "4 / 5", shift: 0 },
+  { col: 6, span: 3, ratio: "3 / 4", shift: 16 },
+  { col: 10, span: 3, ratio: "4 / 5", shift: 6 },
+  { col: 2, span: 2, ratio: "1 / 1", shift: 4 },
+  { col: 5, span: 5, ratio: "5 / 4", shift: 0 },
+  { col: 11, span: 2, ratio: "3 / 4", shift: 20 },
+  { col: 3, span: 4, ratio: "4 / 5", shift: 0 },
+];
 
-type CardProps = {
-  brand: ExploraBrand;
-  number: number;
-  active: boolean;
-  selected: boolean;
-  onEnter: () => void;
-  onLeave: () => void;
-  onSelect: () => void;
-  first?: boolean;
-};
+/** Fotos por tanda (dos vueltas completas de `LAYOUT`): las primeras y cada «Ver más». */
+const PAGE = LAYOUT.length * 2;
 
-/** Tarjeta del carrusel: al pulsarla se selecciona (o se deselecciona si ya lo estaba). */
-function Card({ brand, number, active, selected, onEnter, onLeave, onSelect, first }: CardProps) {
-  return (
-    <button
-      type="button"
-      className={styles.card}
-      data-ea={first ? "" : undefined}
-      data-scramble-hover
-      data-active={active || undefined}
-      data-cursor-logo={brand.logo ?? undefined}
-      href={brand.url ?? undefined}
-      target="_blank"
-      rel="noopener"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
-      onFocus={onEnter}
-      onBlur={onLeave}
-    >
+const pieces = (count: number) =>
+  count > 0 ? `${count} ${count === 1 ? "pieza" : "piezas"}` : "Sin stock";
+
+/** Una foto del grid: lleva al Marketplace filtrado si la marca tiene piezas; si no, a su web. */
+function Tile({ brand }: { brand: ExploraBrand }) {
+  const { primary } = brandActions(brand);
+  const content = (
+    <>
       <span className={styles.photo}>
         <BrandImage
           sources={brand.portrait}
           alt={brand.name}
-          width={360}
-          height={480}
-          request={480}
-          className={styles.photoImage}
+          width={480}
+          height={600}
+          request={720}
+          loading="lazy"
+          className={styles.image}
         />
       </span>
-      <span className={`${typo.label} ${styles.caption}`}>
-        <ScrambleText text={brand.name} view={false} />
-        <ScrambleText text={`B — ${pad(number, 2)}`} view={false} />
+      <span className={`${typo.label} ${styles.caption}`} aria-hidden="true">
+        <span className={styles.name}>{brand.name}</span>
+        <span>{pieces(brand.count)}</span>
       </span>
-    </button>
+    </>
   );
+  const shared = {
+    className: styles.tile,
+    "data-cat-row": brand.id,
+    "data-cursor-logo": brand.logo ?? undefined,
+  };
+  if (primary === "market")
+    return (
+      <Link
+        {...shared}
+        href={`/marketplace?brand=${brand.id}`}
+        onClick={openMarketplace(brand.id)}
+        aria-label={`${brand.name}: ver sus ${brand.count} piezas en el Marketplace`}
+      >
+        {content}
+      </Link>
+    );
+  if (primary === "store" && brand.url)
+    return (
+      <a
+        {...shared}
+        href={brand.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${brand.name}: sin stock, ir a su tienda (se abre en otra pestaña)`}
+      >
+        {content}
+      </a>
+    );
+  return <span {...shared}>{content}</span>;
 }
 
-type Props = {
-  brands: readonly ExploraBrand[];
-  /** Índice (en la columna A) de la tarjeta más cercana al centro; lo calcula el bucle. */
-  near: number;
-};
+type Props = { brands: readonly ExploraBrand[] };
 
 /**
- * §4.4: Emergentes en blanco, espejo de Novedades. Título e info a la derecha; a la izquierda, el
- * carrusel de dos columnas (A pares, B impares) que el bucle de `explora.tsx` desplaza en sentidos
- * opuestos. Marca activa: la de la columna A más cercana al centro o, con hover, la tarjeta bajo
- * el ratón. Las marcas no se repiten.
+ * §4.4 Catálogo: todas las marcas, en blanco tras Emergentes. Solo un grid de fotos, sin títulos ni
+ * controles: una composición asimétrica (`LAYOUT`) con tamaños, proporciones y desfases distintos.
+ * Con el hover, la foto se acerca, sale su nombre y el resto se apaga (solo `transform` y
+ * `opacity`). Enseña `PAGE` marcas y «Ver más» añade otra tanda. Las fotos se cargan al acercarse
+ * y entran al llegar a ellas. Scroll normal.
  */
-export function Emergentes({ brands, near }: Props) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
-  const columnA = brands.filter((_, i) => i % 2 === 0);
-  const columnB = brands.filter((_, i) => i % 2 === 1);
-  // La seleccionada manda (sus piezas se quedan a la derecha); si no, la del hover o la del centro.
-  const active =
-    brands.find((b) => b.id === selected) ??
-    brands.find((b) => b.id === hovered) ??
-    columnA[near] ??
-    brands[0];
-  const activeNumber = active ? brands.indexOf(active) + 1 : 1;
+export function Emergentes({ brands }: Props) {
+  const root = useRef<HTMLElement>(null);
+  const list = useMemo(
+    () => [...brands].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })),
+    [brands],
+  );
+  const [shown, setShown] = useState(PAGE);
+  const visible = list.slice(0, shown);
+  const more = list.length - visible.length;
 
-  const block = useRef<HTMLDivElement>(null);
-  const text = useRef<HTMLParagraphElement>(null);
-  const info = useRef<HTMLDivElement>(null);
-  const [size, setSize] = useState<number>(PRODUCT_MAX);
-  const products = active?.products.slice(0, PRODUCT_COUNT) ?? [];
-  const hasProducts = products.length > 0;
+  // «Ver más»: el foco pasa a la primera foto nueva (sin mover el scroll) para seguir con el teclado.
+  const firstNew = useRef<number | null>(null);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: corre cuando se pinta la tanda nueva.
+  useEffect(() => {
+    const index = firstNew.current;
+    if (index === null) return;
+    firstNew.current = null;
+    root.current
+      ?.querySelectorAll<HTMLElement>("[data-cat-row]")
+      [index]?.focus({ preventScroll: true });
+  }, [shown]);
+  const showMore = () => {
+    firstNew.current = shown;
+    setShown((n) => n + PAGE);
+  };
 
-  // Las piezas ocupan todo el hueco: el alto que dejan el texto, el nombre y los botones (sin
-  // invadirlos) y el ancho del bloque repartido entre tres.
-  useLayoutEffect(() => {
-    const blockEl = block.current;
-    const textEl = text.current;
-    const infoEl = info.current;
-    if (!blockEl || !textEl || !infoEl) return;
-    const update = () => {
-      const row = infoEl.querySelector<HTMLElement>("[data-er-products]");
-      const gaps = Number.parseFloat(getComputedStyle(infoEl).rowGap) || 0;
-      const rest = [...infoEl.children].reduce(
-        (sum, child) => sum + (child === row ? 0 : (child as HTMLElement).offsetHeight + gaps),
-        0,
-      );
-      const free = blockEl.clientHeight - textEl.offsetHeight - 20 - rest - gaps;
-      const byHeight = ((free - PRICE_HEIGHT) * 3) / 4;
-      const byWidth = (blockEl.clientWidth - (PRODUCT_COUNT - 1) * PRODUCT_GAP) / PRODUCT_COUNT;
-      const next = Math.max(0, Math.min(PRODUCT_MAX, byHeight, byWidth));
-      setSize((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
-    };
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(blockEl);
-    observer.observe(infoEl);
+  // Cada foto aparece al entrar en pantalla (una vez, en cascada).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: se vuelve a observar cuando cambia la lista pintada.
+  useEffect(() => {
+    const items = root.current?.querySelectorAll<HTMLElement>("[data-cat-item]:not([data-seen])");
+    if (!items?.length) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let order = 0;
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          const node = entry.target as HTMLElement;
+          node.style.setProperty("--d", `${Math.min(order++, 6) * 90}ms`);
+          node.setAttribute("data-seen", "");
+          observer.unobserve(node);
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    for (const item of items) observer.observe(item);
     return () => observer.disconnect();
-  }, []);
-
-  if (!active) return null;
-
-  const leave = () => setHovered(null);
-  const select = (id: string) => () => setSelected((prev) => (prev === id ? null : id));
-  const showProducts = size >= PRODUCT_MIN;
+  }, [shown, list]);
 
   return (
     <section
+      ref={root}
       className={styles.er}
       data-er
       data-scramble-in
-      style={{ height: `${100 + ER_HOLD_VH + brands.length * ER_VH_PER_BRAND}vh` }}
-      aria-label="Novedades"
+      aria-labelledby="catalogo-titulo"
     >
-      <div className={styles.stage} data-er-stage>
-        <span className={styles.divider} data-ediv aria-hidden="true" />
-        <span className={styles.hline} aria-hidden="true" />
-
-        <div className={styles.car} data-er-car data-selecting={selected ? "" : undefined}>
-          <span className={styles.carLine} aria-hidden="true" />
-          <div className={styles.colA} data-er-a>
-            {columnA.map((brand, i) => (
-              <Card
-                key={brand.id}
-                brand={brand}
-                number={brands.indexOf(brand) + 1}
-                active={active.id === brand.id}
-                selected={selected === brand.id}
-                first={i === 0}
-                onEnter={() => setHovered(brand.id)}
-                onLeave={leave}
-                onSelect={select(brand.id)}
-              />
-            ))}
-          </div>
-          <div className={styles.colB} data-er-b>
-            {columnB.map((brand) => (
-              <Card
-                key={brand.id}
-                brand={brand}
-                number={brands.indexOf(brand) + 1}
-                active={active.id === brand.id}
-                selected={selected === brand.id}
-                onEnter={() => setHovered(brand.id)}
-                onLeave={leave}
-                onSelect={select(brand.id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className={styles.head}>
-          <p className={`${typo.label} ${styles.kicker}`}>
-            <ScrambleText text="A — 3" onIn />
-            <ScrambleText text="Novedades" onIn />
-            <ScrambleText text={`${pad(brands.length, 2)} marcas`} onIn />
-          </p>
-          <DisplayTitle
-            lines={[
-              ["LO", "*NUEVO"],
-              ["EN", "*EMER"],
-            ]}
-            className={styles.title}
-          />
-        </div>
-        <div ref={block} className={styles.block}>
-          <p ref={text} className={styles.text}>
-            <ScrambleText
-              text="Las últimas marcas en llegar a EMER. Pulsa una foto para quedarte con sus piezas."
-              hover={false}
-              onIn
-            />
-          </p>
-          <div ref={info} className={styles.info} data-er-info>
-            <span className="sr-only">{active.name}</span>
-            <ScrambleText
-              text={`Desde ${active.foundedYear ?? "—"} · ${active.count} piezas`}
-              view={false}
-              className={`${typo.label} ${styles.meta}`}
-            />
-            <div
-              className={styles.products}
-              data-er-products
-              style={{ "--pw": `${size}px` } as CSSProperties}
+      <h2 id="catalogo-titulo" className="sr-only">
+        Catálogo
+      </h2>
+      <ul className={styles.grid}>
+        {visible.map((brand, i) => {
+          const spot = LAYOUT[i % LAYOUT.length] ?? LAYOUT[0];
+          return (
+            <li
+              key={brand.id}
+              className={styles.item}
+              data-cat-item
+              style={
+                {
+                  "--col": spot?.col,
+                  "--span": spot?.span,
+                  "--ratio": spot?.ratio,
+                  "--shift": `${spot?.shift ?? 0}vh`,
+                } as CSSProperties
+              }
             >
-              {hasProducts && showProducts ? (
-                products.map((product) => (
-                  <span
-                    key={product.id}
-                    className={styles.product}
-                    {...peekProps(product, active.name)}
-                  >
-                    <span className={styles.productPhoto}>
-                      <BrandImage
-                        sources={product.image ? [product.image] : []}
-                        alt=""
-                        width={360}
-                        height={480}
-                        request={720}
-                        className={styles.productImage}
-                      />
-                    </span>
-                    <ScrambleText
-                      text={price(product.price)}
-                      className={`${typo.label} ${styles.productPrice}`}
-                    />
-                  </span>
-                ))
-              ) : !hasProducts ? (
-                <NoStock key={active.id} />
-              ) : null}
-            </div>
-            <BrandActions brand={active} />
-          </div>
-          <p className="sr-only" aria-live="polite">
-            {pad(activeNumber, 2)} / {pad(brands.length, 2)}
-          </p>
-          <p className={`${typo.labelLg} ${styles.count}`} aria-hidden="true">
-            <ScrambleText
-              text={`B — ${pad(activeNumber, 2)} / ${pad(brands.length, 2)}`}
-              view={false}
-            />
-          </p>
+              <Tile brand={brand} />
+            </li>
+          );
+        })}
+      </ul>
+      {more > 0 && (
+        <div className={styles.more}>
+          <button type="button" className={`${typo.label} ${styles.moreButton}`} onClick={showMore}>
+            [ Ver más ]
+          </button>
+          <span className={`${typo.label} ${styles.moreCount}`} aria-live="polite">
+            {pad(visible.length, 2)} / {pad(list.length, 2)}
+          </span>
         </div>
-      </div>
+      )}
     </section>
   );
 }

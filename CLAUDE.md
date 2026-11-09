@@ -27,11 +27,11 @@ src/
   app/                 rutas: `/` Landing, `/web` Shell (Marketplace / Explora; `?brand=<uuid>` preselecciona marcas; `/marketplace` redirige aquí), `/m` web de móvil (interna, solo Marketplace)
   app/api/products/    rutas internas: el cliente pide aquí (el backend no admite CORS del navegador)
   app/api/warm/        lo pide la Landing: deja en caché marcas + 1.ª página del Marketplace y avisa al acabar
-  components/          componentes; cursor.tsx = cursor propio global (layout)
+  components/          componentes; cursor.tsx = cursor propio global (layout); backend-wake.tsx = pantalla con contador mientras despierta el backend (layout); wake-retry.tsx = lo que pinta una sección de servidor sin datos (reintenta y refresca)
     shell/             Shell + switch MARKETPLACE / EXPLORA
     mobile/            web de móvil: shell sin switch + aviso «descarga la app» (una vez por sesión; enlaces en `lib/app-links.ts`)
     landing/           Landing: `landing.tsx` (un bucle por tiempo): túnel de fotos de `src/img/` + contador mientras responde `/api/warm`; después «CARGANDO MARKETPLACE» y `/web`
-    explora/           Explora: `explora.tsx` (un bucle por scroll). Destacados es un carrusel (`populares.tsx` + `carousel-path.ts` / `carousel-input.ts`) con su propio bucle: rueda/teclas/swipe arriba del todo, al final baja a la sección siguiente. Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `emergentes`→Novedades, `catalogo`→Emergentes
+    explora/           Explora: `explora.tsx` (un bucle por scroll). Destacados es un carrusel (`populares.tsx` + `carousel-path.ts` / `carousel-input.ts`) con su propio bucle: rueda/teclas/swipe arriba del todo, al final baja a la sección siguiente. Orden en pantalla: Destacados (tag «destacada») → Populares («popular») → Emergentes («emergente», por año de fundación) → Novedades («novedad», las 12 últimas en llegar; una pantalla que se recorre a mano: botones, flechas, deslizar y miniaturas) → Catálogo (todas las marcas: grid asimétrico de fotos, `LAYOUT` en `emergentes.tsx`, con «Ver más»). Los componentes conservan el nombre de su posición original: `populares`→Destacados, `novedades`→Populares, `catalogo`→Emergentes, `llegadas`→Novedades, `emergentes`→Catálogo
     marketplace/       sección de servidor (datos) + cliente. Dos diseños (`device`): escritorio (menú lateral, panel de filtros, VISTA 2–6) y móvil (barra inferior `mobile-bar` con hojas). Loader `grid-loader`, vacío/error `state-screen`
     ui/                bracket-label (letras + corchetes + línea), bottom-sheet (hoja inferior modal), type.module.css (jerarquía editorial), display-title (titular serif + negrita), scramble-text (etiqueta que se baraja)
   fonts/               jerarquía editorial en toda la web: Inter (texto corrido), Geist Mono 300 (etiquetas, menús, botones, precios), Instrument Serif + TeX Gyre Heros Condensed Bold (titulares mezclados), Cormorant Garamond 300 (nombres de marca); woff2, subconjunto latino. Selección/hover en mono se marcan con subrayado, nunca con peso
@@ -73,6 +73,7 @@ Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier
 - Lecturas en servidor con `"use cache"` + `cacheLife` + `cacheTag`; esto además amortigua los cold starts de Render.
 - Contrato del backend: `docs/API_CONTRACT.md` (fuente de verdad). Cliente en `src/lib/api/`; importar siempre desde `@/lib/api`. Variables en `.env` (ver `.env.example`). Nunca exponer secretos al cliente.
 - Si falta un endpoint público de lectura en el backend, pedirlo/anotarlo; no saltarse el backend.
+- Backend dormido (Render free): las lecturas que bloquean la pantalla van con `wakeFetch` (`lib/backend-wake.ts`: reintenta en 502/503/504 y sin respuesta, enseña el aviso) en el cliente y con `withinGrace` + `WakeRetry` en las secciones de servidor. No usarlo en peticiones secundarias (hover, tallas).
 
 ## Convenciones
 

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { BackendWake } from "@/components/backend-wake";
 import { Cursor } from "@/components/cursor";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import "./globals.css";
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="es" suppressHydrationWarning>
       <body>
         {children}
+        <BackendWake />
         <Cursor />
         <SmoothScroll />
       </body>

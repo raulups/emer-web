@@ -5,6 +5,9 @@ import { emergentBrands, newestBrands, popularBrands, portraitSources } from "@/
 /** Piezas por marca: Destacados elige cuántas caben; las demás secciones enseñan hasta 3. */
 export const BRAND_PRODUCTS = 3;
 
+/** Novedades enseña las últimas en llegar: cada una es un paso de scroll, así que con tope. */
+export const NOVEDADES_MAX = 12;
+
 export type ExploraProduct = {
   id: string;
   /** Solo en las marcas de Populares y Novedades (las vistas previas de la API no traen nombre). */
@@ -39,11 +42,11 @@ export type ExploraData = {
   destacados: ExploraBrand[];
   /** 2.ª sección (componente `Novedades`). */
   populares: ExploraBrand[];
-  /** 3.ª sección (componente `Emergentes`). */
-  novedades: ExploraBrand[];
-  /** 4.ª sección (componente `Catalogo`). */
+  /** 3.ª sección, Emergentes: tag «emergente» (componente `Catalogo`). */
   emergentes: ExploraBrand[];
-  /** Todas las marcas (filas de Sugerir marca). */
+  /** 4.ª sección, Novedades: tag «novedad», las `NOVEDADES_MAX` más recientes (componente `Llegadas`). */
+  novedades: ExploraBrand[];
+  /** Todas las marcas: 5.ª sección, Catálogo (componente `Emergentes`), y filas de Sugerir marca. */
   todas: ExploraBrand[];
 };
 
@@ -72,9 +75,11 @@ function fromPreview(brand: Brand): ExploraBrand {
 }
 
 /**
- * Datos de Explora: una sola lectura de `/brands?limit=100` (en caché) repartida por tag entre las
- * cuatro secciones (`sectionsOf`); una marca con varios tags sale en varias. Orden: Destacados y
- * Populares por nº de piezas, Novedades por `created_at` desc. y Emergentes por `founded_year` desc.
+ * Datos de Explora: una sola lectura de todas las marcas (`/brands`, en caché). Las cuatro primeras
+ * secciones se reparten por tag (`sectionsOf`; una marca con varios tags sale en varias) y el
+ * Catálogo lleva todas. Orden: Destacados y Populares por nº de piezas, Emergentes por
+ * `founded_year` desc. (las más jóvenes primero), Novedades por `created_at` desc. (las últimas en
+ * llegar a Emer) y todas por `founded_year` desc. (el Catálogo las reordena en el cliente).
  * Las dos primeras piden sus piezas con nombre y enlace (una petición por marca, en caché); las
  * otras usan las vistas previas. Solo servidor.
  */
@@ -119,8 +124,8 @@ export async function getExploraData(): Promise<ExploraData | null> {
   return {
     destacados: pick(destacados),
     populares: pick(populares),
-    novedades: newestBrands(tagged("novedades")).map(fromPreview),
     emergentes: emergentBrands(tagged("emergentes")).map(fromPreview),
+    novedades: newestBrands(tagged("novedades")).slice(0, NOVEDADES_MAX).map(fromPreview),
     todas: emergentBrands(brands).map(fromPreview),
   };
 }

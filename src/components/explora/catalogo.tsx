@@ -1,168 +1,183 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import Link from "next/link";
+import { type CSSProperties, useEffect, useRef } from "react";
 import { DisplayTitle } from "@/components/ui/display-title";
-import { ScrambleText } from "@/components/ui/scramble-text";
 import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
-import { pad } from "@/lib/motion/math";
-import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import styles from "./catalogo.module.css";
 import { NoStock } from "./no-stock";
+import { openMarketplace } from "./novedades";
 import { peekProps } from "./product-peek";
 
-/**
- * Columnas del grid irregular (README §4.5, `LAY`): ancho y alto relativo de cada celda. Los anchos
- * van en % de la pantalla (no en vw): así la primera columna arranca en el mismo 50 % que la línea
- * de Emergentes aunque haya barra de scroll.
- */
-const LAY: readonly { width: string; heights: readonly number[] }[] = [
-  { width: "26%", heights: [1] },
-  { width: "20%", heights: [0.62, 0.38] },
-  { width: "32%", heights: [0.45, 0.55] },
-  { width: "18%", heights: [1, 1, 1] },
-  { width: "28%", heights: [1] },
-  { width: "22%", heights: [0.5, 0.5] },
-  { width: "30%", heights: [0.7, 0.3] },
-];
+const PRODUCTS = 3;
+/** Cada cuántas marcas va una siempre abierta (con nombre y productos a la vista). */
+const OPEN_EVERY = 3;
 
-type Cell = { brand: ExploraBrand; height: number; first: boolean };
-type Column = { width: string; cells: Cell[] };
-
-/** Reparte las marcas por las columnas de `LAY`, de forma cíclica, hasta agotarlas. */
-function layout(brands: readonly ExploraBrand[]): Column[] {
-  const columns: Column[] = [];
-  let next = 0;
-  for (let c = 0; next < brands.length; c++) {
-    const lay = LAY[c % LAY.length];
-    if (!lay) break;
-    const cells = lay.heights.slice(0, brands.length - next).map((height, k) => {
-      const brand = brands[next++];
-      if (!brand) throw new Error("Catálogo: marca fuera de rango");
-      return { brand, height, first: k === 0 };
-    });
-    columns.push({ width: lay.width, cells });
-  }
-  return columns;
+/** 1 de cada 3 marcas va abierta; si le toca a una sin piezas, pasa a la siguiente que tenga. */
+function openFlags(brands: readonly ExploraBrand[]): boolean[] {
+  let since = OPEN_EVERY;
+  return brands.map((brand) => {
+    since += 1;
+    if (since <= OPEN_EVERY || brand.products.length === 0) return false;
+    since = 1;
+    return true;
+  });
 }
 
 type Props = { brands: readonly ExploraBrand[] };
 
+/** La foto lleva al Marketplace filtrado si la marca tiene piezas; si no, a su web. */
+function PhotoLink({ brand }: { brand: ExploraBrand }) {
+  const photo = (
+    <BrandImage
+      sources={brand.portrait}
+      alt={brand.name}
+      width={480}
+      height={600}
+      request={640}
+      className={styles.image}
+    />
+  );
+  if (brand.count > 0)
+    return (
+      <Link
+        className={styles.photo}
+        data-cursor-logo={brand.logo ?? undefined}
+        href={`/marketplace?brand=${brand.id}`}
+        onClick={openMarketplace(brand.id)}
+      >
+        {photo}
+      </Link>
+    );
+  if (brand.url)
+    return (
+      <a
+        className={styles.photo}
+        data-cursor-logo={brand.logo ?? undefined}
+        href={brand.url}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {photo}
+      </a>
+    );
+  return (
+    <span className={styles.photo} data-cursor-logo={brand.logo ?? undefined}>
+      {photo}
+    </span>
+  );
+}
+
 /**
- * §4.5: bloque sticky que entra por debajo de Novedades (fundido con la escena quieta, sin pantalla
- * en blanco) y cuya pista (título incluido) se desplaza después en horizontal con el scroll. El bucle de `explora.tsx` escribe todos los
- * `transform` y `opacity`; el hover (zoom, atenuado de las demás, miniaturas, «Ver marca ↗») es
- * de este componente. Las celdas nunca cambian de tamaño.
+ * Emergentes (va justo después de Populares): entra con el mismo negro que Populares y, mientras
+ * sube con el scroll y sus piezas aparecen, el fondo pasa a blanco. Al llegar arriba ya es blanca,
+ * se queda fija y una escalera de fotos, cada una algo más abajo que la anterior, recorre la
+ * pantalla en diagonal. `explora.tsx` escribe
+ * todos los `transform` y `opacity`. Línea, nombre que se escribe y tres productos son CSS y no
+ * cambian el tamaño de nada: en 1 de cada 3 marcas (más grande) salen solos al entrar en pantalla;
+ * en las demás, con el hover.
  */
 export function Catalogo({ brands }: Props) {
-  const [hovered, setHovered] = useState<string | null>(null);
-  const columns = layout(brands);
+  const root = useRef<HTMLElement>(null);
+  const open = openFlags(brands);
+
+  // Las marcas abiertas se escriben una vez, al entrar en pantalla.
+  useEffect(() => {
+    const tiles = root.current?.querySelectorAll<HTMLElement>("[data-open]");
+    if (!tiles) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.setAttribute("data-seen", "");
+          observer.unobserve(entry.target);
+        }
+      },
+      { threshold: 0.4 },
+    );
+    for (const tile of tiles) observer.observe(tile);
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <section
-      className={styles.cat}
-      data-cat
-      data-scramble-in
-      onMouseLeave={() => setHovered(null)}
-      aria-label="Emergentes"
-    >
+    <section ref={root} className={styles.cat} data-cat data-scramble-in aria-label="Emergentes">
       <div className={styles.pin} data-cat-pin>
         <div className={styles.stage}>
-          <div className={styles.track} data-cat-track>
-            <div className={styles.panel}>
-              <span className={styles.lineH} data-cat-h aria-hidden="true" />
-              <div className={styles.head}>
-                <p className={`${typo.label} ${styles.kicker}`} data-cat-t>
-                  <ScrambleText text="A — 4" onIn />
-                  <ScrambleText text="Emergentes" onIn />
-                </p>
-                <DisplayTitle lines={[["LA", "NUEVA"], ["*OLA"]]} className={styles.title} />
+          <span className={styles.dark} data-cat-dark aria-hidden="true" />
+          <div className={styles.head}>
+            <div className={styles.headIn} data-cat-t>
+              <div className={styles.titleOnDark} data-cat-title-on-dark>
+                <DisplayTitle lines={[["LAS"], ["*EMERGENTES"]]} className={styles.title} />
               </div>
-              <p className={styles.text} data-cat-t>
-                <ScrambleText
-                  text="Marcas que acaban de nacer. Baja para recorrerlas."
-                  hover={false}
-                  onIn
+              {/* La misma, en oscuro: se funde con la de arriba cuando el fondo se aclara. */}
+              <div className={styles.titleOnLight} data-cat-title-on-light aria-hidden="true">
+                <DisplayTitle
+                  as="h3"
+                  lines={[["LAS"], ["*EMERGENTES"]]}
+                  className={styles.titleInk}
                 />
-              </p>
-              <p className={`${typo.labelLg} ${styles.count}`} data-cat-t>
-                <ScrambleText text={`${pad(brands.length, 2)} marcas`} onIn />
-              </p>
-            </div>
-            {columns.map((column) => (
-              <div
-                key={column.cells[0]?.brand.id}
-                className={styles.column}
-                style={{ width: column.width }}
-                data-cat-g
-              >
-                {column.cells.map(({ brand, height, first }) => {
-                  const on = hovered === brand.id;
-                  const dim = hovered !== null && !on;
-                  return (
-                    // biome-ignore lint/a11y/noStaticElementInteractions: el hover solo es visual; el foco llega de sus botones
-                    <div
-                      key={brand.id}
-                      className={styles.cell}
-                      data-cat-cell
-                      data-cursor-logo={brand.logo ?? undefined}
-                      style={{ "--grow": height } as CSSProperties}
-                      data-first={first || undefined}
-                      data-on={on || undefined}
-                      data-dim={dim || undefined}
-                      onMouseEnter={() => setHovered(brand.id)}
-                      onMouseLeave={() => setHovered(null)}
-                      onFocus={() => setHovered(brand.id)}
-                      onBlur={() => setHovered(null)}
-                    >
-                      <span className={styles.frame}>
-                        <BrandImage
-                          sources={brand.portrait}
-                          alt={brand.name}
-                          width={480}
-                          height={640}
-                          request={640}
-                          className={styles.photo}
-                        />
-                        <span className={styles.labels}>
-                          <ScrambleText
-                            text={brand.name}
-                            view={false}
-                            className={`${typo.label} ${styles.name}`}
-                          />
-                          <BrandActions brand={brand} tone="overlay" className={styles.cta} />
-                        </span>
-                        <span className={styles.thumbs}>
-                          {brand.products.slice(0, 3).map((product, j) => (
-                            <span
-                              key={product.id}
-                              className={styles.thumb}
-                              style={{ "--delay": `${120 + j * 70}ms` } as CSSProperties}
-                              {...peekProps(product, brand.name)}
-                            >
-                              <BrandImage
-                                sources={product.image ? [product.image] : []}
-                                alt=""
-                                width={200}
-                                height={267}
-                                request={400}
-                                className={styles.thumbImage}
-                              />
-                              <span className="sr-only">{price(product.price)}</span>
-                            </span>
-                          ))}
-                          {brand.products.length === 0 && (
-                            <NoStock tone="overlay" className={styles.soon} />
-                          )}
-                        </span>
-                      </span>
-                    </div>
-                  );
-                })}
               </div>
-            ))}
+            </div>
+          </div>
+          <div className={styles.rail}>
+            <ul className={styles.track} data-cat-track>
+              {brands.map((brand, i) => (
+                <li
+                  key={brand.id}
+                  className={styles.tile}
+                  data-cat-cell
+                  data-cat-g
+                  data-open={open[i] || undefined}
+                  style={{ "--i": i } as CSSProperties}
+                >
+                  <span className={styles.line} aria-hidden="true" />
+                  <h3 className={styles.name} aria-label={brand.name}>
+                    {[...brand.name].map((letter, j) => (
+                      <span
+                        // biome-ignore lint/suspicious/noArrayIndexKey: las letras de un nombre fijo no se reordenan
+                        key={j}
+                        className={styles.letter}
+                        style={{ "--j": j } as CSSProperties}
+                      >
+                        {letter}
+                      </span>
+                    ))}
+                  </h3>
+                  <PhotoLink brand={brand} />
+                  {brand.products.length > 0 ? (
+                    <ul className={styles.products}>
+                      {brand.products.slice(0, PRODUCTS).map((product, j) => (
+                        <li
+                          key={product.id}
+                          className={styles.product}
+                          style={{ "--j": j } as CSSProperties}
+                          {...peekProps(product, brand.name)}
+                        >
+                          <span className={styles.productPhoto}>
+                            <BrandImage
+                              sources={product.image ? [product.image] : []}
+                              alt=""
+                              width={200}
+                              height={267}
+                              request={400}
+                              className={styles.image}
+                            />
+                          </span>
+                          <span className={`${typo.label} ${styles.price}`}>
+                            {price(product.price)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <NoStock className={styles.soon} />
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </div>

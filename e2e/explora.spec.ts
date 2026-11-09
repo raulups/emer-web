@@ -2,11 +2,12 @@ import { expect, type Page, test } from "@playwright/test";
 
 /**
  * Fixtures (`TAGS` en src/lib/api/fixtures.ts). Por posición: 1.ª Destacados (tag «destacada», por
- * nº de piezas), 2.ª Populares («popular»), 3.ª Novedades («novedad») y 4.ª Emergentes
- * («emergente» o sin tags, por año de fundación).
+ * nº de piezas), 2.ª Populares («popular»), 3.ª Emergentes («emergente», por año de fundación),
+ * 4.ª Novedades («novedad», de la última en llegar a la primera) y 5.ª Catálogo (todas, A–Z).
  */
 const DESTACADOS = ["Scuffers", "Nocturna", "Solar Club"];
 const POPULARES = ["Satenier", "Nocturna", "Ruido"];
+const EMERGENTES = ["Bajo Cero", "Imagen Rota", "Marea", "Satenier"];
 const NOVEDADES = [
   "Satenier",
   "Scuffers",
@@ -17,7 +18,18 @@ const NOVEDADES = [
   "Ruido",
   "Marea",
 ];
-const EMERGENTES = ["Bajo Cero", "Imagen Rota", "Tinta", "Marea", "Calma", "Satenier"];
+const TODAS = [
+  "Bajo Cero",
+  "Calma",
+  "Imagen Rota",
+  "Marea",
+  "Nocturna",
+  "Ruido",
+  "Satenier",
+  "Scuffers",
+  "Solar Club",
+  "Tinta",
+];
 
 /**
  * Abre Explora (Destacados, arriba del todo) con el foco neutro: el carrusel atiende al teclado.
@@ -46,12 +58,13 @@ const geometry = (page: Page) =>
     return {
       pop: top("[data-pop]"),
       nv: top("[data-nv]"),
-      sp: top("[data-sp]"),
       er: top("[data-er]"),
       pin: top("[data-cat-pin]"),
       vh: window.innerHeight,
     };
   });
+
+const SATENIER_ID = "0208bdca-c705-491b-82fa-76123232670b";
 
 const counter = (page: Page) =>
   page.getByRole("region", { name: "Marcas destacadas" }).locator("p[aria-live]");
@@ -165,21 +178,19 @@ test("Destacados: rueda y flechas pasan de marca sin mover la página; al final,
     .toBeCloseTo(g.nv.top, -1);
 });
 
-test("Destacados: el título mide siempre dos líneas y nunca pasa de ahí", async ({ page }) => {
+test("Destacados: el título ocupa siempre una línea, también con un nombre largo", async ({
+  page,
+}) => {
   await openExplora(page);
   const title = page.getByRole("region", { name: "Marcas destacadas" }).getByRole("heading");
-  const lines = () =>
-    title.evaluate(
-      (el) =>
-        el.getBoundingClientRect().height / Number.parseFloat(getComputedStyle(el).lineHeight),
-    );
-  expect(await lines()).toBeCloseTo(2, 1);
-  // Con un nombre largo sigue igual de alto (se corta a dos líneas).
+  const height = () => title.evaluate((el) => el.getBoundingClientRect().height);
+  const before = await height();
+  await expect(title).toHaveCSS("white-space", "nowrap");
   await title.evaluate((el) => {
     (el.firstChild as HTMLElement).textContent =
-      "Un nombre de marca larguísimo que no cabe en dos líneas";
+      "Un nombre de marca larguísimo que no cabe en una línea";
   });
-  expect(await lines()).toBeCloseTo(2, 1);
+  expect(await height()).toBe(before);
 });
 
 test("Destacados: con el ratón encima la foto se endereza y sigue al cursor", async ({ page }) => {
@@ -265,58 +276,126 @@ test("sin movimiento: lista estática en lugar del carrusel", async ({ page }) =
   await page.getByRole("button", { name: "Explora" }).click();
   await expect(page.getByRole("region", { name: "Marcas destacadas" })).toBeHidden();
   await expect(page.locator("[data-static]").getByText("Scuffers", { exact: true })).toBeVisible();
+  // Novedades: se recorre igual, con el cambio inmediato.
+  const nw = page.getByRole("region", { name: "Novedades" });
+  await nw.getByRole("button", { name: "Novedad siguiente" }).click();
+  await expect(nw.getByRole("link")).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[1]}:`));
+  await expect(nw.locator("[data-nw-frame]").nth(1)).toHaveCSS("transform", "none");
+  // El Catálogo no depende del movimiento: sigue ahí, con todas las marcas.
+  await expect(
+    page.getByRole("region", { name: "Catálogo" }).locator("[data-cat-row]"),
+  ).toHaveCount(TODAS.length);
 });
 
-test("Populares (2.ª sección): marcas con el tag, opacidad por distancia y foto en hover sin animación", async ({
+test("Populares (2.ª sección): lista de marcas con imagen siempre en su centro al pasar por encima", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
-  await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + g.vh * 0.6);
+  await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + 2);
   const rows = page.locator("[data-nv-row]");
   await expect(page.locator("[data-nv] h2")).toHaveText("LAS MÁS POPULARES");
   await expect(rows).toHaveCount(POPULARES.length);
   for (const [i, name] of POPULARES.entries()) await expect(rows.nth(i)).toContainText(name);
-  await expect(rows.first()).toContainText("Llegó el 01.09.26");
-  // La fila más cercana al centro es la más opaca; las lejanas, más tenues (mínimo .22).
-  await expect
-    .poll(async () => {
-      const opacities = await rows.evaluateAll((els) =>
-        els.map((el) => Number(getComputedStyle(el).opacity)),
-      );
-      return Math.max(...opacities) - Math.min(...opacities);
-    })
-    .toBeGreaterThan(0.2);
+  // Solo el titular a la izquierda; a la derecha, la web de la marca (se abre en otra pestaña).
+  await expect(page.locator("[data-stk] p")).toHaveCount(0);
+  await expect(rows.first()).toContainText("satenier.example");
+  await expect(rows.first()).not.toContainText("piezas");
+  await expect(rows.first()).toHaveAttribute("href", /^https:\/\/satenier\.example\/?$/);
+  await expect(rows.first()).toHaveAttribute("target", "_blank");
 
-  const preview = page.locator("[data-nv] [data-on]");
-  await expect(preview).toHaveCount(0);
-  await rows.nth(2).hover();
-  await expect(preview).toHaveCount(1);
-  await expect(preview).toHaveCSS("transition-duration", "0s");
+  const stage = page.locator("[data-nv-stage]");
+  const center = async (selector: string) => {
+    const box = await page.locator(selector).boundingBox();
+    return { x: (box?.x ?? 0) + (box?.width ?? 0) / 2, y: (box?.y ?? 0) + (box?.height ?? 0) / 2 };
+  };
+  await expect(stage).not.toHaveAttribute("data-on");
+
+  await rows.first().hover();
+  await expect(stage).toHaveAttribute("data-on");
+  const list = await center("[data-nv-rows]");
+  const first = await center("[data-nv-stage]");
+  expect(Math.abs(first.x - list.x)).toBeLessThan(2);
+  expect(Math.abs(first.y - list.y)).toBeLessThan(40);
+
+  // Otra fila: la imagen no se mueve y entra una capa nueva por encima, que acaba tapando la anterior.
+  await rows.last().hover();
+  expect(await center("[data-nv-stage]")).toEqual(first);
+  await expect(stage.locator("> div")).toHaveCount(1, { timeout: 2000 });
+
+  // Cursor: el logo de la marca sobre su fila (si tiene), el punto sobre las demás y al salir.
+  const badge = page.locator("[data-cursor] + div");
+  const withLogo = page.locator("[data-nv-row][data-cursor-logo]").first();
+  await withLogo.hover();
+  await expect(badge).toHaveAttribute("data-on", "");
+  await expect(badge.locator("img")).toHaveAttribute(
+    "src",
+    (await withLogo.getAttribute("data-cursor-logo")) ?? "",
+  );
+
   await page.mouse.move(5, 5);
-  await expect(preview).toHaveCount(0);
+  await expect(badge).not.toHaveAttribute("data-on");
+  await expect(stage).not.toHaveAttribute("data-on");
+  await expect(stage.locator("> div")).toHaveCount(0);
 });
 
-test("transición Populares → Novedades: línea que gira, máscara conic y sin saltos al final", async ({
+test("Populares → Emergentes: todo el fondo pasa de negro a blanco mientras Emergentes sube", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
-  const at = (q: number) => g.sp.top + q * (g.sp.height - g.vh);
-  const mask = () => page.locator("[data-stk]").evaluate((el) => getComputedStyle(el).maskImage);
-  const line = () =>
-    page.locator("[data-sl-line]").evaluate((el) => new DOMMatrix(getComputedStyle(el).transform));
+  const dark = () =>
+    page.locator("[data-cat-dark]").evaluate((el) => Number(getComputedStyle(el).opacity));
+  const top = (selector: string) =>
+    page.locator(selector).evaluate((el) => el.getBoundingClientRect().top);
+  const firstTile = () =>
+    page
+      .locator("[data-cat-cell]")
+      .first()
+      .evaluate((el) => Number(getComputedStyle(el).opacity));
+  const scrollTo = (y: number) => page.evaluate((v) => window.scrollTo(0, v), y);
+  const cat = page.locator("[data-cat]");
+  const travel = g.pin.height - g.vh;
 
-  await page.evaluate((y) => window.scrollTo(0, y), at(0.5));
-  await expect.poll(mask, { timeout: 4000 }).toContain("conic-gradient");
-  // A q = .5 la línea ha girado ~90°.
-  await expect.poll(async () => Math.abs((await line()).b), { timeout: 4000 }).toBeGreaterThan(0.9);
-  await expect(page.locator("[data-er]")).toHaveCSS("visibility", "visible");
+  // Emergentes va justo después de Populares, sin solaparse.
+  expect(Math.abs(g.pin.top - (g.nv.top + g.nv.height))).toBeLessThanOrEqual(2);
+  await expect(page.locator("[data-cat] h2")).toHaveText("LAS EMERGENTES");
 
-  await page.evaluate((y) => window.scrollTo(0, y), at(1.05));
-  await expect(page.locator("[data-stk]")).toHaveCSS("visibility", "hidden", { timeout: 4000 });
-  await expect(page.locator("[data-ediv]")).toHaveCSS("opacity", "1");
-  await expect(page.locator("[data-sl]")).toHaveCSS("visibility", "hidden");
+  // Populares no retiene el scroll: su lista se mueve desde el primer píxel.
+  await scrollTo(g.nv.top);
+  await expect.poll(() => top("[data-nv]"), { timeout: 4000 }).toBeCloseTo(0, -1);
+  const listTop = await top("[data-nv-rows]");
+  await scrollTo(g.nv.top + 120);
+  await expect.poll(() => top("[data-nv-rows]"), { timeout: 4000 }).toBeCloseTo(listTop - 120, -1);
+
+  // Al empezar a entrar, Emergentes sigue con el mismo negro que Populares.
+  await scrollTo(g.pin.top - g.vh * 0.9);
+  await expect.poll(dark, { timeout: 4000 }).toBe(1);
+  await expect(cat).not.toHaveAttribute("data-light");
+
+  // A media entrada: las dos secciones se mueven, el fondo va por la mitad y las piezas aparecen.
+  await scrollTo(g.pin.top - g.vh / 2);
+  await expect.poll(() => top("[data-cat]"), { timeout: 4000 }).toBeCloseTo(g.vh / 2, -1);
+  expect(await top("[data-nv-rows]")).toBeLessThan(g.vh / 2);
+  await expect.poll(dark, { timeout: 4000 }).toBeCloseTo(0.5, 1);
+  await expect.poll(firstTile, { timeout: 4000 }).toBeGreaterThan(0);
+  // Populares se aclara a la vez (sus dos capas): ninguna franja negra encima de Emergentes.
+  const nvLight = () =>
+    page
+      .locator("[data-nv-light]")
+      .evaluateAll((els) => els.map((el) => Number(getComputedStyle(el).opacity)));
+  for (const value of await nvLight()) expect(value + (await dark())).toBeCloseTo(1, 2);
+
+  // Arriba del todo ya es blanca, con sus piezas enteras y el texto en oscuro para leerse.
+  await scrollTo(g.pin.top);
+  await expect.poll(firstTile, { timeout: 4000 }).toBe(1);
+  await expect.poll(dark, { timeout: 4000 }).toBe(0);
+  expect(await nvLight()).toEqual([1, 1]);
+  await expect(cat).toHaveAttribute("data-light", "");
+
+  // Y sigue en blanco mientras recorre la pista.
+  await scrollTo(g.pin.top + travel / 2);
+  await expect.poll(dark, { timeout: 4000 }).toBe(0);
 });
 
 test("[ SALTAR ]: scroll animado al final de la sección; controles en modo diferencia (sin halos)", async ({
@@ -336,7 +415,7 @@ test("[ SALTAR ]: scroll animado al final de la sección; controles en modo dife
   }
   await expect(nav.locator("span").first()).toHaveCSS("text-shadow", "none");
 
-  const end = g.sp.top + g.sp.height - g.vh;
+  const end = g.pin.top;
   await skip.click();
   // No es un salto seco: a mitad del recorrido el scroll aún no ha llegado.
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(g.nv.top + 100);
@@ -345,7 +424,7 @@ test("[ SALTAR ]: scroll animado al final de la sección; controles en modo dife
     .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
     .toBeCloseTo(end, -1);
 
-  await expect(page.getByRole("button", { name: "Saltar al final de Novedades" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Saltar al final de Emergentes" })).toBeVisible();
 });
 
 test("índice: discreto en reposo, marca la sección actual y lleva a cada una", async ({ page }) => {
@@ -356,8 +435,9 @@ test("índice: discreto en reposo, marca la sección actual y lleva a cada una",
   await expect(index.getByRole("button")).toHaveText([
     /Destacados/,
     /Populares/,
-    /Novedades/,
     /Emergentes/,
+    /Novedades/,
+    /Catálogo/,
     /Sugerir marca/,
   ]);
   await expect(index.getByRole("button", { name: /Destacados/ })).toHaveAttribute(
@@ -378,198 +458,222 @@ test("índice: discreto en reposo, marca la sección actual y lleva a cada una",
   );
 });
 
-test("Novedades (3.ª sección): dos columnas en sentidos opuestos, marca activa por hover y sin repetidas", async ({
+test("Novedades (4.ª sección): tag «novedad», se recorre a mano con botones, flechas y miniaturas", async ({
   page,
 }) => {
   await openExplora(page);
-  const g = await geometry(page);
-  const y = (f: number) => g.er.top + g.vh + f * (g.er.height - 2 * g.vh);
-  const column = (selector: string) =>
-    page.locator(selector).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).f);
+  const section = page.getByRole("region", { name: "Novedades" });
+  await expect(section.locator("h2")).toHaveText("LAS NOVEDADES");
 
-  await page.evaluate((v) => window.scrollTo(0, v), y(0.02));
-  await expect(page.locator("[data-er-car]")).toHaveCSS("opacity", "1", { timeout: 4000 });
-  const a0 = await column("[data-er-a]");
-  const b0 = await column("[data-er-b]");
-  await page.evaluate((v) => window.scrollTo(0, v), y(0.95));
-  await expect.poll(() => column("[data-er-a]"), { timeout: 4000 }).toBeGreaterThan(a0 + 100);
-  await expect.poll(() => column("[data-er-b]"), { timeout: 4000 }).toBeLessThan(b0 - 100);
-
-  const cards = page.locator("[data-er-car] button");
-  const names = await cards.evaluateAll((els) =>
-    els.map((el) => el.querySelectorAll("span")[2]?.textContent),
+  // Las marcas con tag «novedad», de la última en llegar a la primera, una miniatura por marca.
+  const thumbs = section.getByRole("list", { name: "Ir a una novedad" }).getByRole("button");
+  const names = await thumbs.evaluateAll((els) =>
+    els.map((el) => (el.getAttribute("aria-label") ?? "").replace(/^\d+: /, "")),
   );
-  expect(new Set(names).size).toBe(names.length);
-  expect(names.toSorted()).toEqual(NOVEDADES.toSorted());
-  await expect(page.locator("[data-er] h2")).toHaveText("LO NUEVO EN EMER");
+  expect(names).toEqual(NOVEDADES);
 
-  // Hover: la tarjeta bajo el ratón pasa a ser la marca activa.
-  await page.evaluate((v) => window.scrollTo(0, v), y(0.5));
-  await page.waitForTimeout(1500);
-  const point = { x: 180, y: 300 };
-  await page.mouse.move(point.x, point.y);
-  const under = await page.evaluate(({ x, y }) => {
-    const card = document.elementFromPoint(x, y)?.closest("[data-er-car] button");
-    // El nombre del pie se baraja con el hover: se lee el de la foto.
-    return card?.querySelector("img")?.alt ?? null;
-  }, point);
-  expect(under).toBeTruthy();
-  await expect(page.locator("[data-er-info]")).toContainText(under as string);
+  // No retiene el scroll: una pantalla.
+  const g = await geometry(page);
+  const box = await section.evaluate((el) => ({
+    top: el.getBoundingClientRect().top + window.scrollY,
+    height: (el as HTMLElement).offsetHeight,
+  }));
+  expect(box.height).toBeLessThanOrEqual(Math.max(g.vh, 640) + 1);
+  await page.evaluate((y) => window.scrollTo(0, y), box.top);
+
+  // Solo la marca a la vista es un enlace accesible.
+  const current = () => section.getByRole("link");
+  await expect(current()).toHaveCount(1);
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[0]}:`));
+
+  // Siguiente, flecha (con el foco en la sección), miniatura y anterior (desde la primera, vuelve
+  // a la última).
+  await section.getByRole("button", { name: "Novedad siguiente" }).click();
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[1]}:`));
+  await page.keyboard.press("ArrowRight");
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[2]}:`));
+  await thumbs.nth(5).click();
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[5]}:`));
+  await expect(thumbs.nth(5)).toHaveAttribute("aria-current", "true");
+  await thumbs.first().click();
+  await section.getByRole("button", { name: "Novedad anterior" }).click();
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES.at(-1)}:`));
+
+  // Recorrerla no mueve la página.
+  expect(await page.evaluate(() => window.scrollY)).toBeCloseTo(box.top, -1);
 });
 
-test("Novedades → Emergentes: sin fundido, Novedades sube con el scroll sobre Emergentes ya fija", async ({
+test("Catálogo (5.ª sección): solo un grid asimétrico con la foto de todas las marcas", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
-  const opacity = (selector: string) =>
-    page
-      .locator(selector)
-      .first()
-      .evaluate((el) => Number(getComputedStyle(el).opacity));
+  const catalog = page.getByRole("region", { name: "Catálogo" });
+  await page.evaluate((y) => window.scrollTo(0, y), g.er.top);
 
-  // Emergentes empieza fija justo cuando el carrusel de Novedades ha terminado (se solapan).
-  expect(Math.abs(g.pin.top - (g.er.top + g.er.height - 2 * g.vh))).toBeLessThanOrEqual(2);
+  // Todas, sin repetir, en orden alfabético y cada una con su foto; sin titular ni controles.
+  const tiles = catalog.locator("[data-cat-row]");
+  const names = await tiles.evaluateAll((els) =>
+    els.map((el) => el.querySelector("img")?.alt ?? ""),
+  );
+  expect(names).toEqual(TODAS);
+  await expect(catalog.getByRole("searchbox")).toHaveCount(0);
+  await expect(catalog.getByRole("button")).toHaveCount(0);
 
-  // A mitad del paso: sin fundido, Novedades sube con el scroll y Emergentes asoma por debajo.
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.4 * g.vh);
-  const stageTop = () =>
-    page.locator("[data-er-stage]").evaluate((el) => el.getBoundingClientRect().top);
-  await expect.poll(stageTop, { timeout: 4000 }).toBeLessThan(-0.3 * g.vh);
-  await expect.poll(stageTop, { timeout: 4000 }).toBeGreaterThan(-0.5 * g.vh);
-  expect(await opacity("[data-er-stage]")).toBe(1);
-  expect(await opacity("[data-cat-g]")).toBeGreaterThan(0);
-
-  // Al acabar, Novedades se oculta (no tapa el hover) y Emergentes está entera.
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.vh);
-  await expect(page.locator("[data-er]")).toHaveCSS("visibility", "hidden", { timeout: 4000 });
-  await expect.poll(() => opacity("[data-cat] h2"), { timeout: 4000 }).toBe(1);
+  // No es uniforme: las fotos tienen anchos y proporciones distintos.
+  const shapes = await tiles.evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.querySelector("[class*='photo']")?.getBoundingClientRect();
+      return r ? `${Math.round(r.width)}x${Math.round(r.height)}` : "";
+    }),
+  );
+  expect(new Set(shapes).size).toBeGreaterThan(3);
 });
 
-test("Catálogo: el alto sale del recorrido medido y la pista llega justo al final", async ({
+test("Catálogo: cada marca lleva a sus piezas o, sin stock, a su tienda", async ({ page }) => {
+  await openExplora(page);
+  const catalog = page.getByRole("region", { name: "Catálogo" });
+  const satenier = catalog.getByRole("link", { name: /^Satenier: ver sus \d+ piezas/ });
+  await expect(satenier).toHaveAttribute("href", `/marketplace?brand=${SATENIER_ID}`);
+  const bajoCero = catalog.getByRole("link", { name: /^Bajo Cero: sin stock, ir a su tienda/ });
+  await expect(bajoCero).toHaveAttribute("target", "_blank");
+  await expect(bajoCero).toHaveAttribute("rel", "noopener noreferrer");
+
+  await satenier.scrollIntoViewIfNeeded();
+  await satenier.click();
+  await expect(page.locator("main")).toHaveAttribute("data-view", "market");
+  await expect.poll(() => new URL(page.url()).search).toBe(`?brand=${SATENIER_ID}`);
+});
+
+test("Emergentes → Novedades → Catálogo: cada una sigue a la anterior, sin huecos", async ({
   page,
 }) => {
   await openExplora(page);
   const g = await geometry(page);
-  const trackX = () =>
-    page
-      .locator("[data-cat-track]")
-      .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).e);
+  const nw = await page.locator("[data-nw]").evaluate((el) => ({
+    top: el.getBoundingClientRect().top + window.scrollY,
+    height: (el as HTMLElement).offsetHeight,
+  }));
+  expect(Math.abs(nw.top - (g.pin.top + g.pin.height))).toBeLessThanOrEqual(2);
+  expect(Math.abs(g.er.top - (nw.top + nw.height))).toBeLessThanOrEqual(2);
+  await page.evaluate((y) => window.scrollTo(0, y), g.er.top - 0.2 * g.vh);
+  await expect(page.locator("[data-er] [data-cat-item]").first()).toHaveAttribute("data-seen", "", {
+    timeout: 4000,
+  });
+});
 
-  // Alto = fundido (vh) + pantalla (vh) + recorrido horizontal de la pista.
-  const travel = await page.evaluate(() => {
-    const track = document.querySelector<HTMLElement>("[data-cat-track]");
+test("Emergentes: el alto sale del recorrido medido y la escalera llega justo al final en diagonal", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const g = await geometry(page);
+  const track = () =>
+    page.locator("[data-cat-track]").evaluate((el) => {
+      const m = new DOMMatrix(getComputedStyle(el).transform);
+      return { x: m.e, y: m.f };
+    });
+
+  // Alto = pantalla (vh) + scroll que necesita la pista (1,42 px de pista por px).
+  const { travel, drift } = await page.evaluate(() => {
+    const el = document.querySelector<HTMLElement>("[data-cat-track]");
     const pin = document.querySelector<HTMLElement>("[data-cat-pin]");
-    return track && pin ? track.scrollWidth - pin.clientWidth : 0;
+    const cells = [...document.querySelectorAll<HTMLElement>("[data-cat-cell]")];
+    return {
+      travel: el && pin ? el.scrollWidth - pin.clientWidth : 0,
+      drift: (cells.at(-1)?.offsetTop ?? 0) - (cells[0]?.offsetTop ?? 0),
+    };
   });
   expect(travel).toBeGreaterThan(0);
-  expect(Math.abs(g.pin.height - (2 * g.vh + travel))).toBeLessThanOrEqual(1);
+  expect(drift).toBeGreaterThan(0);
+  const scroll = travel / 1.42;
+  expect(Math.abs(g.pin.height - (g.vh + scroll))).toBeLessThanOrEqual(1);
 
-  // Quieta durante el fundido; a mitad del recorrido, a mitad de la pista.
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * g.vh);
-  await expect.poll(trackX, { timeout: 4000 }).toBeCloseTo(0, 0);
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.vh + travel / 2);
-  await expect.poll(trackX, { timeout: 4000 }).toBeCloseTo(-travel / 2, -1);
+  // Quieta mientras sube; a mitad del recorrido, a mitad de la pista.
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top - 0.5 * g.vh);
+  await expect.poll(async () => (await track()).x, { timeout: 4000 }).toBeCloseTo(0, 0);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + scroll / 2);
+  await expect.poll(async () => (await track()).x, { timeout: 4000 }).toBeCloseTo(-travel / 2, -1);
+  expect((await track()).y).toBeCloseTo(-drift / 2, -1);
   // Justo cuando se suelta la escena, la pista está en su final (ni antes ni después).
   await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + g.pin.height - g.vh);
-  await expect.poll(trackX, { timeout: 5000 }).toBeCloseTo(-travel, -1);
+  await expect.poll(async () => (await track()).x, { timeout: 5000 }).toBeCloseTo(-travel, -1);
+  expect((await track()).y).toBeCloseTo(-drift, -1);
 });
 
-test("cursor: logo de la marca sobre ella, punto sobre sus botones y al salir", async ({
+/** Lleva Emergentes a mitad del recorrido y devuelve la primera marca (con selector) entera a la vista. */
+async function visibleCell(page: Page, selector = "[data-cat] [data-cat-cell]") {
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.3 * (g.pin.height - g.vh));
+  await page.waitForTimeout(1500);
+  const cells = page.locator(selector);
+  const index = await cells.evaluateAll((els) =>
+    els.findIndex((el) => {
+      const r = el.getBoundingClientRect();
+      return r.left >= 0 && r.right <= innerWidth && r.bottom <= innerHeight;
+    }),
+  );
+  expect(index).toBeGreaterThanOrEqual(0);
+  return cells.nth(index);
+}
+
+test("cursor: logo de la marca sobre su foto, punto sobre el resto y al salir", async ({
   page,
 }, info) => {
   test.skip(info.project.name === "mobile", "el cursor propio solo va con pointer fine");
   await openExplora(page);
-  const g = await geometry(page);
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * (g.pin.height - g.vh));
-  await page.waitForTimeout(1500);
-
   const dot = page.locator("[data-cursor]");
   const badge = page.locator("[data-cursor] + div");
-  const cells = page.locator("[data-cat] [data-cat-cell][data-cursor-logo]");
-  const index = await cells.evaluateAll((els) =>
-    els.findIndex((el) => {
-      const r = el.getBoundingClientRect();
-      return r.left >= 0 && r.right <= innerWidth && r.width > 40;
-    }),
-  );
-  expect(index).toBeGreaterThanOrEqual(0);
-  const cell = cells.nth(index);
+  const cell = await visibleCell(page, "[data-cat] [data-cat-cell]:has([data-cursor-logo])");
+  const photo = cell.locator("[data-cursor-logo]");
   // Imagen vertical en cualquier pantalla: sin <picture>.
-  expect(
-    await cell
-      .locator("img")
-      .first()
-      .evaluate((img) => img.parentElement?.tagName),
-  ).not.toBe("PICTURE");
+  expect(await photo.locator("img").evaluate((img) => img.parentElement?.tagName)).not.toBe(
+    "PICTURE",
+  );
 
-  await cell.hover({ position: { x: 12, y: 12 } });
+  await photo.hover();
   await expect(dot).toHaveAttribute("data-off", "");
   await expect(badge).toHaveAttribute("data-on", "");
   await expect(badge.locator("img")).toBeVisible();
   await expect(badge.locator("img")).toHaveCSS("opacity", "1");
 
-  await cell.locator("a, button").first().hover();
-  await expect(dot).not.toHaveAttribute("data-off");
-  await expect(badge).not.toHaveAttribute("data-on");
-
-  await cell.hover({ position: { x: 12, y: 12 } });
-  await expect(dot).toHaveAttribute("data-off", "");
-
   await page.mouse.move(5, 5);
   await expect(dot).not.toHaveAttribute("data-off");
   await expect(badge).not.toHaveAttribute("data-on");
 });
 
-test("Catálogo: hover con zoom, atenuado, miniaturas y botones sin cambiar el tamaño de las celdas", async ({
+test("Emergentes: el hover saca la línea, escribe el nombre y muestra productos sin mover nada", async ({
   page,
 }) => {
   await openExplora(page);
-  const g = await geometry(page);
-  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top + 0.5 * (g.pin.height - g.vh));
-  await page.waitForTimeout(1500);
-
-  const cells = page.locator("[data-cat] [data-cat-cell]");
-  const visible = async () => {
-    const boxes = await cells.evaluateAll((els) =>
-      els.map((el) => {
-        const r = el.getBoundingClientRect();
-        return {
-          name: el.textContent,
-          x: r.x,
-          w: r.width,
-          h: r.height,
-          inView: r.right > 0 && r.left < innerWidth,
-        };
-      }),
-    );
-    return boxes.filter((b) => b.inView);
-  };
-  const before = await visible();
-  expect(before.length).toBeGreaterThan(2);
-
-  const index = await cells.evaluateAll((els) =>
-    els.findIndex((el) => {
+  const cell = await visibleCell(page, "[data-cat] [data-cat-cell]:not([data-open])");
+  const line = cell.locator("span").first();
+  const scaleY = () => line.evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).d);
+  const box = () =>
+    cell.evaluate((el) => {
       const r = el.getBoundingClientRect();
-      return r.left > 200 && r.right < innerWidth - 100;
-    }),
-  );
-  expect(index).toBeGreaterThanOrEqual(0);
-  const cell = cells.nth(index);
-  await cell.hover();
-  await expect(cell).toHaveAttribute("data-on", "true");
-  await expect(cell.locator("[data-tone]")).toHaveCSS("opacity", "1");
-  await expect(cell.locator("img").first()).toHaveCSS("transform", /matrix\(1\.05/);
-  const other = cells.nth(index === 0 ? 1 : 0);
-  await expect(other).toHaveCSS("opacity", "0.3");
+      return [r.x, r.y, r.width, r.height];
+    });
+  const letters = cell.locator("h3 span");
+  const products = cell.locator("ul > li");
 
-  const after = await visible();
-  expect(after.map(({ x, w, h }) => [x, w, h])).toEqual(before.map(({ x, w, h }) => [x, w, h]));
+  expect(await scaleY()).toBe(0);
+  await expect(letters.last()).toHaveCSS("opacity", "0");
+  const before = await box();
+
+  await cell.locator("img").first().hover();
+  await expect.poll(scaleY, { timeout: 2000 }).toBeCloseTo(1, 1);
+  await expect(letters.last()).toHaveCSS("opacity", "1", { timeout: 3000 });
+  if (await products.count()) {
+    expect(await products.count()).toBeLessThanOrEqual(3);
+    await expect(products.last()).toHaveCSS("opacity", "1", { timeout: 3000 });
+  }
+  expect(await box()).toEqual(before);
+
   await page.mouse.move(5, 5);
-  await expect(cell).not.toHaveAttribute("data-on");
+  await expect(letters.last()).toHaveCSS("opacity", "0", { timeout: 2000 });
 });
 
-test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y aviso sin piezas", async ({
+test("Emergentes (3.ª sección): tag «emergente», de la más joven a la más antigua, y 1 de cada 3 abierta", async ({
   page,
 }) => {
   await openExplora(page);
@@ -577,15 +681,23 @@ test("Emergentes (4.ª sección): tag «emergente» o sin tags, sin repetir, y a
     .locator("[data-cat] [data-cat-cell]")
     .evaluateAll((els) => els.map((el) => el.querySelector("img")?.getAttribute("alt") ?? ""));
   expect(names).toEqual(EMERGENTES);
-  await expect(page.locator("[data-cat] h2")).toHaveText("LA NUEVA OLA");
-  await expect(
-    page.locator("[data-cat] [data-cat-cell]", { hasText: "Inventario en camino" }),
-  ).toHaveCount(1);
+  await expect(page.locator("[data-cat] h2")).toHaveText("LAS EMERGENTES");
+
+  // La primera con piezas va abierta y, al entrar en pantalla, enseña nombre y productos sin hover.
+  const open = page.locator("[data-cat] [data-open]");
+  expect(await open.count()).toBeGreaterThanOrEqual(Math.floor(EMERGENTES.length / 4));
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.pin.top);
+  await expect(open.first()).toHaveAttribute("data-seen", "", { timeout: 4000 });
+  await expect(open.first().locator("h3 span").last()).toHaveCSS("opacity", "1", { timeout: 3000 });
+  await expect(open.first().locator("ul > li").first()).toHaveCSS("opacity", "1", {
+    timeout: 3000,
+  });
 });
 
-test("imágenes rotas: Catálogo y Emergentes usan la foto del primer producto", async ({ page }) => {
+test("imágenes rotas: Emergentes usa la foto del primer producto", async ({ page }) => {
   await openExplora(page);
-  for (const scope of ["[data-cat]", "[data-er-car]"]) {
+  for (const scope of ["[data-cat]"]) {
     const image = page.locator(`${scope} img[alt="Imagen Rota"]`).first();
     await expect(image).toHaveAttribute("src", /\/assets\/deco\/.+\.png/, { timeout: 8000 });
     await expect
@@ -690,41 +802,6 @@ test("Footer: Ofertas abre el Marketplace con el filtro de ofertas", async ({ pa
     "aria-pressed",
     "true",
   );
-});
-
-const SATENIER_ID = "0208bdca-c705-491b-82fa-76123232670b";
-
-test("botones de marca: «Ver marca» solo con productos, «Ir a la tienda» externo y mismo alto", async ({
-  page,
-}) => {
-  await openExplora(page);
-  const cell = (name: string) =>
-    page
-      .locator("[data-cat] [data-cat-cell]")
-      .filter({ has: page.getByAltText(name, { exact: true }) });
-
-  // Con productos: «Ver marca» (principal, interno) + «Ir a la tienda» (secundario, externo).
-  const satenier = cell("Satenier");
-  const market = satenier.getByRole("link", { name: "Ver marca", exact: true });
-  const store = satenier.getByRole("link", { name: /Ir a la tienda/ });
-  await expect(market).toHaveAttribute("href", `/marketplace?brand=${SATENIER_ID}`);
-  await expect(market).toHaveAttribute("data-primary", "true");
-  await expect(store).toHaveAttribute("target", "_blank");
-  await expect(store).toHaveAttribute("rel", "noopener noreferrer");
-  await expect(store).not.toHaveAttribute("data-primary");
-
-  // Sin productos (Bajo Cero): solo «Ir a la tienda», que pasa a ser el principal.
-  const bajoCero = cell("Bajo Cero");
-  await expect(bajoCero.getByRole("link", { name: "Ver marca", exact: true })).toHaveCount(0);
-  await expect(bajoCero.getByRole("link", { name: /Ir a la tienda/ })).toHaveAttribute(
-    "data-primary",
-    "true",
-  );
-
-  // Mismo alto con uno o dos botones.
-  const height = (loc: typeof satenier) =>
-    loc.locator("[data-tone]").evaluate((el) => el.getBoundingClientRect().height);
-  expect(await height(bajoCero)).toBe(await height(satenier));
 });
 
 test("«Ver marca» abre el Marketplace filtrado por la marca", async ({ page }) => {

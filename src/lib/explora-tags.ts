@@ -3,7 +3,8 @@
 /**
  * Secciones de Explora y los tags (`brands.tags`) que las llenan. En la API llegan en minúsculas y
  * en singular (`destacada`, `popular`, `novedad`, `emergente`; 2026-10-14): se aceptan también las
- * otras formas. Emergentes recoge además las marcas sin ningún tag.
+ * otras formas. Una marca sin tags de sección no sale en ninguna (solo en el Catálogo, que las
+ * lleva todas).
  */
 export const SECTION_TAGS = {
   destacados: ["destacados", "destacado", "destacadas", "destacada"],
@@ -31,7 +32,6 @@ export const isSectionTag = (tag: string): boolean => SECTION_OF.has(normalizeTa
 /** Secciones en las que sale una marca (`tags` puede faltar: la API no envía campos vacíos). */
 export function sectionsOf(tags: readonly string[] | null | undefined): Set<ExploraSection> {
   const list = (tags ?? []).map(normalizeTag).filter(Boolean);
-  if (list.length === 0) return new Set(["emergentes"]);
   return new Set(
     list.map((tag) => SECTION_OF.get(tag)).filter((s): s is ExploraSection => s !== undefined),
   );

@@ -1,257 +1,189 @@
-/* Solapada con el spacer de Novedades; oculta hasta que la línea empieza a girar. */
-/* Por encima de Emergentes (Catálogo), que entra fija debajo durante la pantalla extra del final:
-   el fondo va en la escena (no en la sección) para que al fundirse se vea lo de debajo. */
+/*
+ * Catálogo: todas las marcas en un grid asimétrico, en blanco tras Emergentes. Sin títulos ni
+ * controles. Cada foto lleva su posición (`--col`, `--span`), proporción (`--ratio`) y desfase
+ * (`--shift`) desde `LAYOUT`. Scroll normal. A la derecha queda libre el hueco del índice.
+ */
 .er {
   position: relative;
   z-index: 1;
-  margin-top: -200vh;
-  color: var(--ink);
-  visibility: hidden;
-  /* Solo la escena captura el ratón: mientras sube con el scroll, Emergentes (debajo) ya responde. */
-  pointer-events: none;
-}
-
-.stage {
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow: hidden;
+  padding: 16vh max(13vw, 170px) 20vh 2vw;
   background: var(--paper);
-  pointer-events: auto;
-}
-
-/* La línea que gira en Novedades termina siendo esta división central. */
-.divider {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1px;
-  background: var(--hairline-strong);
-  opacity: 0;
-}
-
-.hline {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 50%;
-  height: 1px;
-  background: var(--hairline);
-}
-
-/* ---------- Carrusel tipo hoja de contactos ---------- */
-
-.car {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 50%;
-  height: 100%;
-  overflow: hidden;
-  opacity: 0;
-}
-
-.carLine {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  z-index: 1;
-  width: 1px;
-  background: var(--hairline);
-}
-
-.colA,
-.colB {
-  position: absolute;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  width: 50%;
-}
-
-.colA {
-  left: 0;
-}
-
-.colB {
-  left: 50%;
-}
-
-.er[data-live] :is(.stage, .colA, .colB, .car, .info) {
-  will-change: transform, opacity;
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-sizing: border-box;
-  width: 100%;
-  margin: 0;
-  padding: 1.2vw 1.2vw 2.4vw;
-  border: 0;
-  border-bottom: 1px solid var(--hairline);
-  background: none;
   color: var(--ink);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
 }
 
-.card:focus-visible {
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 9vh 16px;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  grid-column: var(--col) / span var(--span);
+  min-width: 0;
+  margin-top: var(--shift, 0);
+}
+
+.tile {
+  position: relative;
+  display: block;
+  color: var(--ink);
+  transition: opacity 0.35s linear;
+}
+
+.tile:focus-visible {
   outline: 1px solid var(--ink);
-  outline-offset: -6px;
+  outline-offset: 4px;
+}
+
+/* Con el hover (o el foco) en una foto, el resto del grid se apaga. */
+.grid:has(.tile:is(:hover, :focus-visible)) .tile {
+  opacity: 0.25;
+}
+
+.grid:has(.tile:is(:hover, :focus-visible)) .tile:is(:hover, :focus-visible) {
+  opacity: 1;
 }
 
 .photo {
   display: block;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: var(--ratio, 4 / 5);
   overflow: hidden;
   background: var(--placeholder);
 }
 
-/* Seleccionada: la foto se rodea de un borde grueso; las demás se quedan en gris. */
-.photo {
-  outline: 3px solid transparent;
-  outline-offset: -3px;
-  transition:
-    outline-color 0.3s var(--ease-out-expo),
-    opacity 0.45s var(--ease-out-expo);
-}
-
-.card[data-selected] .photo {
-  outline-color: var(--black);
-}
-
-.car[data-selecting] .card:not([data-selected]) .photo {
-  opacity: 0.35;
-}
-
-.photoImage {
+.image {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 1s var(--ease-out-expo);
 }
 
+.tile:is(:hover, :focus-visible) .image {
+  transform: scale(1.04);
+}
+
+/* Nombre y piezas: solo con el hover, justo debajo de la foto (no ocupan sitio en el grid). */
 .caption {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: space-between;
-  color: var(--grey-mute);
+  padding-top: 8px;
+  color: var(--grey-text);
   white-space: nowrap;
-  transition: color 0.4s;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.25s linear,
+    transform 0.5s var(--ease-out-expo);
 }
 
-.caption > :first-child {
+.name {
   overflow: hidden;
+  color: var(--ink);
   text-overflow: ellipsis;
 }
 
-.card[data-active] .caption {
+.tile:is(:hover, :focus-visible) .caption {
+  opacity: 1;
+  transform: none;
+}
+
+/* Sin hover (táctil): el pie se ve siempre. */
+@media (hover: none) {
+  .caption {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* «Ver más»: centrado bajo el grid, en mono; la selección se marca con subrayado, nunca con peso. */
+.more {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14vh;
+}
+
+.moreButton {
+  padding: 6px 0;
+  border: 0;
+  background: none;
   color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: text-decoration-color 0.25s linear;
 }
 
-/* ---------- Título e info (derecha) ---------- */
-
-/* Numeración en mono y titular mixto, justificado al ancho de la mitad derecha. */
-.head {
-  position: absolute;
-  right: 2vw;
-  bottom: calc(50% + 2.4vh);
-  left: calc(50% + 1.4vw);
-  display: flex;
-  flex-direction: column;
-  gap: 2.2vh;
+.moreButton:hover {
+  text-decoration-color: currentColor;
 }
 
-.kicker {
-  display: flex;
-  justify-content: space-between;
-  margin: 0;
+.moreButton:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
 }
 
-.title {
-  --display-size: var(--t-display-half);
-  white-space: nowrap;
-}
-
-.block {
-  position: absolute;
-  top: calc(50% + 12px);
-  right: 2vw;
-  bottom: 24px;
-  left: calc(50% + 1.4vw);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  justify-content: space-between;
-}
-
-.text {
-  max-width: 260px;
-  margin: 0;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.info {
-  container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  opacity: 0;
-}
-
-.meta {
+.moreCount {
   color: var(--grey-text);
 }
 
-.products {
-  display: flex;
-  gap: 10px;
-  align-items: flex-end;
-  min-height: 20px;
+/* Entrada: cada foto sube y aparece al llegar a ella, una vez, en cascada. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  .item {
+    opacity: 0;
+    transform: translateY(40px);
+    transition:
+      opacity 0.8s var(--ease-out-expo) var(--d, 0ms),
+      transform 1.2s var(--ease-out-expo) var(--d, 0ms);
+  }
+
+  .item[data-seen] {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.product {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  width: var(--pw);
-}
-
-.productPhoto {
-  display: block;
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  background: var(--placeholder);
-}
-
-.productImage {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.productPrice {
-  line-height: 1;
-}
-
-.count {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  margin: 0;
-}
-
-/* Sin movimiento no hay transición ni carrusel: Emergentes se lista aparte (lista estática). */
-@media (prefers-reduced-motion: reduce) {
+/* Ventana estrecha: dos columnas al tresbolillo, conservando la proporción de cada foto. */
+@media (max-width: 900px) {
   .er {
-    display: none;
+    padding: 12vh 16px 14vh;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7vh 12px;
+  }
+
+  .item {
+    grid-column: auto;
+    margin-top: 0;
+  }
+
+  .item:nth-child(even) {
+    margin-top: 12vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .image,
+  .caption {
+    transition: none;
+  }
+
+  .tile:is(:hover, :focus-visible) .image {
+    transform: none;
   }
 }

@@ -25,6 +25,17 @@ export function discount(p: Priced): number {
   return Math.max(0, Math.round((1 - p.current_price / p.original_price) * 100));
 }
 
+/** `https://www.scuffers.com/es` → `scuffers.com`; `null` si no es una web válida. */
+export function domain(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const { hostname } = new URL(/^https?:\/\//i.test(url) ? url : `https://${url}`);
+    return hostname.replace(/^www\./i, "") || null;
+  } catch {
+    return null;
+  }
+}
+
 const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, "es");
 
 /** Populares: por número de productos, de más a menos. */

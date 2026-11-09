@@ -1,0 +1,98 @@
+/* Por encima de todo (cortina de la Landing: 300) y por debajo del cursor propio (9999). */
+.screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+  padding: clamp(24px, 4vw, 56px) clamp(16px, 4vw, 56px);
+  overflow-y: auto;
+  background: var(--paper);
+  color: var(--black);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease-out-expo);
+}
+
+.screen[data-active] {
+  opacity: 1;
+  pointer-events: auto;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  width: min(100%, 720px);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--grey-text);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.title {
+  width: 100%;
+  margin: 8px 0;
+  --display-size: clamp(44px, min(7vw, 13vh), 104px);
+}
+
+.text {
+  max-width: 54ch;
+  margin: 0;
+  color: var(--link-hover);
+  font-weight: var(--w-text);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  text-align: right;
+}
+
+.counter {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: clamp(64px, min(18vw, 26vh), 240px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+}
+
+/* Pantalla ancha: el minijuego ocupa el hueco a la derecha del texto, encima del contador. */
+@media (min-width: 1100px) and (min-height: 640px) {
+  .screen {
+    display: grid;
+    grid-template-columns: minmax(0, 720px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: clamp(32px, 5vw, 96px);
+  }
+
+  .clock {
+    grid-column: 1 / -1;
+  }
+
+  .screen > [data-wake-game] {
+    align-self: center;
+    justify-self: center;
+    height: min(100%, 440px);
+  }
+}

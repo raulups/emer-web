@@ -4,8 +4,8 @@ import type { ApiEnvelope } from "./types";
 /**
  * El backend (Render free) tarda ~35 s en despertar. Next aborta el llenado de un "use cache"
  * a los 50 s (también en dev) y lo reporta como error, así que cada lectura hace UN intento
- * de 45 s como máximo. Si falla, el error se cachea solo segundos y se reintenta en la
- * siguiente petición, con el backend ya despierto.
+ * de 45 s como máximo. Si falla, el error se cachea solo segundos (en `next dev`, hasta 5 min
+ * mientras se renueva en segundo plano) y quien repite es el cliente (`lib/backend-wake.ts`).
  */
 const TIMEOUT_MS = 45_000;
 const MAX_RETRIES = 0;

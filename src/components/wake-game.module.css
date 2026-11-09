@@ -1,0 +1,30 @@
+/* Ocupa el hueco central de la pantalla de espera; el canvas lo llena a su tamaño. */
+.game {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  flex: 1 1 auto;
+  align-self: center;
+  width: min(100%, 640px);
+  min-height: 220px;
+  max-height: 440px;
+  font-family: var(--font-mono);
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+
+.game:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}

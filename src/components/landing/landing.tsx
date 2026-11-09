@@ -7,11 +7,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { WarmResponse } from "@/app/api/warm/route";
+import { wakeFetch } from "@/lib/backend-wake";
 import { clamp01, easeInOutCubic, easeOutCubic, pad } from "@/lib/motion/math";
 import { scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
 import { write, writeText } from "@/lib/motion/write";
-import { CURTAIN_MS, FALLBACK_TOTAL, GOLDEN_ANGLE, LOADING, TUNNEL_S } from "./content";
+import {
+  CURTAIN_MS,
+  FALLBACK_TOTAL,
+  GOLDEN_ANGLE,
+  LOADING,
+  TUNNEL_MAX_SCALE,
+  TUNNEL_ORBIT,
+  TUNNEL_S,
+} from "./content";
 import styles from "./landing.module.css";
 import { TUNNEL_IMAGES } from "./tunnel-images";
 
@@ -37,13 +46,18 @@ export function Landing() {
   useEffect(() => {
     const controller = new AbortController();
     router.prefetch("/web");
-    fetch("/api/warm", { cache: "no-store", signal: controller.signal })
+    // Si el backend duerme, `wakeFetch` repite hasta que responda; el aviso sale al acabar el túnel.
+    wakeFetch("/api/warm", {
+      cache: "no-store",
+      signal: controller.signal,
+      graceMs: (TUNNEL_S + 1) * 1000,
+    })
       .then((res) => res.json() as Promise<WarmResponse>)
       .then((body) => {
         warm.current = { done: true, total: body.total };
       })
       .catch(() => {
-        // Error de red: se abre igual y `/web` lo vuelve a intentar (o enseña SIN CONEXIÓN).
+        // Sin red o agotada la espera: se abre igual y `/web` enseña su propio estado.
         if (!controller.signal.aborted) warm.current = { done: true, total: null };
       });
     return () => controller.abort();
@@ -102,18 +116,19 @@ export function Landing() {
 
             if (phase === "tunnel") {
               const t = clamp01((time - t0) / TUNNEL_S);
-              // Fotos: salen del centro una tras otra y crecen hacia fuera (ángulo áureo).
+              // Fotos: salen del centro una tras otra y crecen hacia fuera (ángulo áureo), en tres
+              // órbitas bien separadas: entre foto y foto queda aire.
               tiles.forEach((node, i) => {
                 const u = clamp01(t * 1.7 - (i / count) * 0.7);
                 const angle = i * GOLDEN_ANGLE;
-                const radius = 15 + (i % 3) * 7;
-                const scale = 0.08 + u ** 2.3 * 4.2;
+                const radius = TUNNEL_ORBIT.base + (i % 3) * TUNNEL_ORBIT.step;
+                const scale = 0.08 + u ** 2.3 * 3.8;
                 const opacity =
                   u <= 0 ? 0 : u < 0.12 ? u / 0.12 : u > 0.8 ? 1 - (u - 0.8) / 0.2 : 1;
                 write(
                   node,
                   "transform",
-                  `translate(-50%,-50%) translate(${Math.cos(angle) * radius * scale}vw,${Math.sin(angle) * radius * 0.62 * scale}vw) scale(${scale})`,
+                  `translate(-50%,-50%) translate(${Math.cos(angle) * radius * scale}vw,${Math.sin(angle) * radius * 0.7 * scale}vw) scale(${(scale / TUNNEL_MAX_SCALE).toFixed(4)})`,
                 );
                 write(node, "opacity", String(opacity));
               });
@@ -193,7 +208,7 @@ export function Landing() {
         <div className={styles.tunnel} aria-hidden="true">
           {TUNNEL_IMAGES.map((image) => (
             <div key={image.src} className={styles.tile} data-tile>
-              <Image src={image} alt="" sizes="40vw" loading="eager" className={styles.tileImage} />
+              <Image src={image} alt="" sizes="43vw" loading="eager" className={styles.tileImage} />
             </div>
           ))}
         </div>

@@ -1,0 +1,286 @@
+/*
+ * Novedades: una pantalla en blanco que se recorre a mano (no retiene el scroll). `llegadas.tsx`
+ * escribe los `transform` de fotos, nombres y datos al pasar de marca.
+ */
+.nw {
+  position: relative;
+  height: 100vh;
+  min-height: 640px;
+  overflow: hidden;
+  /* Fondo propio: el nombre (en modo diferencia) se invierte contra él. */
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Misma composición y tamaño de titular que Populares y Emergentes. */
+.head {
+  position: absolute;
+  top: 12vh;
+  right: max(13vw, 170px);
+  left: 2vw;
+  z-index: 3;
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.title {
+  --display-size: min(2.4vw, 5vh);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--grey-text);
+}
+
+/* ---------- Foto: cada llegada entra como una persiana sobre la anterior ---------- */
+
+.photo {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  width: min(22vw, 38vh);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  background: var(--placeholder);
+  transform: translate(-50%, -50%);
+  touch-action: pan-y;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateY(102%);
+}
+
+.frame:first-child {
+  transform: none;
+}
+
+.frame[data-on] {
+  pointer-events: auto;
+}
+
+.frame:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: -6px;
+}
+
+.imageWrap {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--placeholder);
+  transform: translateY(-100%);
+}
+
+.frame:first-child .imageWrap {
+  transform: none;
+}
+
+.image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ---------- Nombre: gigante, rueda como un contador; en negativo sobre la foto ---------- */
+
+.names {
+  position: absolute;
+  top: 47%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: min(16vw, 26vh);
+  overflow: hidden;
+  color: #fff;
+  mix-blend-mode: difference;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.name {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Cabe a todo el ancho sea cual sea el largo del nombre. */
+  font-size: min(16vw, 25vh, calc(210vw / var(--len, 8)));
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(140%);
+}
+
+.name:first-child {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Datos, abajo ---------- */
+
+.meta {
+  position: absolute;
+  right: max(13vw, 170px);
+  bottom: calc(6vh + 72px);
+  left: 2vw;
+  height: 20px;
+  overflow: hidden;
+}
+
+.metaRow {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(140%);
+}
+
+.metaRow:first-child {
+  opacity: 1;
+  transform: none;
+}
+
+.metaStyle {
+  color: var(--grey-text);
+}
+
+/* ---------- Controles: anterior · miniaturas · siguiente ---------- */
+
+.controls {
+  position: absolute;
+  right: max(13vw, 170px);
+  bottom: 6vh;
+  left: 2vw;
+  z-index: 3;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--hairline-strong);
+}
+
+/* Botones en mono: el hover se marca con subrayado, nunca con peso. */
+.step {
+  flex: none;
+  padding: 6px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 4px;
+  cursor: pointer;
+  transition: text-decoration-color 0.25s linear;
+}
+
+.step:hover {
+  text-decoration-color: currentColor;
+}
+
+.step:focus-visible,
+.thumb:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Miniatura: apagada salvo la actual (y con el hover); la actual lleva una línea debajo. */
+.thumb {
+  position: relative;
+  display: block;
+  width: 36px;
+  height: 45px;
+  padding: 0;
+  border: 0;
+  background: var(--placeholder);
+  cursor: pointer;
+  opacity: 0.3;
+  transition: opacity 0.3s linear;
+}
+
+.thumb::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  height: 1px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transition: transform 0.45s var(--ease-out-expo);
+}
+
+.thumb:hover {
+  opacity: 0.7;
+}
+
+.thumb[data-on] {
+  opacity: 1;
+}
+
+.thumb[data-on]::after {
+  transform: none;
+}
+
+.thumbImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 900px) {
+  .head,
+  .meta,
+  .controls {
+    right: 16px;
+    left: 16px;
+  }
+
+  .title {
+    --display-size: min(7vw, 6vh);
+  }
+
+  .photo {
+    width: min(54vw, 40vh);
+  }
+
+  .metaStyle,
+  .thumbs {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thumb,
+  .thumb::after,
+  .step {
+    transition: none;
+  }
+}

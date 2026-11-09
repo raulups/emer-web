@@ -1,16 +1,35 @@
-/* Empieza 200vh antes del final de Novedades: así está fija debajo durante la pantalla extra
-   (`ER_HOLD_VH`) en la que la escena de Novedades se funde por encima. Sin pantalla en blanco. */
+/* Sube con el scroll justo debajo de Populares; al llegar arriba se queda fija. */
 .cat {
+  --photo-base: min(46vh, 30vw);
+  --name-h: clamp(40px, 7vh, 72px);
+  --product-gap: 8px;
+  /* Cada foto, algo más abajo que la anterior. */
+  --step: 3.6vh;
+  --tile-ink: var(--paper);
   position: relative;
-  margin-top: -200vh;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--dark);
 }
 
-/* El alto (2·vh + recorrido medido: fundido + pista) lo fija `explora.tsx` al medir. */
+/* Pasado el punto medio del fondo, lo que sale con el hover se lee mejor en oscuro. */
+.cat[data-light] {
+  --tile-ink: var(--ink);
+}
+
+/* Entra con el mismo negro que Populares; se apaga mientras sube y deja el blanco de debajo. */
+.dark {
+  position: absolute;
+  inset: 0;
+  background: var(--dark);
+}
+
+.cat[data-live] .dark {
+  will-change: opacity;
+}
+
+/* El alto (pantalla + recorrido medido) lo fija `explora.tsx` al medir. */
 .pin {
   position: relative;
-  height: 300vh;
+  height: 200vh;
 }
 
 .stage {
@@ -18,217 +37,231 @@
   top: 0;
   height: 100vh;
   overflow: hidden;
+  background: var(--paper);
+}
+
+/* Misma composición y tamaño que Populares: a la izquierda y centrado. */
+.head {
+  position: absolute;
+  top: 50%;
+  left: 2vw;
+  z-index: 3;
+  width: max-content;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.headIn {
+  position: relative;
+  opacity: 0;
+}
+
+.titleOnLight {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.title,
+.titleInk {
+  --display-size: min(2.4vw, 5vh);
+}
+
+.title {
+  --display-color: var(--paper);
+}
+
+.titleInk {
+  --display-color: var(--ink);
+}
+
+/* La columna del título queda libre: las fotos se desvanecen antes de pasar por debajo. */
+.rail {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 16vw, #000 25vw);
+  mask-image: linear-gradient(to right, transparent 16vw, #000 25vw);
 }
 
 .track {
+  position: relative;
   display: flex;
-  height: 100%;
+  gap: 5vw;
+  align-items: flex-start;
+  width: max-content;
+  margin: 0;
+  /* Las fotos recorren siempre la misma diagonal, repartida en el alto de la pantalla. */
+  padding: max(72px, 10vh) 8vw 0 30vw;
+  list-style: none;
 }
 
 .cat[data-live] .track {
   will-change: transform;
 }
 
-.panel {
+/* La foto y las zonas de nombre y productos no cambian de tamaño: solo se revelan. Las marcas
+   abiertas (1 de cada 3) van más grandes, para dar ritmo a la escalera. */
+.tile {
+  --photo-h: calc(var(--photo-base) * 0.78);
+  --photo-w: calc(var(--photo-h) * 0.8);
   position: relative;
+  display: flex;
   flex: none;
-  width: 50%;
-  height: 100%;
+  flex-direction: column;
+  width: var(--photo-w);
+  margin-top: calc(var(--step) * var(--i));
+  opacity: 0;
 }
 
-.lineH {
+.tile[data-open] {
+  --photo-h: var(--photo-base);
+}
+
+.tile:is(:hover, :focus-within) {
+  z-index: 2;
+}
+
+/* La línea sale de la foto hacia arriba y hacia abajo, hasta el nombre y los productos. */
+.line {
   position: absolute;
-  top: 50%;
-  right: 0;
+  top: 0;
+  bottom: 0;
   left: 0;
-  height: 1px;
-  background: var(--hairline);
-  transform: scaleX(0);
-  transform-origin: right;
+  z-index: 1;
+  width: 1px;
+  background: var(--tile-ink);
+  pointer-events: none;
+  transform: scaleY(0);
+  transform-origin: 50% calc(var(--name-h) + var(--photo-h) / 2);
+  transition: transform 0.25s var(--ease-out-expo);
 }
 
-/* Numeración en mono y titular mixto, justificado al ancho del panel. */
-.head {
-  position: absolute;
-  right: 2vw;
-  bottom: calc(50% + 2.4vh);
-  left: 2vw;
+.tile:is(:hover, :focus-within, [data-seen]) .line {
+  transform: none;
+  transition-duration: 0.7s;
+}
+
+.name {
   display: flex;
-  flex-direction: column;
-  gap: 2.2vh;
-}
-
-.kicker {
-  display: flex;
-  justify-content: space-between;
+  align-items: center;
+  height: var(--name-h);
   margin: 0;
+  padding-left: 10px;
+  color: var(--tile-ink);
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  font-size: clamp(26px, 3vw, 46px);
+  line-height: 1;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
+  white-space: pre;
+}
+
+/* Se escribe letra a letra al entrar; al salir se borra de golpe. */
+.letter {
   opacity: 0;
+  transition: opacity 0.1s linear;
 }
 
-.title {
-  --display-size: var(--t-display-half);
-}
-
-.text {
-  position: absolute;
-  top: calc(50% + 12px);
-  left: 2vw;
-  max-width: 240px;
-  margin: 0;
-  font-weight: var(--w-text);
-  font-size: 13px;
-  line-height: 1.35;
-  opacity: 0;
-}
-
-.count {
-  position: absolute;
-  bottom: 24px;
-  left: 2vw;
-  margin: 0;
-  white-space: nowrap;
-  opacity: 0;
-}
-
-.column {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  height: 100%;
-  border-left: 1px solid var(--hairline-strong);
-  opacity: 0;
-}
-
-/* Celdas de tamaño fijo (`flex-grow` según LAY): el hover nunca las redimensiona. */
-.cell {
-  position: relative;
-  display: block;
-  flex: var(--grow) 1 0;
-  min-height: 0;
-  padding: 12px;
-  color: var(--ink);
-  transition: opacity 0.45s var(--ease-out-expo);
-}
-
-.cell:not([data-first]) {
-  border-top: 1px solid var(--hairline);
-}
-
-.cell[data-dim] {
-  opacity: 0.3;
-}
-
-.cell:has(:focus-visible) {
-  outline: 1px solid var(--ink);
-  outline-offset: -4px;
-}
-
-/* Contenedor (`size`): las miniaturas del hover se miden contra la celda. */
-.frame {
-  position: relative;
-  container-type: size;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: var(--placeholder);
+.tile:is(:hover, :focus-within, [data-seen]) .letter {
+  opacity: 1;
+  transition-delay: calc(120ms + var(--j) * 28ms);
 }
 
 .photo {
   display: block;
+  flex: none;
+  height: var(--photo-h);
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.photo:focus-visible {
+  outline: 1px solid var(--tile-ink);
+  outline-offset: 3px;
+}
+
+.image {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 1.2s var(--ease-out-expo);
 }
 
-.cell[data-on] .photo {
-  transform: scale(1.05);
+.products {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--product-gap);
+  margin: 0;
+  padding: 10px 0 0 10px;
+  list-style: none;
 }
 
-.labels {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  left: 8px;
-  /* Los botones de marca se adaptan al ancho de la celda (container query). */
-  container-type: inline-size;
+.product {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.name {
-  background: var(--paper);
-  padding: 6px 8px;
-}
-
-/* Botones de la marca (encima del nombre): solo con hover o con el foco dentro de la celda. */
-.cta {
-  flex: 1 1 100%;
-  order: -1;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.4s var(--ease-out-expo);
-}
-
-.cell[data-on] .cta {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.thumbs {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  gap: 6px;
-}
-
-/* Tres a lo ancho de la celda, sin pasar del 38 % de su alto (deja ver la foto y las etiquetas). */
-.thumb {
-  display: block;
-  width: min(calc((100cqw - 28px) / 3), calc(38cqh * 3 / 4), 200px);
-  aspect-ratio: 3 / 4;
-  overflow: hidden;
-  background: var(--paper);
-  outline: 1px solid var(--paper);
+  flex-direction: column;
+  gap: 5px;
   opacity: 0;
   transform: translateY(10px);
   transition:
-    opacity 0.45s var(--ease-out-expo),
-    transform 0.7s var(--ease-out-expo);
+    opacity 0.2s linear,
+    transform 0.2s linear;
 }
 
-.cell[data-on] .thumb {
+.tile:is(:hover, :focus-within, [data-seen]) .product {
   opacity: 1;
   transform: none;
-  transition-delay: var(--delay);
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.7s var(--ease-out-expo);
+  transition-delay: calc(220ms + var(--j) * 70ms);
 }
 
-.thumbImage {
+.productPhoto {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
 }
 
-.soon {
-  max-width: min(260px, calc(100cqw - 16px));
+.price {
+  color: var(--tile-ink);
+  white-space: nowrap;
+}
+
+.tile .soon {
+  max-width: none;
+  margin: 10px 0 0 10px;
+  color: var(--tile-ink);
   opacity: 0;
-  transition: opacity 0.4s var(--ease-out-expo);
+  transition: opacity 0.2s linear;
 }
 
-.cell[data-on] .soon {
+.tile:is(:hover, :focus-within, [data-seen]) .soon {
   opacity: 1;
+  transition-delay: 220ms;
 }
 
-/* Sin movimiento: sin entrada ni pista sticky; el grid se recorre con scroll horizontal nativo. */
+/* Sin movimiento: en blanco y sin pista fija; todo a la vista, con scroll horizontal nativo. */
 @media (prefers-reduced-motion: reduce) {
   .cat {
-    margin-top: 0;
+    --tile-ink: var(--ink);
+  }
+
+  .dark,
+  .titleOnDark {
+    display: none;
+  }
+
+  .titleOnLight {
+    position: static;
+    opacity: 1;
+  }
+
+  .rail {
+    position: static;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .pin {
@@ -241,14 +274,18 @@
     overflow-x: auto;
   }
 
-  .lineH {
+  .headIn,
+  .tile,
+  .letter,
+  .product,
+  .tile .soon {
+    opacity: 1;
     transform: none;
+    transition: none;
   }
 
-  .kicker,
-  .text,
-  .count,
-  .column {
-    opacity: 1;
+  .line {
+    transform: none;
+    transition: none;
   }
 }

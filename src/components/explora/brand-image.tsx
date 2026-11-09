@@ -11,10 +11,12 @@ type Props = {
   className?: string;
   /** Ancho que se pide a la CDN (a 2x). */
   request: number;
+  /** `lazy` para listas largas (el Catálogo): solo se descarga al acercarse a la pantalla. */
+  loading?: "lazy" | "eager";
 };
 
 /** Foto de marca o producto: si la primera falla, prueba la siguiente (primer producto). */
-export function BrandImage({ sources, alt, width, height, className, request }: Props) {
+export function BrandImage({ sources, alt, width, height, className, request, loading }: Props) {
   const [index, setIndex] = useState(0);
   const src = sources[index];
   if (!src) return null;
@@ -27,6 +29,7 @@ export function BrandImage({ sources, alt, width, height, className, request }: 
       width={width}
       height={height}
       decoding="async"
+      loading={loading}
       className={className}
       onError={() => setIndex((i) => i + 1)}
     />

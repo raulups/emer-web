@@ -1,16 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { wakeFetch } from "@/lib/backend-wake";
 import type { Product, ProductFacets } from "@/lib/data";
 import { type Filters, toSearchParams } from "@/lib/marketplace";
 import type { MarketplacePage } from "@/lib/marketplace-data";
 
 /** Agrupa cambios seguidos (p. ej. arrastrar el slider) en una sola petición. */
 const DEBOUNCE_MS = 220;
-/** La primera llamada puede despertar el backend (cold start de Render): 60 s; luego, 30 s. */
-const FIRST_TIMEOUT_MS = 60_000;
-const TIMEOUT_MS = 30_000;
-let firstRequest = true;
 
 type Envelope = { success: boolean; data: MarketplacePage | null; error: string | null };
 
@@ -27,11 +24,8 @@ export type ProductsState = {
 };
 
 async function request(filters: Filters, page: number, signal: AbortSignal, cursor?: string) {
-  const timeout = AbortSignal.timeout(firstRequest ? FIRST_TIMEOUT_MS : TIMEOUT_MS);
-  firstRequest = false;
-  const res = await fetch(`/api/products?${toSearchParams(filters, page, cursor)}`, {
-    signal: AbortSignal.any([signal, timeout]),
-  });
+  // Cualquier petición puede despertar el backend: el aviso y los reintentos van en `wakeFetch`.
+  const res = await wakeFetch(`/api/products?${toSearchParams(filters, page, cursor)}`, { signal });
   const body = (await res.json()) as Envelope;
   if (!res.ok || !body.success || !body.data) {
     throw new Error(body.error ?? `HTTP ${res.status}`);

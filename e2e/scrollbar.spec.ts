@@ -8,7 +8,7 @@ test.use({
   },
 });
 
-test("la línea de Emergentes y la de Catálogo son la misma (mismo x que la primera columna)", async ({
+test("con barra de scroll, Explora no se desborda en horizontal en Populares ni en Emergentes", async ({
   page,
 }, info) => {
   test.skip(info.project.name === "mobile", "el diseño de Explora es de escritorio");
@@ -20,12 +20,18 @@ test("la línea de Emergentes y la de Catálogo son la misma (mismo x que la pri
   );
   test.skip(scrollbar === 0, "este Chromium no dibuja barra de scroll");
 
-  const x = (selector: string) =>
-    page
+  const overflow = () =>
+    page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+  // Durante el slide entre vistas el ancho es el de la pantalla: se mira al acabar.
+  await expect(page.locator("html")).not.toHaveAttribute("data-slide");
+  await expect.poll(overflow).toBeLessThanOrEqual(0);
+  for (const selector of ["[data-nv]", "[data-cat-pin]"]) {
+    await page
       .locator(selector)
-      .first()
-      .evaluate((el) => el.getBoundingClientRect().left);
-  const emergentes = await x("[data-ediv]");
-  const column = await x("[data-cat-g]");
-  expect(Math.abs(emergentes - column)).toBeLessThan(0.5);
+      .evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY + 2));
+    await page.waitForTimeout(500);
+    expect(await overflow()).toBeLessThanOrEqual(0);
+  }
 });

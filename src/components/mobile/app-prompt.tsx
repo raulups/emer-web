@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import button from "@/components/ui/button.module.css";
 import { DisplayTitle } from "@/components/ui/display-title";
 import { APP_LINKS, APP_PROMPT_KEY } from "@/lib/app-links";
+import { isWaking, subscribeWake } from "@/lib/backend-wake";
 import styles from "./app-prompt.module.css";
 
 function shouldShow(): boolean {
@@ -22,9 +23,15 @@ const STORES = [
   { name: "Google Play", href: APP_LINKS.android },
 ] as const;
 
-/** Aviso de la web de móvil: para una mejor experiencia, la app. Una vez por sesión. */
+const notWaking = () => false;
+
+/**
+ * Aviso de la web de móvil: para una mejor experiencia, la app. Una vez por sesión. Es un modal y
+ * taparía la pantalla de backend dormido: se aparta mientras dure esa espera.
+ */
 export function AppPrompt() {
   const [open, setOpen] = useState(false);
+  const waking = useSyncExternalStore(subscribeWake, isWaking, notWaking);
 
   useEffect(() => {
     if (shouldShow()) setOpen(true);
@@ -34,7 +41,7 @@ export function AppPrompt() {
 
   return (
     <BottomSheet
-      open={open}
+      open={open && !waking}
       onClose={close}
       title="EMER EN EL MÓVIL"
       labelledBy="app-prompt-title"
