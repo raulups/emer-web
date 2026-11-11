@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import type { Product } from "@/lib/data";
 import { discount, price } from "@/lib/format";
 import { sizedImage } from "@/lib/marketplace";
@@ -12,19 +12,28 @@ const MAX_PHOTOS = 8;
 /** Ancho pedido a Shopify: tarjeta de ~300px a 2x. */
 const IMAGE_WIDTH = 640;
 
+/** De dónde nace el popup: la caja de la tarjeta (la del popup) y la de su foto (la foto). */
+export type Origin = { card: DOMRect; media: DOMRect };
+/** Abrir el detalle de una pieza. */
+export type ProductOpen = (product: Product, origin: Origin | null) => void;
+
 type Props = {
   product: Product;
   brandName: string;
   /** Primeras tarjetas: la foto principal carga con prioridad (LCP). */
   eager?: boolean;
+  onOpen: ProductOpen;
 };
 
 /**
  * Tarjeta sin borde (README §3). En hover pasa a la 2.ª foto, aparecen las flechas, sube la
- * franja de tallas con el índice y el nombre se subraya; al salir vuelve a la 1.ª.
+ * franja de tallas con el índice y el nombre se subraya; al salir vuelve a la 1.ª. Toda la
+ * tarjeta abre el detalle (popup); la tienda se visita desde él.
  */
-export function ProductCard({ product, brandName, eager = false }: Props) {
+export function ProductCard({ product, brandName, eager = false, onOpen }: Props) {
   const [hovered, setHovered] = useState(false);
+  const card = useRef<HTMLElement>(null);
+  const media = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [loadedUpTo, setLoadedUpTo] = useState(0);
   const sizes = useProductSizes(product.id, hovered);
@@ -52,7 +61,9 @@ export function ProductCard({ product, brandName, eager = false }: Props) {
 
   return (
     <article
+      ref={card}
       className={styles.card}
+      data-product={product.id}
       data-hovered={hovered || undefined}
       onMouseEnter={enter}
       onMouseLeave={leave}
@@ -61,7 +72,7 @@ export function ProductCard({ product, brandName, eager = false }: Props) {
         if (!event.currentTarget.contains(event.relatedTarget)) leave();
       }}
     >
-      <div className={styles.media}>
+      <div ref={media} className={styles.media} data-media>
         <div className={styles.track} style={{ "--index": index } as CSSProperties}>
           {photos.map((src, k) => (
             <div key={src} className={styles.frame}>
@@ -131,12 +142,27 @@ export function ProductCard({ product, brandName, eager = false }: Props) {
         )}
       </div>
 
-      <div className={styles.info}>
+      <div className={styles.info} data-info>
         <div className={styles.row}>
           <h3 className={styles.name}>
-            <a className={styles.link} href={product.product_url} target="_blank" rel="noopener">
+            <button
+              type="button"
+              className={styles.link}
+              aria-haspopup="dialog"
+              onClick={() =>
+                onOpen(
+                  product,
+                  card.current && media.current
+                    ? {
+                        card: card.current.getBoundingClientRect(),
+                        media: media.current.getBoundingClientRect(),
+                      }
+                    : null,
+                )
+              }
+            >
               {product.name}
-            </a>
+            </button>
           </h3>
           <span className={styles.price}>{price(product.current_price)}</span>
         </div>

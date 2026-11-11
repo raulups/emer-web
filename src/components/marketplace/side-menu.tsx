@@ -1,8 +1,10 @@
 "use client";
 
-import type { Ref } from "react";
+import { type Ref, useState } from "react";
 import type { Brand, ProductFacets } from "@/lib/data";
 import { BrandCard } from "./brand-card";
+import { BrandGrid } from "./brand-grid";
+import { BrandSearch, matchBrands } from "./brand-search";
 import { ExpandableList } from "./expandable-list";
 import { OptionRow } from "./option-row";
 import styles from "./side-menu.module.css";
@@ -27,9 +29,15 @@ type Props = {
   onClear: () => void;
 };
 
-/** Menú lateral (README §3): categorías y MARCAS (5 filas, «Ver más» abre 8 con scroll), FILTROS (n) + BORRAR y ficha. */
+/**
+ * Menú lateral (README §3): categorías y MARCAS (rejilla de logos en dos columnas: seis a la
+ * vista, «Ver más» abre las demás; con el buscador, solo las que coinciden), FILTROS (n) + BORRAR
+ * y ficha.
+ */
 export function SideMenu(props: Props) {
   const { visible, categories, cat, filterCount, canClear, cardBrand } = props;
+  const [query, setQuery] = useState("");
+  const brands = matchBrands(props.brands, query);
 
   return (
     <aside
@@ -64,24 +72,13 @@ export function SideMenu(props: Props) {
           />
         </nav>
 
-        <ExpandableList
-          heading="MARCAS"
-          label="Marcas"
-          items={props.brands}
-          itemKey={(brand) => brand.id}
-          gap={14}
-          inset
-          renderItem={(brand) => (
-            <OptionRow
-              label={brand.name}
-              count={brand.product_count}
-              selected={props.selectedBrands.includes(brand.id)}
-              multiple
-              onClick={() => props.onToggleBrand(brand.id)}
-              onMouseEnter={() => props.onHoverBrand(brand.id)}
-              onMouseLeave={() => props.onHoverBrand(null)}
-            />
-          )}
+        <BrandGrid
+          brands={brands}
+          selected={props.selectedBrands}
+          onToggle={props.onToggleBrand}
+          onHover={props.onHoverBrand}
+          expanded={query !== ""}
+          tools={<BrandSearch value={query} onChange={setQuery} matches={brands.length} />}
         />
 
         <div className={styles.filters}>

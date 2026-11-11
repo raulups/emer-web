@@ -72,7 +72,7 @@ test("categorías: selección única con línea; marcas: selección múltiple", 
   await expect(all).not.toHaveAttribute("aria-current", "true");
   await expect(products(page).first()).toContainText("Gorra");
 
-  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
   await menu(page)
     .getByRole("button", { name: /^Satenier/ })
     .click();
@@ -99,12 +99,12 @@ test("categorías: selección única con línea; marcas: selección múltiple", 
 test("MARCAS: «Ver más» abre la lista y «Ver menos» la recoge", async ({ page }) => {
   const tinta = menu(page).getByRole("button", { name: /^Tinta/ });
   await expect(tinta).not.toBeInViewport();
-  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
   await expect(menu(page).getByRole("button", { name: "Ver menos" })).toBeVisible();
   await tinta.scrollIntoViewIfNeeded();
   await expect(tinta).toBeVisible();
   await menu(page).getByRole("button", { name: "Ver menos" }).click();
-  await expect(menu(page).getByRole("button", { name: "Ver más · 4" })).toBeVisible();
+  await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toBeVisible();
 });
 
 test("CATEGORÍAS: 5 visibles y «Ver más» abre hasta 8", async ({ page }) => {
@@ -124,7 +124,7 @@ test("el menú cabe sin scroll de primeras y hace scroll al abrir las listas", a
       .first()
       .evaluate((el) => el.scrollHeight - el.clientHeight);
   expect(await overflow()).toBeLessThanOrEqual(0);
-  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
   await menu(page).getByRole("button", { name: "Ver más · 2" }).click();
   await expect.poll(overflow).toBeGreaterThan(0);
 });
@@ -171,7 +171,7 @@ test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => 
     .click();
   await expect(page.getByText("SIN RESULTADOS")).toBeVisible();
   await expect(page.getByText("Prueba con otra talla o quita algún filtro.")).toBeVisible();
-  // Cada filtro activo se puede quitar desde aquí; sin ÚNICA vuelven las piezas de Marea.
+  // Los filtros activos siguen en la barra del grid; sin ÚNICA vuelven las piezas de Marea.
   const active = page.getByRole("list", { name: "Filtros activos" });
   await expect(active.getByRole("button", { name: "Quitar Marea" })).toBeVisible();
   await active.getByRole("button", { name: "Quitar Talla ÚNICA" }).click();
@@ -195,7 +195,7 @@ test("vacío: BORRAR FILTROS vuelve al catálogo completo", async ({ page }) => 
 });
 
 test("VISTA: productos por fila de 2 a 6, recordados al volver", async ({ page }) => {
-  const grid = page.getByRole("region", { name: "Productos" }).locator("ul").first();
+  const grid = page.getByRole("region", { name: "Productos" }).locator("[data-grid]");
   const columns = () =>
     grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
   const view = page.getByRole("group", { name: "Productos por fila" });
@@ -235,7 +235,7 @@ test("loader: mientras llegan los resultados sale la tragaperras de categorías"
     .click();
   const loader = page.getByText("BUSCANDO PIEZAS");
   await expect(loader).toBeVisible();
-  await expect(page.getByRole("region", { name: "Productos" }).locator("ul").first()).toHaveCSS(
+  await expect(page.getByRole("region", { name: "Productos" }).locator("[data-grid]")).toHaveCSS(
     "opacity",
     "0.12",
   );
@@ -353,7 +353,7 @@ test("seleccionar marcas reescribe ?brand= sin navegar ni mover el scroll", asyn
   page.on("request", (r) => {
     if (r.resourceType() === "document") requests.push(r.url());
   });
-  await menu(page).getByRole("button", { name: "Ver más · 4" }).click();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
   await menu(page)
     .getByRole("button", { name: /^Ruido/ })
     .click();
@@ -380,9 +380,13 @@ test("seleccionar marcas reescribe ?brand= sin navegar ni mover el scroll", asyn
 test("con un filtro u orden explícito se pagina normal; al quitarlo vuelve el orden por defecto", async ({
   page,
 }) => {
-  await filtersButton(page).click();
-  await panel(page).getByRole("button", { name: "PRECIO ASCENDENTE" }).click();
-  await page.keyboard.press("Escape");
+  // ORDENAR va en la barra del grid, a un clic (sin abrir el panel).
+  const sort = page.getByRole("group", { name: "ORDENAR" });
+  await sort.getByRole("button", { name: "PRECIO ASCENDENTE" }).click();
+  await expect(sort.getByRole("button", { name: "PRECIO ASCENDENTE" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   // Una sola consulta paginada: primera página de 24, mezclando categorías.
   await expect(products(page)).toHaveCount(24);
   // Una consulta normal ordenada por precio (no el recorrido por categorías).
@@ -391,8 +395,133 @@ test("con un filtro u orden explícito se pagina normal; al quitarlo vuelve el o
   );
   expect(prices.length).toBe(24);
   expect(prices).toEqual(prices.toSorted((x, y) => x - y));
-  await filtersButton(page).click();
-  await panel(page).getByRole("button", { name: "NOVEDADES" }).click();
-  await page.keyboard.press("Escape");
+  await sort.getByRole("button", { name: "NOVEDADES" }).click();
   await expect(products(page).first()).toContainText("Sudadera");
+});
+
+test("barra del grid: recuento, filtros activos que se quitan a un clic y BORRAR", async ({
+  page,
+}) => {
+  const region = page.getByRole("region", { name: "Productos" });
+  await expect(region.getByText(`${TOTAL} PIEZAS`)).toBeVisible();
+  await menu(page)
+    .getByRole("button", { name: /^Gorras y gorros/ })
+    .click();
+  await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
+  await menu(page)
+    .getByRole("button", { name: /^Satenier/ })
+    .click();
+  const active = region.getByRole("list", { name: "Filtros activos" });
+  await expect(active.getByRole("button")).toHaveText(["Gorras y gorros×", "Satenier×"]);
+  await expect(region.getByText("3 PIEZAS")).toBeVisible();
+  // La barra se queda fija bajo el shell.
+  await expect(active).toBeInViewport();
+  await active.getByRole("button", { name: "Quitar Gorras y gorros" }).click();
+  await expect(active.getByRole("button")).toHaveText(["Satenier×"]);
+  await expect(menu(page).getByRole("button", { name: /^Ver todo/ })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+  await region.getByRole("button", { name: "BORRAR" }).click();
+  await expect(active).toHaveCount(0);
+  await expect(region.getByText(`${TOTAL} PIEZAS`)).toBeVisible();
+});
+
+test("MARCAS: el buscador deja solo las que coinciden y Escape lo limpia", async ({ page }) => {
+  const search = menu(page).getByRole("searchbox", { name: "Buscar marca" });
+  await search.fill("sat");
+  await expect(menu(page).getByRole("button", { name: /^Satenier/ })).toBeVisible();
+  await expect(menu(page).getByRole("button", { name: /^Bajo Cero/ })).toHaveCount(0);
+  await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toHaveCount(0);
+  await menu(page)
+    .getByRole("button", { name: /^Satenier/ })
+    .click();
+  await expect(products(page).first()).toContainText("Satenier");
+  await search.press("Escape");
+  await expect(search).toHaveValue("");
+  // Vuelve la lista plegada completa, con la marca elegida marcada.
+  await expect(menu(page).getByRole("button", { name: "Ver más · 3" })).toBeVisible();
+  await expect(menu(page).getByRole("button", { name: /^Calma/ })).toBeVisible();
+  await expect(menu(page).getByRole("button", { name: /^Satenier/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("detalle: la tarjeta abre un popup con galería, tallas y la tienda; atrás lo cierra", async ({
+  page,
+}) => {
+  // `exact`: «Camiseta Satenier 10» también contiene el nombre.
+  const open = products(page).getByRole("button", { name: "Camiseta Satenier 1", exact: true });
+  await open.click();
+  const dialog = page.getByRole("dialog", { name: "Camiseta Satenier 1", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(page).toHaveURL(/[?&]p=[0-9a-f-]{36}/);
+  await expect(
+    dialog.getByRole("heading", { name: "Camiseta Satenier 1", exact: true }),
+  ).toBeVisible();
+  // Tallas del detalle, con las agotadas tachadas; la tienda oficial, en otra pestaña.
+  await expect(dialog.getByRole("list", { name: "Tallas" }).getByRole("listitem")).not.toHaveCount(
+    0,
+  );
+  const store = dialog.getByRole("link", { name: /IR A LA TIENDA/ });
+  await expect(store).toHaveAttribute("href", /satenier\.example\/products\//);
+  await expect(store).toHaveAttribute("target", "_blank");
+  // Galería: flechas y miniaturas.
+  await dialog.getByRole("button", { name: "Foto siguiente" }).click();
+  await expect(dialog.getByRole("button", { name: "Foto 2 de 2" })).toHaveAttribute(
+    "aria-current",
+    "true",
+  );
+  // La página de detrás queda inerte; Escape cierra y quita `?p=`.
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(page).not.toHaveURL(/[?&]p=/);
+  // Abrir de nuevo y cerrar con «atrás» (el gesto del móvil).
+  await open.click();
+  await expect(dialog).toBeVisible();
+  await page.goBack();
+  await expect(dialog).toBeHidden();
+  await expect(page).toHaveURL(/\/web$/);
+});
+
+test("detalle: VER MÁS DE la marca filtra el catálogo por ella", async ({ page }) => {
+  // `exact`: «Camiseta Satenier 10» también contiene el nombre.
+  const open = products(page).getByRole("button", { name: "Camiseta Satenier 1", exact: true });
+  await open.click();
+  const dialog = page.getByRole("dialog", { name: "Camiseta Satenier 1", exact: true });
+  await dialog.getByRole("button", { name: "VER MÁS DE Satenier" }).click();
+  await expect(dialog).toBeHidden();
+  await expect(menu(page).getByRole("button", { name: /^Satenier/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  for (const item of await products(page).all()) await expect(item).toContainText("Satenier");
+});
+
+test("VISTA: la primera tarjeta visible se queda donde estaba al cambiar las columnas", async ({
+  page,
+}) => {
+  const view = page.getByRole("group", { name: "Productos por fila" });
+  await page.evaluate(() => window.scrollTo(0, 900));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(800);
+  // La primera foto que asoma bajo la barra fija (identificada por su pieza: las fotos de ejemplo
+  // se repiten entre piezas).
+  const first = await page.evaluate(() => {
+    const medias = [...document.querySelectorAll("[data-media]")];
+    const top = 122;
+    const media = medias.find((m) => m.getBoundingClientRect().bottom > top);
+    const id = media?.closest("[data-product]")?.getAttribute("data-product") ?? "";
+    return { id, y: media?.getBoundingClientRect().top ?? 0 };
+  });
+  expect(first.id).not.toBe("");
+  await view.getByRole("button", { name: "6 por fila" }).click();
+  await expect
+    .poll(() =>
+      page.evaluate((id) => {
+        const media = document.querySelector(`[data-product="${id}"] [data-media]`);
+        return media?.getBoundingClientRect().top ?? -1;
+      }, first.id),
+    )
+    .toBeCloseTo(first.y, -1);
 });

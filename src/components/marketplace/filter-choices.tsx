@@ -3,18 +3,21 @@ import styles from "./filter-choices.module.css";
 
 type BracketChoiceProps = {
   label: string;
+  /** Nombre accesible si el texto visible es una abreviatura (PRECIO ↑). */
+  ariaLabel?: string;
   selected: boolean;
   onToggle: () => void;
 };
 
-/** TALLA / OFERTAS: la opción seleccionada va entre corchetes que se abren hacia fuera. */
-export function BracketChoice({ label, selected, onToggle }: BracketChoiceProps) {
+/** TALLA / OFERTAS / ORDENAR: la opción seleccionada va entre corchetes que se abren hacia fuera. */
+export function BracketChoice({ label, ariaLabel, selected, onToggle }: BracketChoiceProps) {
   return (
     <button
       type="button"
       className={styles.choice}
       data-selected={selected || undefined}
       aria-pressed={selected}
+      aria-label={ariaLabel}
       onClick={onToggle}
     >
       <span className={styles.open} aria-hidden="true">

@@ -1,0 +1,82 @@
+/* Filtros activos: cajas de 1px con ×; en hover se rellenan de tinta y la × gira. */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chips[data-variant="screen"] {
+  justify-content: center;
+  margin-top: 4px;
+}
+
+/* En la barra del grid no envuelven: con muchos, se desplazan en horizontal. */
+.chips[data-variant="bar"] {
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.chips[data-variant="bar"]::-webkit-scrollbar {
+  display: none;
+}
+
+.item {
+  flex: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 10px 0 12px;
+  border: var(--line) solid var(--black);
+  background: var(--paper);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.4s var(--ease-out-expo),
+    color 0.4s var(--ease-out-expo);
+}
+
+.x {
+  display: inline-block;
+  font-family: var(--font);
+  font-weight: var(--w-ui);
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.chip:hover {
+  background: var(--black);
+  color: var(--paper);
+}
+
+.chip:hover .x {
+  transform: rotate(90deg);
+}
+
+.chip:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chip,
+  .x {
+    transition-duration: 0.01ms;
+  }
+}

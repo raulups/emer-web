@@ -1,0 +1,176 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  align-self: stretch;
+  gap: 14px;
+}
+
+.heading,
+.more {
+  color: var(--grey-text);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+/* Dos columnas; las casillas ocultas no ocupan sitio. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Casilla: borde de 1px, apagada; en hover se enciende; seleccionada, borde negro y marca. */
+.tile {
+  --tile-h: 48px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: var(--tile-h);
+  min-width: 0;
+  padding: 6px 8px;
+  border: var(--line) solid var(--hairline-strong);
+  background: var(--paper);
+  color: var(--black);
+  cursor: pointer;
+  opacity: 0.6;
+  transition:
+    opacity 0.4s var(--ease-out-expo) var(--delay, 0ms),
+    border-color 0.4s var(--ease-out-expo),
+    transform 0.6s var(--ease-out-expo) var(--delay, 0ms);
+}
+
+.tile[data-hidden] {
+  display: none;
+}
+
+.group[data-open] .tile {
+  animation: enter 0.6s var(--ease-out-expo) var(--delay, 0ms) both;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.tile:hover {
+  border-color: var(--grey-rule);
+  opacity: 1;
+}
+
+.tile[data-selected] {
+  border-color: var(--black);
+  opacity: 1;
+}
+
+.tile:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 3px;
+}
+
+.logo {
+  max-width: 100%;
+  pointer-events: none;
+}
+
+/* Sin logo: el nombre, en mono y cortado si no cabe. */
+.name {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Piezas de la marca, pequeño en la esquina inferior; la marca de seleccionada, en la superior. */
+.count {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  color: var(--grey-text);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 9px;
+  letter-spacing: var(--track-label);
+  line-height: 1;
+}
+
+.mark {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  background: var(--black);
+  transform: scale(0);
+  transition: transform 0.45s var(--ease-out-expo);
+}
+
+.tile[data-selected] .mark {
+  transform: none;
+}
+
+.more {
+  align-self: flex-start;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.more:hover,
+.more:focus-visible {
+  color: var(--black);
+  text-decoration-color: currentColor;
+}
+
+.more:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+/* Hoja de móvil: casillas más altas y el título fuera (lo pone la hoja). */
+.group[data-variant="sheet"] .heading {
+  display: none;
+}
+
+.group[data-variant="sheet"] .tile {
+  --tile-h: 64px;
+}
+
+.group[data-variant="sheet"] .grid {
+  gap: 10px;
+}
+
+.group[data-variant="sheet"] .count {
+  font-size: var(--t-label);
+  right: 8px;
+  bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tile,
+  .mark {
+    transition: none;
+    animation: none;
+  }
+}

@@ -68,58 +68,17 @@
 
 .chips {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 4px 0 0;
-  padding: 0;
-  list-style: none;
+  justify-content: center;
 }
 
-.chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 32px;
-  padding: 0 10px 0 12px;
-  border: var(--line) solid var(--black);
-  background: var(--paper);
-  color: var(--black);
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition:
-    background-color 0.4s var(--ease-out-expo),
-    color 0.4s var(--ease-out-expo);
-}
-
-.x {
-  font-weight: var(--w-ui);
-  font-size: 16px;
-  line-height: 1;
-  transition: transform 0.5s var(--ease-out-expo);
-}
-
-.chip:hover {
-  background: var(--black);
-  color: var(--paper);
-}
-
-.chip:hover .x {
-  transform: rotate(90deg);
+.chips:empty {
+  display: none;
 }
 
 /* BORRAR FILTROS: botón `box` de `ui/button.module.css`; aquí solo su sitio. */
 .primary {
   margin-top: 8px;
   padding: 0 28px;
-}
-
-.chip:focus-visible {
-  outline: 1px solid var(--black);
-  outline-offset: 4px;
 }
 
 /* ---------- Error ---------- */
@@ -197,8 +156,6 @@
     animation: none;
   }
 
-  .chip,
-  .x,
   .primary {
     transition-duration: 0.01ms;
   }

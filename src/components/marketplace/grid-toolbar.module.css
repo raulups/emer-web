@@ -1,0 +1,114 @@
+/*
+ * Barra del grid: pegada bajo el shell mientras se recorre el catálogo. Tres zonas: recuento,
+ * filtros activos (crecen y se desplazan si no caben) y orden.
+ */
+.bar {
+  position: sticky;
+  top: var(--shell-top, 76px);
+  z-index: 30;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  min-height: 46px;
+  margin: 0 0 28px;
+  padding: 6px 0;
+  border-bottom: var(--line) solid var(--hairline);
+  background: var(--paper);
+}
+
+.count {
+  flex: none;
+  min-width: 11ch;
+  margin: 0;
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.bar[data-loading] .count {
+  color: var(--grey-text);
+}
+
+.filters {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 14px;
+  align-items: center;
+  min-width: 0;
+}
+
+.clear {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-text);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  cursor: pointer;
+}
+
+.clear:hover {
+  color: var(--black);
+}
+
+.clear:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 4px;
+}
+
+/* ORDENAR: la opción activa va entre corchetes (`BracketChoice`). */
+.sort {
+  display: flex;
+  flex: none;
+  gap: 16px;
+  align-items: center;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+}
+
+.sortLabel {
+  float: left;
+  margin-right: 4px;
+  padding: 0;
+  color: var(--grey-text);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+/* Estrecho: recuento y orden en la primera fila; los filtros, debajo, en una fila que se desplaza. */
+@media (max-width: 900px) {
+  .bar {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+  }
+
+  .filters {
+    flex-basis: 100%;
+    order: 3;
+  }
+
+  .filters:empty {
+    display: none;
+  }
+
+  .sortLabel {
+    display: none;
+  }
+}

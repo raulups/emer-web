@@ -86,3 +86,13 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
   - Sin piezas: aviso «Inventario en camino» (`no-stock.tsx`) en las cuatro secciones, en lugar de «Catálogo pronto».
   - Sugerir marca: los corchetes se separan con el scroll hasta salir de pantalla; vacío, el cursor parpadea siempre (gris sin foco). Al enviar vuelven sobre el nombre.
   - Pantallas bajas (≤ 640px de alto): Destacados oculta el texto de la marca.
+
+## Marketplace: barra, marcas y popup (2026-11-12)
+
+- [ ] **Popup de detalle (`product-modal`)**: no está en el diseño. `<dialog>` nativo con la página inerte detrás; la tarjeta pulsada crece hasta el popup (caja y foto, FLIP con `transform`) y los detalles aparecen en cascada; al cerrar encoge de vuelta. Revisar con diseño textos («SE COMPRA EN LA WEB OFICIAL DE LA MARCA»), tamaños y la versión móvil (pantalla completa, scroll propio).
+- [ ] **`?p=<uuid>`**: abrir una pieza añade `?p=` al historial («atrás» la cierra, la URL se puede copiar). El enlace directo solo abre piezas de la **primera página** del catálogo (no hay `GET /products/{id}` sin pasar por la lista en el cliente): si no está, se limpia la query. Valorar una ruta interna `/api/products/{id}` para resolverlo.
+- [ ] **Tallas del popup**: usa `useProductSizes` (una petición por pieza, con caché), igual que el hover de la tarjeta.
+- [ ] **Barra del grid (`grid-toolbar`)**: fija bajo el switch; recuento con scramble, chips de filtros activos (se quitan uno a uno), BORRAR y ORDENAR con las tres opciones a un clic (ya no está en el panel de FILTROS; BORRAR de la hoja de filtros no toca el orden). No está en el diseño.
+- [ ] **MARCAS como grid de logos**: dos columnas con el logo (nombre si no hay logo), recuento en la esquina y cuadrado de selección; plegado a 6 con «Ver más · n» (el buscador lo abre entero). Varias marcas tienen URLs de imagen rotas (p. ej. Cold Culture): sale el nombre. Confirmar con diseño y revisar logos con poco contraste.
+- [ ] **Cambio de VISTA animado** (`grid-motion.ts`): las fotos cercanas a la pantalla viajan de su sitio al nuevo (FLIP, 0,9 s `expo.inOut`) y la primera tarjeta visible se queda a la misma altura (corrección de scroll inmediata vía Lenis). Con muchas tarjetas puede notarse en portátiles flojos: ajustar `NEAR`/`stagger` a ojo. Loader solo si la respuesta tarda más de 320 ms; mientras, el grid se atenúa.
+

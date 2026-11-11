@@ -50,6 +50,12 @@
   opacity: 0.12;
 }
 
+/* Petición en curso pero aún sin loader (respuesta rápida o en caché): solo se atenúa. */
+.wrap[data-pending] .grid {
+  opacity: 0.55;
+  transition-duration: 0.25s;
+}
+
 /* Capa del alto del grid; el loader se queda centrado en la parte visible mientras se recorre. */
 .loaderLayer {
   position: absolute;

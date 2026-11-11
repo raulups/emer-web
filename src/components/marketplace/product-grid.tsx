@@ -2,19 +2,21 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { Flip } from "gsap/Flip";
-import { type CSSProperties, useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import type { Product } from "@/lib/data";
 import type { Device } from "@/lib/grid";
 import { GridLoader } from "./grid-loader";
-import { ProductCard } from "./product-card";
+import { animateColumns, animateResults } from "./grid-motion";
+import { ProductCard, type ProductOpen } from "./product-card";
 import styles from "./product-grid.module.css";
 import { type FilterChip, StateScreen } from "./state-screen";
 
-gsap.registerPlugin(useGSAP, Flip);
+gsap.registerPlugin(useGSAP);
 
 /** La siguiente página se pide antes de llegar al final. */
 const LOAD_AHEAD = "0px 0px 1200px 0px";
+/** El loader solo sale si la respuesta tarda más que esto: con caché, el cambio es directo. */
+const LOADER_DELAY_MS = 320;
 
 type Props = {
   items: readonly Product[];
@@ -33,52 +35,52 @@ type Props = {
   /** Filtros activos, para quitarlos desde la pantalla de «sin resultados». */
   chips: readonly FilterChip[];
   onClear: () => void;
+  /** Abrir el detalle de una pieza (popup). */
+  onOpen: ProductOpen;
+  /** Borde inferior de lo que tapa el grid por arriba (la barra fija): referencia de VISTA. */
+  anchorTop: () => number;
 };
 
 export function ProductGrid(props: Props) {
-  const { items, brandNames, loading, error, hasMore, onLoadMore } = props;
+  const { items, brandNames, loading, error, hasMore, onLoadMore, anchorTop } = props;
   const sentinel = useRef<HTMLDivElement>(null);
   const grid = useRef<HTMLUListElement>(null);
   // `--cols` que se ve. React lo pinta con este valor (que solo cambia el efecto de abajo, después
   // de medir la disposición anterior: FLIP); así también vale si el grid se vuelve a montar.
   const shownColumns = useRef(props.columns);
 
-  // VISTA: al cambiar los productos por fila, cada pieza visible viaja de su sitio al nuevo
-  // (Flip con `scale`: solo transform) y las que entran en pantalla aparecen con un fundido.
+  // VISTA: al cambiar los productos por fila, las fotos viajan de su sitio al nuevo y la primera
+  // fila visible se queda donde estaba (`grid-motion.ts`).
   useGSAP(
     () => {
       const el = grid.current;
       const next = props.columns;
       if (!el || shownColumns.current === next) return;
       shownColumns.current = next;
-      const apply = () => el.style.setProperty("--cols", String(next));
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        apply();
-        return;
-      }
-      const vh = window.innerHeight;
-      const inView = (node: Element) => {
-        const rect = node.getBoundingClientRect();
-        return rect.bottom > -vh * 0.2 && rect.top < vh * 1.2;
-      };
-      const before = [...el.children].filter(inView);
-      const state = Flip.getState(before);
-      apply();
-      Flip.from(state, { duration: 0.8, ease: "expo.inOut", scale: true, stagger: 0.008 });
-      const fresh = [...el.children].filter((node) => inView(node) && !before.includes(node));
-      if (fresh.length > 0) {
-        gsap.from(fresh, {
-          opacity: 0,
-          y: 32,
-          duration: 0.7,
-          delay: 0.25,
-          ease: "expo.out",
-          stagger: 0.015,
-          clearProps: "opacity,transform",
-        });
-      }
+      animateColumns(el, () => el.style.setProperty("--cols", String(next)), anchorTop());
     },
     { dependencies: [props.columns] },
+  );
+
+  // Loader solo si la respuesta tarda (con caché, el cambio es directo); mientras, el grid se
+  // atenúa un poco. Al llegar resultados nuevos, las tarjetas a la vista entran escalonadas.
+  const [showLoader, setShowLoader] = useState(false);
+  useEffect(() => {
+    if (!loading) {
+      setShowLoader(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setShowLoader(true), LOADER_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [loading]);
+  const wasLoading = useRef(false);
+  useGSAP(
+    () => {
+      const el = grid.current;
+      if (wasLoading.current && !loading && el) animateResults(el);
+      wasLoading.current = loading;
+    },
+    { dependencies: [loading] },
   );
 
   // Se vuelve a observar con cada página: si el final sigue a la vista, pide la siguiente.
@@ -104,10 +106,15 @@ export function ProductGrid(props: Props) {
 
   return (
     <>
-      <div className={styles.wrap} data-loading={loading || undefined}>
+      <div
+        className={styles.wrap}
+        data-loading={showLoader || undefined}
+        data-pending={(loading && !showLoader) || undefined}
+      >
         <ul
           ref={grid}
           className={styles.grid}
+          data-grid
           data-device={props.device}
           style={{ "--cols": shownColumns.current } as CSSProperties}
           aria-busy={loading}
@@ -119,11 +126,12 @@ export function ProductGrid(props: Props) {
                 brandName={brandNames.get(product.brand_id ?? "") ?? ""}
                 // La primera fila carga sus fotos con prioridad (LCP).
                 eager={i < props.columns}
+                onOpen={props.onOpen}
               />
             </li>
           ))}
         </ul>
-        {loading && (
+        {showLoader && (
           <div className={styles.loaderLayer}>
             <div className={styles.loaderSticky}>
               <GridLoader words={props.loaderWords} />

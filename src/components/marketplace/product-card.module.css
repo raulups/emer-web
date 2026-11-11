@@ -6,11 +6,19 @@
   gap: 14px;
 }
 
-/* Enlace estirado: el nombre enlaza y su ::after cubre toda la tarjeta. */
+/* Botón estirado: el nombre abre el detalle y su ::after cubre toda la tarjeta. */
 .link,
 .link:hover {
+  padding: 0;
+  border: 0;
+  background: none;
   color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-align: left;
   text-decoration: inherit;
+  cursor: pointer;
 }
 
 .link::after {

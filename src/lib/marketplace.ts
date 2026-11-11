@@ -32,10 +32,11 @@ export const EMPTY_FILTERS: Filters = {
 
 export const PAGE_SIZE = 24;
 
-export const SORT_OPTIONS: readonly { value: Sort; label: string }[] = [
-  { value: "new", label: "NOVEDADES" },
-  { value: "asc", label: "PRECIO ASCENDENTE" },
-  { value: "desc", label: "PRECIO DESCENDENTE" },
+/** `label` es el nombre accesible; `short`, lo que se ve en la barra del grid. */
+export const SORT_OPTIONS: readonly { value: Sort; label: string; short: string }[] = [
+  { value: "new", label: "NOVEDADES", short: "NOVEDADES" },
+  { value: "asc", label: "PRECIO ASCENDENTE", short: "PRECIO ↑" },
+  { value: "desc", label: "PRECIO DESCENDENTE", short: "PRECIO ↓" },
 ];
 
 /** Tallas del panel; `value` es la talla normalizada del backend. */

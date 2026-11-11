@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import button from "@/components/ui/button.module.css";
 import type { Brand, ProductFacets } from "@/lib/data";
 import { nextColumns } from "@/lib/grid";
 import { type Filters, toggle } from "@/lib/marketplace";
+import { BrandGrid } from "./brand-grid";
+import { BrandSearch, matchBrands } from "./brand-search";
 import { FilterFields } from "./filter-fields";
 import styles from "./mobile-bar.module.css";
 import { OptionRow } from "./option-row";
@@ -100,9 +103,14 @@ type SheetsProps = {
   onClear: () => void;
 };
 
-/** Hojas inferiores de la barra: categorías (elegir cierra), marcas y filtros (VER n cierra). */
+/**
+ * Hojas inferiores de la barra: categorías (elegir cierra), marcas (con buscador) y filtros (VER n
+ * cierra).
+ */
 export function MobileSheets(props: SheetsProps) {
   const { open, onClose, filters, onChange } = props;
+  const [query, setQuery] = useState("");
+  const brands = matchBrands(props.brands, query);
 
   const actions = (onClearSection: () => void) => (
     <div className={styles.actions}>
@@ -150,29 +158,27 @@ export function MobileSheets(props: SheetsProps) {
         title="MARCAS"
         footer={actions(() => onChange({ brands: [] }))}
       >
-        <fieldset className={styles.list}>
-          <legend className="sr-only">Marcas</legend>
-          {props.brands.map((brand) => (
-            <OptionRow
-              key={brand.id}
-              label={brand.name}
-              count={brand.product_count}
+        <BrandGrid
+          variant="sheet"
+          brands={brands}
+          selected={filters.brands}
+          onToggle={(id) => onChange({ brands: toggle(filters.brands, id) })}
+          tools={
+            <BrandSearch
+              value={query}
+              onChange={setQuery}
+              matches={brands.length}
               variant="sheet"
-              multiple
-              selected={filters.brands.includes(brand.id)}
-              onClick={() => onChange({ brands: toggle(filters.brands, brand.id) })}
             />
-          ))}
-        </fieldset>
+          }
+        />
       </BottomSheet>
 
       <BottomSheet
         open={open === "filters"}
         onClose={onClose}
         title="FILTROS"
-        footer={actions(() =>
-          onChange({ sizes: [], colors: [], sale: false, lo: null, hi: null, sort: "new" }),
-        )}
+        footer={actions(() => onChange({ sizes: [], colors: [], sale: false, lo: null, hi: null }))}
       >
         <FilterFields
           layout="stacked"

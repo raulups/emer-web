@@ -3,9 +3,10 @@
 import type { CSSProperties } from "react";
 import button from "@/components/ui/button.module.css";
 import { DisplayTitle } from "@/components/ui/display-title";
+import { type FilterChip, FilterChips } from "./filter-chips";
 import styles from "./state-screen.module.css";
 
-export type FilterChip = { key: string; label: string; onRemove: () => void };
+export type { FilterChip };
 
 type Props =
   | { kind: "empty"; chips: readonly FilterChip[]; onClear: () => void }
@@ -38,25 +39,9 @@ export function StateScreen(props: Props) {
           <p className={styles.text} style={delay(2)}>
             Prueba con otra talla o quita algún filtro.
           </p>
-          {props.chips.length > 0 && (
-            <ul className={styles.chips} style={delay(3)} aria-label="Filtros activos">
-              {props.chips.map((chip) => (
-                <li key={chip.key}>
-                  <button
-                    type="button"
-                    className={styles.chip}
-                    aria-label={`Quitar ${chip.label}`}
-                    onClick={chip.onRemove}
-                  >
-                    {chip.label}
-                    <span className={styles.x} aria-hidden="true">
-                      ×
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className={styles.chips} style={delay(3)}>
+            <FilterChips chips={props.chips} variant="screen" />
+          </div>
           <button
             type="button"
             className={`${button.box} ${styles.primary}`}

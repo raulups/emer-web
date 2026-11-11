@@ -153,7 +153,7 @@ test.describe("móvil", () => {
     await skipPrompt(page);
     await page.goto("/web");
     await expect(products(page).first()).toBeVisible();
-    const grid = page.getByRole("region", { name: "Productos" }).locator("ul").first();
+    const grid = page.getByRole("region", { name: "Productos" }).locator("[data-grid]");
     const columns = () =>
       grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
     expect(await columns()).toBe(2);

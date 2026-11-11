@@ -2,11 +2,10 @@
 
 import type { ReactNode } from "react";
 import type { ProductFacets } from "@/lib/data";
-import { type Filters, SIZE_OPTIONS, SORT_OPTIONS, type Sort, toggle } from "@/lib/marketplace";
+import { type Filters, SIZE_OPTIONS, toggle } from "@/lib/marketplace";
 import { ExpandableList } from "./expandable-list";
 import { BracketChoice, ColorChoice } from "./filter-choices";
 import styles from "./filter-fields.module.css";
-import { OptionRow } from "./option-row";
 import { PriceSlider } from "./price-slider";
 
 type Props = {
@@ -30,7 +29,7 @@ function Section({ id, label, children }: { id: string; label: string; children:
   );
 }
 
-/** Campos de filtro (README §3): ordenar, talla, precio, color y ofertas. */
+/** Campos de filtro (README §3): talla, precio, color y ofertas (el orden va en la barra del grid). */
 export function FilterFields(props: Props) {
   const { filters, priceRange, onChange } = props;
   const lo = filters.lo ?? priceRange.min;
@@ -43,18 +42,6 @@ export function FilterFields(props: Props) {
 
   return (
     <div className={styles.fields} data-layout={props.layout ?? "columns"}>
-      <Section id="filtro-orden" label="ORDENAR POR">
-        {SORT_OPTIONS.map((option) => (
-          <OptionRow
-            key={option.value}
-            label={option.label}
-            variant="panel"
-            selected={filters.sort === option.value}
-            onClick={() => onChange({ sort: option.value as Sort })}
-          />
-        ))}
-      </Section>
-
       <Section id="filtro-talla" label="TALLA">
         {SIZE_OPTIONS.map((size) => (
           <BracketChoice

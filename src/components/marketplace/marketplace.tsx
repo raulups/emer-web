@@ -20,17 +20,22 @@ import {
 import type { MarketplacePage } from "@/lib/marketplace-data";
 import { FilterPanel } from "./filter-panel";
 import { GridControl } from "./grid-control";
+import { GridToolbar } from "./grid-toolbar";
 import styles from "./marketplace.module.css";
 import { MenuToggle } from "./menu-toggle";
 import { MobileBar, MobileSheets, type Sheet } from "./mobile-bar";
 import { ProductGrid } from "./product-grid";
+import { ProductModal } from "./product-modal";
 import { SideMenu } from "./side-menu";
+import { useProductRoute } from "./use-product-route";
 import { useProducts } from "./use-products";
 
 const MENU_ID = "marketplace-menu";
 /** En pantallas estrechas el menú empieza oculto. */
 const NARROW = "(max-width: 760px)";
 const YEAR_S = 31_536_000;
+/** Alto del shell: referencia de VISTA si la barra del grid aún no está. */
+const SHELL_TOP = 76;
 
 type Props = {
   brands: readonly Brand[];
@@ -53,7 +58,9 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const [columns, setColumns] = useState(initialColumns);
   const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const filtersButton = useRef<HTMLButtonElement>(null);
+  const toolbar = useRef<HTMLDivElement>(null);
   const products = useProducts(filters, initialFilters, initial);
+  const route = useProductRoute(initial.page.items);
   // Último filtro puesto (estado derivado en el mismo render: el loader ya sale con él).
   const [seen, setSeen] = useState<{ filters: Filters; change: FilterChange | null }>({
     filters,
@@ -72,7 +79,9 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
     const url = new URL(window.location.href);
     url.searchParams.delete(BRAND_PARAM);
     for (const id of filters.brands) url.searchParams.append(BRAND_PARAM, id);
-    if (url.href !== window.location.href) window.history.replaceState(null, "", url);
+    if (url.href !== window.location.href) {
+      window.history.replaceState(window.history.state, "", url);
+    }
   }, [filters.brands]);
 
   // Filtros pedidos desde otra sección (footer → Ofertas).
@@ -179,6 +188,16 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const chips = activeFilters(filters, { categories: categoryNames, brands: brandNames }).map(
     (chip) => ({ key: chip.key, label: chip.label, onRemove: () => update(chip.remove) }),
   );
+  const anchorTop = useCallback(
+    () => toolbar.current?.getBoundingClientRect().bottom ?? SHELL_TOP,
+    [],
+  );
+  /** VER MÁS DE la marca desde el popup: solo esa marca, sin más filtros, y se cierra. */
+  const seeBrand = (id: string) => {
+    setFilters({ ...EMPTY_FILTERS, brands: [id] });
+    route.close();
+  };
+  const loading = products.status === "loading";
 
   const grid = (
     <section
@@ -188,12 +207,21 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
       aria-label="Productos"
     >
       <p className="sr-only" aria-live="polite">
-        {products.status === "loading" ? "Cargando productos" : `${products.total} productos`}
+        {loading ? "Cargando productos" : `${products.total} productos`}
       </p>
+      <GridToolbar
+        ref={toolbar}
+        total={products.total}
+        loading={loading}
+        chips={chips}
+        sort={filters.sort}
+        onSort={(sort) => update({ sort })}
+        onClear={clear}
+      />
       <ProductGrid
         items={products.items}
         brandNames={brandNames}
-        loading={products.status === "loading"}
+        loading={loading}
         error={products.status === "error"}
         hasMore={products.hasMore}
         loadingMore={products.loadingMore}
@@ -202,10 +230,21 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         device={device}
         columns={columns}
         loaderWords={loaderWords}
-        chips={chips}
+        chips={[]}
         onClear={clear}
+        onOpen={route.open}
+        anchorTop={anchorTop}
       />
     </section>
+  );
+
+  const modal = (
+    <ProductModal
+      opened={route.opened}
+      brandName={brandNames.get(route.opened?.product.brand_id ?? "") ?? ""}
+      onClose={route.close}
+      onBrand={seeBrand}
+    />
   );
 
   if (mobile) {
@@ -233,10 +272,11 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
           priceRange={priceRange}
           saleCount={products.saleCount}
           total={products.total}
-          loading={products.status === "loading"}
+          loading={loading}
           onChange={update}
           onClear={clear}
         />
+        {modal}
       </div>
     );
   }
@@ -278,6 +318,7 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         onClear={clear}
         onClose={closePanel}
       />
+      {modal}
     </div>
   );
 }

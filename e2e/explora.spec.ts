@@ -889,7 +889,8 @@ test("Footer: Ofertas abre el Marketplace con el filtro de ofertas", async ({ pa
   await openExplora(page);
   await page.locator("footer").getByRole("link", { name: "Ofertas" }).click();
   await expect(page.locator("main")).toHaveAttribute("data-view", "market");
-  await expect(page.locator("button", { hasText: "SOLO OFERTAS" })).toHaveAttribute(
+  // (El chip «Quitar Solo ofertas» de la barra también lleva el texto.)
+  await expect(page.locator("button[aria-pressed]", { hasText: "SOLO OFERTAS" })).toHaveAttribute(
     "aria-pressed",
     "true",
   );
@@ -914,7 +915,8 @@ test("«Ver marca» abre el Marketplace filtrado por la marca", async ({ page })
     .getByRole("complementary", { name: "Menú del catálogo" })
     .locator('button[aria-pressed="true"]');
   await expect(selected).toHaveCount(1);
-  const brand = ((await selected.textContent()) ?? "").split(",")[0]?.trim() ?? "";
+  // La casilla enseña el logo; el nombre va en `aria-label` («Marca, n»).
+  const brand = ((await selected.getAttribute("aria-label")) ?? "").split(",")[0]?.trim() ?? "";
   const cards = page.getByRole("region", { name: "Productos" }).locator("article");
   await expect
     .poll(async () => {
