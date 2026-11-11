@@ -1,15 +1,31 @@
 /*
- * Novedades: una pantalla en blanco que se recorre a mano (no retiene el scroll). `llegadas.tsx`
- * escribe los `transform` de fotos, nombres y datos al pasar de marca.
+ * Novedades: baraja de cartas que retiene el scroll. La sección se queda fija una pantalla
+ * (`.stage` pegada dentro de `.pin`, cuyo alto fija `explora.tsx` al medir) y cada carta entra
+ * desde abajo sobre la anterior. `llegadas-motion.ts` escribe los `transform` y `opacity` de
+ * cartas, nombres, datos y barra en cada frame.
  */
 .nw {
   position: relative;
-  height: 100vh;
-  min-height: 640px;
-  overflow: hidden;
-  /* Fondo propio: el nombre (en modo diferencia) se invierte contra él. */
   background: var(--paper);
   color: var(--ink);
+}
+
+/* El alto (pantalla + recorrido de la baraja) lo fija `explora.tsx` al medir. */
+.pin {
+  position: relative;
+  height: 200vh;
+}
+
+.stage {
+  --card-w: min(22vw, 36vh);
+  /* Borde + relleno de la carta, a cada lado. */
+  --card-pad: 9px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  /* Fondo propio: `sticky` apila aparte y el nombre (en modo diferencia) se invierte contra él. */
+  background: var(--paper);
 }
 
 /* Misma composición y tamaño de titular que Populares y Emergentes. */
@@ -29,57 +45,71 @@
   --display-size: min(2.4vw, 5vh);
 }
 
-.kicker {
-  margin: 0;
-  color: var(--grey-text);
-}
+/* ---------- Baraja: las cartas se apilan en el centro; cada una entra sobre la anterior ---------- */
 
-/* ---------- Foto: cada llegada entra como una persiana sobre la anterior ---------- */
-
-.photo {
-  position: absolute;
-  top: 47%;
-  left: 50%;
-  width: min(22vw, 38vh);
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: var(--placeholder);
-  transform: translate(-50%, -50%);
-  touch-action: pan-y;
-}
-
-.frame {
+/* Todo lo que queda por debajo de la línea de avance de Explora (`--line-y`), recortado. */
+.window {
   position: absolute;
   inset: 0;
-  display: block;
-  overflow: hidden;
+  z-index: 1;
+  clip-path: inset(0 0 var(--line-y) 0);
   pointer-events: none;
-  transform: translateY(102%);
 }
 
-.frame:first-child {
+.deck {
+  position: absolute;
+  top: 52%;
+  left: 50%;
+  z-index: 1;
+  width: var(--card-w);
+  /* Foto 4:5 dentro de la carta + su pie (línea de 18px y 8px de aire). */
+  height: calc((var(--card-w) - 2 * var(--card-pad)) * 1.25 + 2 * var(--card-pad));
+  transform: translate(-50%, -50%);
+}
+
+.card {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(var(--card-pad) - 1px);
+  border: 1px solid var(--hairline-strong);
+  background: var(--paper);
+  color: var(--ink);
+  pointer-events: none;
+  /* Las de detrás asoman por arriba: se encogen desde el borde superior. */
+  transform-origin: 50% 0;
+  /* Antes de medir, solo la primera a la vista. */
+  transform: translateY(105vh);
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* Solo las que se mueven: la actual, la que entra detrás y la que acaba de retroceder. */
+.nw[data-live] .card:is([data-on], [data-on] + .card, :has(+ [data-on])) {
+  will-change: transform, opacity;
+}
+
+.card:first-child {
   transform: none;
 }
 
-.frame[data-on] {
+.card[data-on] {
   pointer-events: auto;
 }
 
-.frame:focus-visible {
+.card:focus-visible {
   outline: 1px solid var(--ink);
-  outline-offset: -6px;
+  outline-offset: 4px;
 }
 
-.imageWrap {
-  position: absolute;
-  inset: 0;
+.photo {
   display: block;
+  flex: none;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
   background: var(--placeholder);
-  transform: translateY(-100%);
-}
-
-.frame:first-child .imageWrap {
-  transform: none;
 }
 
 .image {
@@ -88,21 +118,27 @@
   height: 100%;
   object-fit: cover;
   -webkit-user-drag: none;
-  user-select: none;
 }
 
-/* ---------- Nombre: gigante, rueda como un contador; en negativo sobre la foto ---------- */
+/* Pie con el nombre: solo sin movimiento. */
+.caption {
+  display: none;
+  color: var(--ink);
+}
+
+/* ---------- Nombre: a la izquierda de la baraja, rueda como un contador ---------- */
 
 .names {
+  --name-size: min(7.5vw, 13vh);
   position: absolute;
-  top: 47%;
-  right: 0;
-  left: 0;
+  top: 52%;
+  left: 2vw;
   z-index: 2;
-  height: min(16vw, 26vh);
+  /* Hasta el borde izquierdo de la baraja, con aire. */
+  width: calc(50vw - var(--card-w) / 2 - 2vw - 3vw);
+  height: calc(var(--name-size) * 1.3);
   overflow: hidden;
-  color: #fff;
-  mix-blend-mode: difference;
+  color: var(--ink);
   pointer-events: none;
   transform: translateY(-50%);
 }
@@ -112,9 +148,9 @@
   inset: 0;
   display: flex;
   align-items: center;
-  justify-content: center;
-  /* Cabe a todo el ancho sea cual sea el largo del nombre. */
-  font-size: min(16vw, 25vh, calc(210vw / var(--len, 8)));
+  justify-content: flex-start;
+  /* Cabe en la columna sea cual sea el largo del nombre. */
+  font-size: min(var(--name-size), calc(66vw / var(--len, 8)));
   line-height: 1;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -127,138 +163,89 @@
   transform: none;
 }
 
-/* ---------- Datos, abajo ---------- */
+/* ---------- Piezas: columna vertical a la derecha; cada hueco cambia como una persiana ---------- */
 
-.meta {
+.pieces {
+  --piece-w: min(7.2vw, 11vh);
   position: absolute;
+  top: 52%;
   right: max(13vw, 170px);
-  bottom: calc(6vh + 72px);
-  left: 2vw;
-  height: 20px;
-  overflow: hidden;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: var(--piece-w);
+  transform: translateY(-50%);
 }
 
-.metaRow {
+.piecesLabel {
+  color: var(--grey-text);
+  white-space: nowrap;
+}
+
+/* Foto 3:4 + precio. */
+.slot {
+  position: relative;
+  height: calc(var(--piece-w) * 4 / 3 + 24px);
+}
+
+.piece {
   position: absolute;
   inset: 0;
   display: flex;
-  gap: 16px;
-  align-items: center;
-  justify-content: space-between;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(140%);
-}
-
-.metaRow:first-child {
-  opacity: 1;
-  transform: none;
-}
-
-.metaStyle {
-  color: var(--grey-text);
-}
-
-/* ---------- Controles: anterior · miniaturas · siguiente ---------- */
-
-.controls {
-  position: absolute;
-  right: max(13vw, 170px);
-  bottom: 6vh;
-  left: 2vw;
-  z-index: 3;
-  display: flex;
-  gap: 24px;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 14px;
-  border-top: 1px solid var(--hairline-strong);
-}
-
-/* Botones en mono: el hover se marca con subrayado, nunca con peso. */
-.step {
-  flex: none;
-  padding: 6px 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 4px;
-  cursor: pointer;
-  transition: text-decoration-color 0.25s linear;
-}
-
-.step:hover {
-  text-decoration-color: currentColor;
-}
-
-.step:focus-visible,
-.thumb:focus-visible {
-  outline: 1px solid var(--ink);
-  outline-offset: 3px;
-}
-
-.thumbs {
-  display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
-  justify-content: center;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(22px);
 }
 
-/* Miniatura: apagada salvo la actual (y con el hover); la actual lleva una línea debajo. */
-.thumb {
-  position: relative;
-  display: block;
-  width: 36px;
-  height: 45px;
-  padding: 0;
-  border: 0;
-  background: var(--placeholder);
-  cursor: pointer;
-  opacity: 0.3;
-  transition: opacity 0.3s linear;
-}
-
-.thumb::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: -6px;
-  left: 0;
-  height: 1px;
-  background: var(--ink);
-  transform: scaleX(0);
-  transition: transform 0.45s var(--ease-out-expo);
-}
-
-.thumb:hover {
-  opacity: 0.7;
-}
-
-.thumb[data-on] {
+.piece:first-child {
   opacity: 1;
-}
-
-.thumb[data-on]::after {
   transform: none;
 }
 
-.thumbImage {
+.piece[data-on] {
+  pointer-events: auto;
+}
+
+.pieceFrame {
+  display: block;
+  flex: none;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.pieceImage {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  transition: transform 0.8s var(--ease-out-expo);
+}
+
+.piece[data-on]:hover .pieceImage {
+  transform: scale(1.06);
+}
+
+.piecePrice {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.pieceEmpty {
+  display: block;
+  padding-top: 4px;
+  border-top: 1px solid var(--hairline-strong);
+  color: var(--grey-text);
 }
 
 @media (max-width: 900px) {
-  .head,
-  .meta,
-  .controls {
+  .stage {
+    --card-w: min(48vw, 40vh);
+  }
+
+  .head {
     right: 16px;
     left: 16px;
   }
@@ -267,20 +254,71 @@
     --display-size: min(7vw, 6vh);
   }
 
-  .photo {
-    width: min(54vw, 40vh);
+  .pieces {
+    display: none;
   }
 
-  .metaStyle,
-  .thumbs {
-    display: none;
+  /* Sin sitio a los lados: el nombre vuelve encima de la carta, en negativo. */
+  .names {
+    --name-size: min(16vw, 25vh);
+    right: 0;
+    left: 0;
+    width: auto;
+    color: #fff;
+    mix-blend-mode: difference;
+  }
+
+  .name {
+    justify-content: center;
+    font-size: min(16vw, 25vh, calc(210vw / var(--len, 8)));
   }
 }
 
+/* Sin movimiento: sin pantalla fija ni baraja; las cartas, en un grid normal con su nombre. */
 @media (prefers-reduced-motion: reduce) {
-  .thumb,
-  .thumb::after,
-  .step {
-    transition: none;
+  .pin {
+    height: auto;
+  }
+
+  .stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+    padding: 12vh 2vw;
+  }
+
+  .head {
+    position: static;
+    margin-bottom: 6vh;
+  }
+
+  .window {
+    position: static;
+    clip-path: none;
+  }
+
+  .deck {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+    width: auto;
+    height: auto;
+    transform: none;
+  }
+
+  .card {
+    position: static;
+    pointer-events: auto;
+    transform: none;
+  }
+
+  .caption {
+    display: block;
+  }
+
+  .names,
+  .pieces {
+    display: none;
   }
 }

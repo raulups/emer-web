@@ -4,6 +4,7 @@ import Link from "next/link";
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
+import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { brandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
@@ -13,25 +14,35 @@ import { openMarketplace } from "./novedades";
 /**
  * Composición del grid (12 columnas), que se repite cada 7 fotos: columna de inicio, ancho,
  * proporción y desfase vertical. Las columnas crecen dentro de cada fila; al volver atrás empieza
- * una fila nueva. Así ninguna fila se parece a la anterior y queda aire entre fotos.
+ * una fila nueva. Así ninguna fila se parece a la anterior y queda aire entre fotos. `side` es el
+ * lado con hueco libre: ahí salen las piezas con el hover.
  */
-const LAYOUT: readonly { col: number; span: number; ratio: string; shift: number }[] = [
-  { col: 1, span: 4, ratio: "4 / 5", shift: 0 },
-  { col: 6, span: 3, ratio: "3 / 4", shift: 16 },
-  { col: 10, span: 3, ratio: "4 / 5", shift: 6 },
-  { col: 2, span: 2, ratio: "1 / 1", shift: 4 },
-  { col: 5, span: 5, ratio: "5 / 4", shift: 0 },
-  { col: 11, span: 2, ratio: "3 / 4", shift: 20 },
-  { col: 3, span: 4, ratio: "4 / 5", shift: 0 },
+const LAYOUT: readonly {
+  col: number;
+  span: number;
+  ratio: string;
+  shift: number;
+  side: "left" | "right";
+}[] = [
+  { col: 1, span: 4, ratio: "4 / 5", shift: 0, side: "right" },
+  { col: 6, span: 3, ratio: "3 / 4", shift: 16, side: "right" },
+  { col: 10, span: 3, ratio: "4 / 5", shift: 6, side: "left" },
+  { col: 2, span: 2, ratio: "1 / 1", shift: 4, side: "right" },
+  { col: 5, span: 5, ratio: "5 / 4", shift: 0, side: "right" },
+  { col: 11, span: 2, ratio: "3 / 4", shift: 20, side: "left" },
+  { col: 3, span: 4, ratio: "4 / 5", shift: 0, side: "right" },
 ];
+
+/** Piezas de vista previa que salen junto a la foto. */
+const PIECES = 3;
 
 /** Fotos por tanda (dos vueltas completas de `LAYOUT`): las primeras y cada «Ver más». */
 const PAGE = LAYOUT.length * 2;
 
-const pieces = (count: number) =>
-  count > 0 ? `${count} ${count === 1 ? "pieza" : "piezas"}` : "Sin stock";
-
-/** Una foto del grid: lleva al Marketplace filtrado si la marca tiene piezas; si no, a su web. */
+/**
+ * Una foto del grid: lleva al Marketplace filtrado si la marca tiene piezas; si no, a su web. Con
+ * el hover, el nombre sube encima de la foto y las piezas salen en columna en el lado libre.
+ */
 function Tile({ brand }: { brand: ExploraBrand }) {
   const { primary } = brandActions(brand);
   const content = (
@@ -47,9 +58,30 @@ function Tile({ brand }: { brand: ExploraBrand }) {
           className={styles.image}
         />
       </span>
-      <span className={`${typo.label} ${styles.caption}`} aria-hidden="true">
-        <span className={styles.name}>{brand.name}</span>
-        <span>{pieces(brand.count)}</span>
+      <span className={styles.nameMask} aria-hidden="true">
+        <span className={`${typo.editorial} ${styles.name}`}>{brand.name}</span>
+      </span>
+      <span className={styles.pieces} aria-hidden="true">
+        {brand.products.length > 0 ? (
+          brand.products.slice(0, PIECES).map((product, j) => (
+            <span key={product.id} className={styles.piece} style={{ "--j": j } as CSSProperties}>
+              <span className={styles.piecePhoto}>
+                <BrandImage
+                  sources={product.image ? [product.image] : []}
+                  alt=""
+                  width={90}
+                  height={120}
+                  request={240}
+                  loading="lazy"
+                  className={styles.image}
+                />
+              </span>
+              <span className={`${typo.label} ${styles.piecePrice}`}>{price(product.price)}</span>
+            </span>
+          ))
+        ) : (
+          <span className={`${typo.label} ${styles.soon}`}>Sin stock</span>
+        )}
       </span>
     </>
   );
@@ -168,6 +200,7 @@ export function Emergentes({ brands }: Props) {
                   "--shift": `${spot?.shift ?? 0}vh`,
                 } as CSSProperties
               }
+              data-side={spot?.side}
             >
               <Tile brand={brand} />
             </li>

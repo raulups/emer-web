@@ -39,6 +39,12 @@
   outline-offset: 4px;
 }
 
+/* Con el hover, la foto pasa por encima de sus vecinas: el nombre y las piezas pueden pisarlas
+   (ya están apagadas). */
+.tile:is(:hover, :focus-visible) {
+  z-index: 2;
+}
+
 /* Con el hover (o el foco) en una foto, el resto del grid se apaga. */
 .grid:has(.tile:is(:hover, :focus-visible)) .tile {
   opacity: 0.25;
@@ -67,41 +73,110 @@
   transform: scale(1.04);
 }
 
-/* Nombre y piezas: solo con el hover, justo debajo de la foto (no ocupan sitio en el grid). */
-.caption {
+/* Nombre: encima de la foto, sube desde su máscara. No ocupa sitio en el grid. */
+.nameMask {
   position: absolute;
-  top: 100%;
-  right: 0;
+  bottom: calc(100% + 10px);
   left: 0;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  padding-top: 8px;
-  color: var(--grey-text);
-  white-space: nowrap;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition:
-    opacity 0.25s linear,
-    transform 0.5s var(--ease-out-expo);
+  max-width: 200%;
+  overflow: clip;
+  pointer-events: none;
 }
 
 .name {
-  overflow: hidden;
+  display: block;
   color: var(--ink);
-  text-overflow: ellipsis;
+  font-size: clamp(28px, 2.6vw, 44px);
+  white-space: nowrap;
+  transform: translateY(110%);
+  transition: transform 0.35s var(--ease-out-expo);
 }
 
-.tile:is(:hover, :focus-visible) .caption {
+.tile:is(:hover, :focus-visible) .name {
+  transform: none;
+  transition-duration: 0.8s;
+}
+
+/* Piezas: en columna, en el lado libre de la foto (`data-side` en el hueco del grid). */
+.pieces {
+  --piece-w: clamp(54px, 4.6vw, 84px);
+  position: absolute;
+  top: 0;
+  left: calc(100% + 14px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: var(--piece-w);
+  pointer-events: none;
+}
+
+[data-side="left"] .pieces {
+  right: calc(100% + 14px);
+  left: auto;
+}
+
+.piece {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.2s linear,
+    transform 0.3s var(--ease-out-expo);
+}
+
+.tile:is(:hover, :focus-visible) .piece {
   opacity: 1;
   transform: none;
+  transition:
+    opacity 0.45s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: calc(80ms + var(--j, 0) * 70ms);
 }
 
-/* Sin hover (táctil): el pie se ve siempre. */
-@media (hover: none) {
-  .caption {
-    opacity: 1;
+.piecePhoto {
+  display: block;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  background: var(--placeholder);
+}
+
+.piecePrice {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.soon {
+  color: var(--grey-text);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s linear;
+}
+
+.tile:is(:hover, :focus-visible) .soon {
+  opacity: 1;
+  transition-delay: 80ms;
+}
+
+/* Sin hover (táctil) o sin sitio a los lados: el nombre, siempre a la vista bajo la foto; sin
+   piezas. */
+@media (hover: none), (max-width: 900px) {
+  .nameMask {
+    position: static;
+    display: block;
+    max-width: none;
+    padding-top: 8px;
+  }
+
+  .name {
+    font-size: 22px;
+    white-space: normal;
     transform: none;
+  }
+
+  .pieces {
+    display: none;
   }
 }
 
@@ -179,7 +254,9 @@
 @media (prefers-reduced-motion: reduce) {
   .tile,
   .image,
-  .caption {
+  .name,
+  .piece,
+  .soon {
     transition: none;
   }
 

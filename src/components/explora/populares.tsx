@@ -227,7 +227,14 @@ export function Populares({ popular }: Props) {
   if (!current) return null;
 
   return (
-    <section ref={root} className={styles.pop} data-pop aria-label="Marcas destacadas">
+    <section
+      ref={root}
+      className={styles.pop}
+      data-pop
+      // Posición en el carrusel (0–1): la lee la línea de avance común de Explora.
+      data-progress={total > 1 ? (index / (total - 1)).toFixed(4) : "1"}
+      aria-label="Marcas destacadas"
+    >
       <div className={styles.stage} data-pop-stage>
         <div className={styles.cards}>
           {popular.map((brand, i) => (

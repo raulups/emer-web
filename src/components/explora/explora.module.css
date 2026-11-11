@@ -1,4 +1,6 @@
 .root {
+  /* Distancia de la línea de avance al borde inferior (Novedades recorta sus cartas en ella). */
+  --line-y: calc(6vh + 44px);
   position: relative;
   background: var(--paper);
   color: var(--ink);
@@ -30,6 +32,44 @@
   line-height: var(--lh-label);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
+}
+
+/* Línea de avance común: fija abajo y en modo diferencia (se lee sobre blanco, negro y fotos).
+   `progress-hint.ts` la dibuja, la llena y la retira. */
+.hint {
+  position: fixed;
+  top: calc(100vh - var(--line-y));
+  right: max(13vw, 170px);
+  left: 2vw;
+  z-index: 40;
+  height: 1px;
+  background: rgb(255 255 255 / 0.3);
+  mix-blend-mode: difference;
+  pointer-events: none;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+.hintFill {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+@media (max-width: 900px) {
+  .hint {
+    right: 16px;
+    left: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint {
+    display: none;
+  }
 }
 
 /* Cita de la marca en la lista estática: serif editorial fina. */

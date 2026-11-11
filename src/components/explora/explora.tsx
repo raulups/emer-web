@@ -15,9 +15,11 @@ import { Emergentes } from "./emergentes";
 import styles from "./explora.module.css";
 import { Footer } from "./footer";
 import { Llegadas } from "./llegadas";
+import { createNovedades } from "./llegadas-motion";
 import { Novedades } from "./novedades";
 import { describe, Populares } from "./populares";
 import { ProductPeek } from "./product-peek";
+import { createProgressHint, type Span } from "./progress-hint";
 import { type IndexItem, SectionIndex } from "./section-index";
 import { SkipButton } from "./skip-button";
 import { SuggestBrand } from "./suggest-brand";
@@ -48,7 +50,7 @@ const jumpDuration = (distance: number, vh: number) =>
  * Explora §4.2–§4.5: cinco secciones (`lib/explora-data.ts`). Los componentes conservan el
  * nombre de su posición original: `Populares` pinta Destacados, `Novedades` pinta Populares,
  * `Catalogo` pinta Emergentes (entra en negro bajo Populares y pasa a blanco mientras sube),
- * `Llegadas` pinta Novedades (cinta infinita que empuja el scroll) y `Emergentes` pinta el Catálogo. Una sección sin marcas no se pinta. Destacados es un carrusel con
+ * `Llegadas` pinta Novedades (baraja de cartas que retiene el scroll) y `Emergentes` pinta el Catálogo. Una sección sin marcas no se pinta. Destacados es un carrusel con
  * su propio bucle (no depende del scroll); para lo demás, un único bucle (`gsap.ticker`) sigue el scroll (`followScroll`) y escribe estilos en los nodos con geometría medida; React solo
  * guarda las marcas activas.
  */
@@ -82,6 +84,9 @@ export function Explora({ data }: Props) {
       const catTexts = [...el.querySelectorAll<HTMLElement>("[data-cat-t]")];
       const catCols = [...el.querySelectorAll<HTMLElement>("[data-cat-g]")];
       const nw = one("nw");
+      const nwPin = one("nw-pin");
+      const novedades = createNovedades(nw);
+      const hint = createProgressHint(one("hint"), one("hint-fill"), pop);
       const skip = one("skip");
       const index = one("index");
       const goButtons = [...el.querySelectorAll<HTMLElement>("[data-go]")];
@@ -98,6 +103,7 @@ export function Explora({ data }: Props) {
           [number, number]
         >;
         let pinTop = 0;
+        let catPinHeight = 0;
         let travel = 0;
         let travelScroll = 0;
         let drift = 0;
@@ -105,6 +111,8 @@ export function Explora({ data }: Props) {
         let ends: number[] = [];
         // Inicio de cada sección del índice (scrollY), por id.
         let starts: Record<string, number> = {};
+        // Tramos de las secciones que avanzan con el scroll (para la línea de avance).
+        let spans: Span[] = [];
         let dirty = true;
         const docTop = (node: HTMLElement, scroll: number) =>
           node.getBoundingClientRect().top + scroll;
@@ -120,11 +128,15 @@ export function Explora({ data }: Props) {
               : 0;
           const pinHeight = `${Math.round(vh + travelScroll)}px`;
           if (pin.style.height !== pinHeight) pin.style.height = pinHeight;
+          // Novedades: una pantalla + lo que tarda en entrar toda la baraja.
+          const nwHeight = `${Math.round(vh + novedades.travel(vh))}px`;
+          if (nwPin.style.height !== nwHeight) nwPin.style.height = nwHeight;
           const scroll = window.scrollY;
           box.pop = [docTop(pop, scroll), pop.offsetHeight];
           box.nv = [docTop(nv, scroll), nv.offsetHeight];
           box.er = [docTop(er, scroll), er.offsetHeight];
           pinTop = docTop(pin, scroll);
+          catPinHeight = pin.offsetHeight;
           box.nw = [docTop(nw, scroll), nw.offsetHeight];
           // Destacados acaba cuando Populares llega arriba; Populares, cuando Emergentes llega arriba;
           // Emergentes, al acabar su pista; Novedades y el Catálogo, cuando su final llega abajo.
@@ -139,6 +151,13 @@ export function Explora({ data }: Props) {
             acc.push(Math.min(last, Math.max(end, acc.at(-1) ?? 0)));
             return acc;
           }, []);
+          // Destacados no avanza con el scroll: su tramo lo lleva la línea aparte. Populares no
+          // lleva línea (es una lista que sube con la página).
+          spans = [
+            { start: pinTop, end: ends[2] ?? 0 },
+            { start: box.nw[0], end: ends[3] ?? 0 },
+            { start: box.er[0], end: ends[4] ?? 0 },
+          ];
           starts = {
             destacados: box.pop[0],
             populares: box.nv[0],
@@ -208,6 +227,8 @@ export function Explora({ data }: Props) {
           node.toggleAttribute("data-live", s > from - vh && s < from + height);
 
         const frame: Tick = (_time, deltaMs) => {
+          // La línea va siempre: en Destacados cambia sin que se mueva el scroll.
+          hint({ y: window.scrollY, vh, deltaMs, firstExit: box.nv[0] - vh, spans });
           const next = followScroll(s, deltaMs);
           if (next === s && !dirty) return;
           s = next;
@@ -216,7 +237,7 @@ export function Explora({ data }: Props) {
           live(pop, box.pop[0], box.pop[1]);
           live(nv, box.nv[0], box.nv[1]);
           live(er, box.er[0], box.er[1]);
-          live(cat, pinTop, pin.offsetHeight);
+          live(cat, pinTop, catPinHeight);
           live(nw, box.nw[0], box.nw[1]);
 
           // Salida de Destacados: mientras el negro sube por encima, la escena se queda atrás (va a
@@ -262,8 +283,9 @@ export function Explora({ data }: Props) {
             }
           }
 
-          // Novedades: su titular entra al llegar al 75 % (la cinta va con su propio bucle).
+          // Novedades: su titular entra al llegar al 75 %; la baraja sigue el scroll dentro de la sección.
           nw.toggleAttribute("data-in", box.nw[0] - s < vh * 0.75);
+          novedades.render(s - box.nw[0], vh);
 
           // §4.4 Catálogo: su titular entra al llegar al 75 % (las filas aparecen por su cuenta).
           er.toggleAttribute("data-in", box.er[0] - s < vh * 0.75);
@@ -349,6 +371,9 @@ export function Explora({ data }: Props) {
       {novedades.length > 0 && <Llegadas brands={novedades} />}
       {todas.length > 0 && <Emergentes brands={todas} />}
       <SkipButton section={SECTIONS[section] ?? SECTIONS[0]} />
+      <span className={styles.hint} data-hint aria-hidden="true">
+        <span className={styles.hintFill} data-hint-fill />
+      </span>
       <SectionIndex items={indexItems} />
 
       {destacados.length > 0 && (

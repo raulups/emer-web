@@ -276,11 +276,11 @@ test("sin movimiento: lista estática en lugar del carrusel", async ({ page }) =
   await page.getByRole("button", { name: "Explora" }).click();
   await expect(page.getByRole("region", { name: "Marcas destacadas" })).toBeHidden();
   await expect(page.locator("[data-static]").getByText("Scuffers", { exact: true })).toBeVisible();
-  // Novedades: se recorre igual, con el cambio inmediato.
+  // Novedades: sin baraja ni controles, todas las cartas a la vista en un grid.
   const nw = page.getByRole("region", { name: "Novedades" });
-  await nw.getByRole("button", { name: "Novedad siguiente" }).click();
-  await expect(nw.getByRole("link")).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[1]}:`));
-  await expect(nw.locator("[data-nw-frame]").nth(1)).toHaveCSS("transform", "none");
+  await expect(nw.getByRole("link")).toHaveCount(NOVEDADES.length);
+  await expect(page.locator("[data-hint]")).toBeHidden();
+  await expect(nw.locator("[data-nw-card]").nth(1)).toHaveCSS("transform", "none");
   // El Catálogo no depende del movimiento: sigue ahí, con todas las marcas.
   await expect(
     page.getByRole("region", { name: "Catálogo" }).locator("[data-cat-row]"),
@@ -458,49 +458,114 @@ test("índice: discreto en reposo, marca la sección actual y lleva a cada una",
   );
 });
 
-test("Novedades (4.ª sección): tag «novedad», se recorre a mano con botones, flechas y miniaturas", async ({
+test("Novedades (4.ª sección): tag «novedad», baraja que retiene el scroll; solo la línea de avance y las flechas", async ({
   page,
 }) => {
   await openExplora(page);
   const section = page.getByRole("region", { name: "Novedades" });
   await expect(section.locator("h2")).toHaveText("LAS NOVEDADES");
 
-  // Las marcas con tag «novedad», de la última en llegar a la primera, una miniatura por marca.
-  const thumbs = section.getByRole("list", { name: "Ir a una novedad" }).getByRole("button");
-  const names = await thumbs.evaluateAll((els) =>
-    els.map((el) => (el.getAttribute("aria-label") ?? "").replace(/^\d+: /, "")),
+  // Las marcas con tag «novedad», de la última en llegar a la primera, una carta por marca.
+  const cards = section.locator("[data-nw-card]");
+  const names = await cards.evaluateAll((els) =>
+    els.map((el) => (el.getAttribute("data-nw-label") ?? "").replace(/, \d+ de .*$/, "")),
   );
   expect(names).toEqual(NOVEDADES);
+  // Sin textos abajo ni controles: solo la línea de avance común.
+  await expect(section.getByRole("button")).toHaveCount(0);
+  await expect(section.getByText(/en llegar/i)).toHaveCount(0);
 
-  // No retiene el scroll: una pantalla.
+  // Retiene el scroll: una pantalla fija más medio scroll por carta (y un poco más al final).
   const g = await geometry(page);
   const box = await section.evaluate((el) => ({
     top: el.getBoundingClientRect().top + window.scrollY,
     height: (el as HTMLElement).offsetHeight,
   }));
-  expect(box.height).toBeLessThanOrEqual(Math.max(g.vh, 640) + 1);
+  const step = g.vh * 0.5;
+  expect(box.height).toBeGreaterThan(g.vh + step * (NOVEDADES.length - 1));
   await page.evaluate((y) => window.scrollTo(0, y), box.top);
 
-  // Solo la marca a la vista es un enlace accesible.
+  // Solo la carta a la vista es un enlace accesible; las demás esperan debajo.
   const current = () => section.getByRole("link");
   await expect(current()).toHaveCount(1);
   await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[0]}:`));
+  await expect(cards.nth(1)).not.toBeInViewport();
 
-  // Siguiente, flecha (con el foco en la sección), miniatura y anterior (desde la primera, vuelve
-  // a la última).
-  await section.getByRole("button", { name: "Novedad siguiente" }).click();
+  // Un paso de scroll: la segunda carta se coloca encima y sus piezas sustituyen a las de la primera.
+  await page.evaluate((y) => window.scrollTo(0, y), box.top + step);
   await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[1]}:`));
-  await page.keyboard.press("ArrowRight");
-  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[2]}:`));
-  await thumbs.nth(5).click();
-  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[5]}:`));
-  await expect(thumbs.nth(5)).toHaveAttribute("aria-current", "true");
-  await thumbs.first().click();
-  await section.getByRole("button", { name: "Novedad anterior" }).click();
-  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES.at(-1)}:`));
+  await expect(cards.nth(1)).toHaveCSS("transform", "none");
+  await expect(cards.nth(1)).toBeInViewport();
+  await expect(section.locator("h2")).toBeInViewport();
+  const pieces = section.locator("[data-nw-piece][data-on]");
+  await expect(pieces.first()).toHaveCSS("transform", "none");
+  expect(
+    await pieces.evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.nwPiece)),
+  ).toEqual(expect.arrayContaining(["1"]));
+  expect(
+    await pieces.evaluateAll((els) =>
+      els.every((el) => (el as HTMLElement).dataset.nwPiece === "1"),
+    ),
+  ).toBe(true);
 
-  // Recorrerla no mueve la página.
-  expect(await page.evaluate(() => window.scrollY)).toBeCloseTo(box.top, -1);
+  // Flechas con el foco en la carta: llevan el scroll a la vecina.
+  await current().focus();
+  await page.keyboard.press("ArrowRight");
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeCloseTo(box.top + step * 2, -1);
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[2]}:`));
+  await page.keyboard.press("ArrowLeft");
+  await expect(current()).toHaveAttribute("aria-label", new RegExp(`^${NOVEDADES[1]}:`));
+
+  // Colocada la última carta, la sección suelta: el Catálogo entra por abajo. (El salto se
+  // repite por si Lenis aún remataba el anterior.)
+  const end = box.top + box.height - g.vh + 2;
+  await expect
+    .poll(
+      async () => {
+        await page.evaluate((y) => window.scrollTo(0, y), end);
+        return current().getAttribute("aria-label");
+      },
+      { timeout: 8000 },
+    )
+    .toMatch(new RegExp(`^${NOVEDADES.at(-1)}:`));
+  await expect(page.getByRole("region", { name: "Catálogo" })).toBeInViewport();
+});
+
+test("línea de avance: aparece en cada sección, se llena con ella y se va entre secciones", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const line = page.locator("[data-hint]");
+  const fill = page.locator("[data-hint-fill]");
+  const scale = (el: typeof line) =>
+    el.evaluate((node) => new DOMMatrix(getComputedStyle(node).transform).a);
+  await expect(line).toHaveCSS("mix-blend-mode", "difference");
+
+  // Destacados: a la vista, con el avance del carrusel (primera marca: vacía).
+  await expect(line).toHaveCSS("opacity", "1");
+  expect(await scale(fill)).toBeCloseTo(0, 2);
+
+  // Populares: sin línea.
+  const g = await geometry(page);
+  await page.evaluate((y) => window.scrollTo(0, y), g.nv.top + g.nv.height / 2);
+  await expect(line).toHaveCSS("opacity", "0");
+
+  // Novedades: a mitad de su baraja, a medio llenar.
+  const box = await page.getByRole("region", { name: "Novedades" }).evaluate((el) => ({
+    top: el.getBoundingClientRect().top + window.scrollY,
+    height: (el as HTMLElement).offsetHeight,
+  }));
+  const vh = await page.evaluate(() => window.innerHeight);
+  const travel = box.height - vh;
+  await page.evaluate((y) => window.scrollTo(0, y), box.top + travel / 2);
+  await expect(line).toHaveCSS("opacity", "1");
+  await expect.poll(() => scale(fill)).toBeCloseTo(0.5, 1);
+
+  // Entre Novedades y el Catálogo no hay línea: se ha ido.
+  await page.evaluate((y) => window.scrollTo(0, y), box.top + travel + vh * 0.5);
+  await expect(line).toHaveCSS("opacity", "0");
 });
 
 test("Catálogo (5.ª sección): solo un grid asimétrico con la foto de todas las marcas", async ({
@@ -528,6 +593,32 @@ test("Catálogo (5.ª sección): solo un grid asimétrico con la foto de todas l
     }),
   );
   expect(new Set(shapes).size).toBeGreaterThan(3);
+});
+
+test("Catálogo: con el hover, el nombre sube encima de la foto y las piezas salen a un lado", async ({
+  page,
+}) => {
+  await openExplora(page);
+  const catalog = page.getByRole("region", { name: "Catálogo" });
+  const tile = catalog.getByRole("link", { name: /^Satenier: ver sus \d+ piezas/ });
+  await tile.scrollIntoViewIfNeeded();
+  const name = tile.locator("[class$='_name']");
+  const pieces = tile.locator("[class$='_piece']");
+  await expect(name).not.toHaveCSS("transform", "none");
+  await tile.hover();
+  await expect(name).toHaveText("Satenier");
+  await expect(name).toHaveCSS("transform", "none");
+  await expect(pieces).toHaveCount(3);
+  await expect(pieces.last()).toHaveCSS("opacity", "1");
+  // Encima de la foto el nombre; a un lado (fuera de la foto) las piezas.
+  const photo = await tile.locator("[class$='_photo']").boundingBox();
+  const nameBox = await name.boundingBox();
+  const pieceBox = await pieces.first().boundingBox();
+  expect((nameBox?.y ?? 0) + (nameBox?.height ?? 0)).toBeLessThanOrEqual((photo?.y ?? 0) + 1);
+  const outside =
+    (pieceBox?.x ?? 0) >= (photo?.x ?? 0) + (photo?.width ?? 0) ||
+    (pieceBox?.x ?? 0) + (pieceBox?.width ?? 0) <= (photo?.x ?? 0);
+  expect(outside).toBe(true);
 });
 
 test("Catálogo: cada marca lleva a sus piezas o, sin stock, a su tienda", async ({ page }) => {
