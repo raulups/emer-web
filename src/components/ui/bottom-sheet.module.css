@@ -64,7 +64,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 4px 8px 16px;
+  padding: 14px 4px 10px 16px;
   background: var(--paper);
 }
 
@@ -98,13 +98,14 @@
 
 .body {
   flex: 1;
-  padding: 4px 16px 24px;
+  padding: 4px 16px 32px;
 }
 
 .footer {
   position: sticky;
   bottom: 0;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  /* Aire abajo: las esquinas redondeadas de la pantalla cortaban los botones. */
+  padding: 12px 16px max(28px, calc(12px + env(safe-area-inset-bottom)));
   border-top: var(--line) solid var(--hairline);
   background: var(--paper);
 }

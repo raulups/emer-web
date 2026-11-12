@@ -16,6 +16,13 @@ const PANEL_IN = { duration: 0.45, delay: 0.28, ease: "power2.out" } as const;
 const RISE_IN = { duration: 0.7, delay: 0.32, ease: "expo.out", stagger: 0.045 } as const;
 const GHOST_OUT = 0.25;
 const FADE = { duration: 0.35, ease: "expo.out" } as const;
+/** Cierre: la caja se apaga en la segunda mitad del encogido y la tarjeta vuelve al final. */
+const SHEET_OUT = {
+  duration: CLOSE.duration * 0.55,
+  delay: CLOSE.duration * 0.3,
+  ease: "power1.in",
+} as const;
+const CARD_BACK = { duration: 0.3, delay: CLOSE.duration - 0.3, ease: "power1.out" } as const;
 
 export type Stage = {
   /** Caja blanca con borde. */
@@ -222,6 +229,10 @@ export function closeStage(stage: Stage, id: string, done: () => void): () => vo
       ...CLOSE,
       willChange: "transform",
     });
+    // La caja blanca se va mientras encoge (si no, tapa el nombre de la tarjeta hasta el final) y
+    // la tarjeta reaparece debajo antes de que la foto aterrice.
+    gsap.to(sheet, { opacity: 0, ...SHEET_OUT });
+    gsap.to(to.card, { opacity: 1, ...CARD_BACK });
     gsap.to(ghost, {
       ...flip(mediaBox, frameBox, true),
       opacity: 1,

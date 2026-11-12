@@ -7,7 +7,8 @@
   z-index: 45;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr)) 56px;
-  padding-bottom: env(safe-area-inset-bottom);
+  /* Aire abajo: las esquinas redondeadas de la pantalla cortaban los textos. */
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
   border-top: var(--line) solid var(--black);
   background: var(--paper);
 }

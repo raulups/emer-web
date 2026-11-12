@@ -27,6 +27,8 @@ gsap.registerPlugin(useGSAP);
 const IMAGE_WIDTH = 960;
 const THUMB_WIDTH = 160;
 const MAX_PHOTOS = 8;
+/** Mismo corte que el popup «en columna» de `product-modal.module.css`. */
+const NARROW = "(max-width: 760px)";
 type Props = {
   opened: Opened | null;
   brandName: string;
@@ -71,10 +73,18 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
     setIndex(0);
   }
 
+  // Página quieta detrás: Lenis parado y, en táctil estrecho, sin scroll nativo (el dedo movía la
+  // página por debajo). En escritorio no se toca `overflow` (quitar la barra movería el grid).
   useEffect(() => {
     if (!product) return;
     lockScroll(true);
-    return () => lockScroll(false);
+    const root = document.documentElement;
+    const narrow = window.matchMedia(NARROW).matches;
+    if (narrow) root.style.overflow = "hidden";
+    return () => {
+      lockScroll(false);
+      if (narrow) root.style.removeProperty("overflow");
+    };
   }, [product]);
 
   // Abrir / cerrar en el mismo efecto de layout que mide y anima: el popup nunca se pinta un frame
