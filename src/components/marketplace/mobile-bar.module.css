@@ -1,88 +1,119 @@
-/* Barra fija abajo: tres secciones y el botón de columnas. Sin sombras: borde de 1px. */
+/*
+ * Barra inferior (móvil): pieza negra flotante, sin sombras ni radios. Con aire a los lados y
+ * abajo (las esquinas redondeadas de la pantalla cortaban). Se esconde bajando (`data-hidden`).
+ */
 .bar {
+  --bar-h: 52px;
+  --bar-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
+  --rule: rgba(255, 255, 255, 0.18);
+
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: 12px;
+  bottom: var(--bar-bottom);
+  left: 12px;
   z-index: 45;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 56px;
-  /* Aire abajo: las esquinas redondeadas de la pantalla cortaban los textos. */
-  padding-bottom: max(12px, env(safe-area-inset-bottom));
-  border-top: var(--line) solid var(--black);
-  background: var(--paper);
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 52px;
+  height: var(--bar-h);
+  background: var(--black);
+  color: var(--paper);
+  animation: arrive 0.9s var(--ease-out-expo) 0.2s both;
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+@keyframes arrive {
+  from {
+    transform: translateY(calc(100% + var(--bar-bottom)));
+  }
+}
+
+.bar[data-hidden] {
+  transform: translateY(calc(100% + var(--bar-bottom) + 4px));
 }
 
 .item,
 .columns {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
   min-width: 0;
-  height: 60px;
-  padding: 0 12px;
+  height: 100%;
+  padding: 0 10px;
   border: 0;
-  border-right: var(--line) solid var(--hairline);
+  border-right: var(--line) solid var(--rule);
   background: none;
-  color: var(--black);
-  font-family: var(--font);
-  text-align: left;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-weight: 300;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.label {
-  color: var(--grey-text);
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-}
-
-.value {
-  max-width: 100%;
+/* Texto en una línea; lo activo, subrayado (la raya crece desde la izquierda). */
+.text {
+  position: relative;
   overflow: hidden;
-  font-family: var(--font-mono);
-  font-weight: 300;
   font-size: var(--t-label);
   letter-spacing: var(--track-label);
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
+  opacity: 0.62;
+  transition:
+    opacity 0.3s linear,
+    transform 0.25s var(--ease-out-expo);
 }
 
-/* Con algo elegido aparece una raya encima, como en el menú, y el valor va subrayado. */
-.item {
-  position: relative;
-}
-
-.item::before {
+.text::after {
   content: "";
   position: absolute;
-  top: -1px;
-  left: 12px;
-  width: 18px;
-  height: 3px;
-  background: var(--black);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: currentColor;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.6s var(--ease-out-expo);
 }
 
-.item[data-active]::before {
+.item[data-active] .text {
+  padding-bottom: 3px;
+  opacity: 1;
+}
+
+.item[data-active] .text::after {
   transform: scaleX(1);
 }
 
-.item[data-active] .value {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
+.item[aria-expanded="true"] .text {
+  opacity: 1;
+}
+
+/* Contador: cuadro blanco con el número; aparece con un pequeño salto. */
+.count {
+  flex: none;
+  min-width: 16px;
+  padding: 2px 4px;
+  background: var(--paper);
+  color: var(--black);
+  font-size: 10px;
+  letter-spacing: 0;
+  line-height: 12px;
+  text-align: center;
+  animation: pop 0.5s var(--ease-out-expo) both;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
 }
 
 .columns {
-  align-items: center;
   border-right: 0;
 }
 
@@ -91,18 +122,25 @@
   display: grid;
   grid-auto-flow: column;
   gap: 2px;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+  transition: transform 0.25s var(--ease-out-expo);
 }
 
 .cell {
-  border: var(--line) solid var(--black);
+  border: var(--line) solid currentColor;
+}
+
+/* Respuesta al toque: el contenido se recoge un poco. */
+.item:active .text,
+.columns:active .icon {
+  transform: scale(0.94);
 }
 
 .item:focus-visible,
 .columns:focus-visible {
-  outline: 1px solid var(--black);
-  outline-offset: -4px;
+  outline: 1px solid var(--paper);
+  outline-offset: -5px;
 }
 
 /* ---------- Hojas ---------- */
@@ -119,7 +157,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .item::before {
+  .bar,
+  .count {
+    animation: none;
+  }
+
+  .bar,
+  .text,
+  .text::after,
+  .icon {
     transition-duration: 0.01ms;
   }
 }

@@ -45,22 +45,37 @@ test.describe("móvil", () => {
     await expect(page.getByRole("button", { name: "Menú" })).toHaveCount(0);
     await expect(page.getByRole("complementary", { name: "Menú del catálogo" })).toHaveCount(0);
 
+    // Barra flotante: con aire a los lados y abajo (esquinas redondeadas de la pantalla).
     const viewport = page.viewportSize();
+    // Espera a que termine de entrar (deslizándose desde abajo).
+    await expect
+      .poll(() => bar(page).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).f))
+      .toBe(0);
     const box = await bar(page).boundingBox();
-    expect(Math.round((box?.y ?? 0) + (box?.height ?? 0))).toBe(viewport?.height);
-    expect(box?.width).toBe(viewport?.width);
-    await expect(bar(page).getByRole("button")).toHaveText([
-      /CATEGORÍA\s*TODO/,
-      /MARCAS\s*TODAS/,
-      /FILTROS\s*NINGUNO/,
-      "",
-    ]);
+    const fromBottom = (viewport?.height ?? 0) - ((box?.y ?? 0) + (box?.height ?? 0));
+    expect(fromBottom).toBeGreaterThanOrEqual(16);
+    expect(box?.x).toBeGreaterThanOrEqual(12);
+    await expect(bar(page).getByRole("button")).toHaveText(["CATEGORÍA", "MARCAS", "FILTROS", ""]);
+    await expect(bar(page).getByRole("button", { name: "CATEGORÍA: TODO" })).toBeVisible();
+    await expect(bar(page).getByRole("button", { name: "MARCAS: TODAS" })).toBeVisible();
+    await expect(bar(page).getByRole("button", { name: "FILTROS: NINGUNO" })).toBeVisible();
     // El último producto no queda tapado por la barra.
     const section = page.getByRole("region", { name: "Productos" });
     const padding = await section.evaluate((el) =>
       Number.parseFloat(getComputedStyle(el).paddingBottom),
     );
-    expect(padding).toBeGreaterThanOrEqual(box?.height ?? 0);
+    expect(padding).toBeGreaterThanOrEqual((box?.height ?? 0) + fromBottom);
+  });
+
+  test("barra inferior: se esconde al bajar y vuelve al subir", async ({ page }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    await page.evaluate(() => window.scrollTo(0, 300));
+    await page.evaluate(() => window.scrollTo(0, 900));
+    await expect(bar(page)).toHaveAttribute("data-hidden", "");
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await expect(bar(page)).not.toHaveAttribute("data-hidden", "");
   });
 
   test("un toque en la foto abre el popup de la pieza (sin hover que se coma el toque)", async ({
@@ -130,7 +145,9 @@ test.describe("móvil", () => {
     await sheet.getByRole("button", { name: "VER 12" }).click();
     await expect.poll(() => isOpen(page)).toBe(false);
     await expect(page).toHaveURL(`/web?brand=${SATENIER}`);
-    await expect(bar(page).getByRole("button", { name: /MARCAS/ })).toContainText("1 ELEGIDA");
+    const brands = bar(page).getByRole("button", { name: /MARCAS/ });
+    await expect(brands).toHaveAccessibleName("MARCAS: 1 ELEGIDAS");
+    await expect(brands).toContainText("1");
   });
 
   test("FILTROS: hoja con scroll propio (táctil) sin mover la página; vacío con sus filtros", async ({

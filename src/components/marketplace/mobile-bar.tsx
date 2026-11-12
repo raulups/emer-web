@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import button from "@/components/ui/button.module.css";
 import type { Brand, ProductFacets } from "@/lib/data";
@@ -11,11 +11,9 @@ import { BrandSearch, matchBrands } from "./brand-search";
 import { CategoryGrid } from "./category-grid";
 import { FilterFields } from "./filter-fields";
 import styles from "./mobile-bar.module.css";
+import { useHideOnScroll } from "./use-hide-on-scroll";
 
 export type Sheet = "categories" | "brands" | "filters";
-
-const plural = (n: number, word: string, none: string) =>
-  n === 0 ? none : `${n} ${word}${n === 1 ? "" : "S"}`;
 
 type BarProps = {
   /** Nombre de la categoría elegida (null = todas). */
@@ -28,34 +26,53 @@ type BarProps = {
   onColumns: (columns: number) => void;
 };
 
+type Item = {
+  sheet: Sheet;
+  /** Lo que se lee en la barra: la etiqueta o, en CATEGORÍA, el tipo elegido. */
+  text: string;
+  /** Contador (marcas elegidas, filtros activos); 0 = nada. */
+  count: number;
+  active: boolean;
+  /** Nombre accesible completo («MARCAS: 2 elegidas»). */
+  label: string;
+};
+
 /**
- * Barra inferior del Marketplace en móvil: CATEGORÍA, MARCAS y FILTROS abren su hoja; el último
- * botón cambia los productos por fila (1 → 2 → 3).
+ * Barra inferior del Marketplace en móvil: una pieza negra flotante (con aire a los lados y abajo
+ * por las esquinas redondeadas de la pantalla) con CATEGORÍA, MARCAS y FILTROS, que abren su
+ * hoja, y el botón de productos por fila (1 → 2 → 3). Una línea por botón: CATEGORÍA enseña el
+ * tipo elegido; MARCAS y FILTROS, un contador en un cuadro blanco. Lo activo va subrayado. Se
+ * esconde al bajar y vuelve al subir (`useHideOnScroll`); con una hoja abierta, siempre a la vista.
  */
 export function MobileBar(props: BarProps) {
-  const items: { sheet: Sheet; label: string; value: string; active: boolean }[] = [
+  const nav = useRef<HTMLElement>(null);
+  useHideOnScroll(nav, props.open !== null);
+  const items: Item[] = [
     {
       sheet: "categories",
-      label: "CATEGORÍA",
-      value: props.category ?? "TODO",
+      text: props.category ?? "CATEGORÍA",
+      count: 0,
       active: props.category !== null,
+      label: `CATEGORÍA: ${props.category ?? "TODO"}`,
     },
     {
       sheet: "brands",
-      label: "MARCAS",
-      value: plural(props.brandCount, "ELEGIDA", "TODAS"),
+      text: "MARCAS",
+      count: props.brandCount,
       active: props.brandCount > 0,
+      label: `MARCAS: ${props.brandCount === 0 ? "TODAS" : `${props.brandCount} ELEGIDAS`}`,
     },
     {
       sheet: "filters",
-      label: "FILTROS",
-      value: plural(props.filterCount, "ACTIVO", "NINGUNO"),
+      text: "FILTROS",
+      count: props.filterCount,
       active: props.filterCount > 0,
+      label: `FILTROS: ${props.filterCount === 0 ? "NINGUNO" : `${props.filterCount} ACTIVOS`}`,
     },
   ];
 
   return (
-    <nav className={styles.bar} aria-label="Catálogo">
+    <nav ref={nav} className={styles.bar} aria-label="Catálogo">
       {items.map((item) => (
         <button
           key={item.sheet}
@@ -63,11 +80,18 @@ export function MobileBar(props: BarProps) {
           className={styles.item}
           aria-haspopup="dialog"
           aria-expanded={props.open === item.sheet}
+          aria-label={item.label}
           data-active={item.active || undefined}
           onClick={() => props.onOpen(item.sheet)}
         >
-          <span className={styles.label}>{item.label}</span>
-          <span className={styles.value}>{item.value}</span>
+          <span className={styles.text} aria-hidden="true">
+            {item.text}
+          </span>
+          {item.count > 0 && (
+            <span key={item.count} className={styles.count} aria-hidden="true">
+              {item.count}
+            </span>
+          )}
         </button>
       ))}
       <button
