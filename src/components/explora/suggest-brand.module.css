@@ -294,6 +294,24 @@
   transition: transform 0.8s var(--ease-out-expo);
 }
 
+.notice {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--grey-text);
+}
+
+.notice a {
+  color: var(--ink);
+  text-underline-offset: 2px;
+}
+
+.notice a:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 2px;
+}
+
 .error {
   margin: 0;
   font-family: var(--font-mono);
