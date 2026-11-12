@@ -282,19 +282,33 @@ test("precio: el slider se maneja con teclado", async ({ page }) => {
   await expect(panel(page).getByRole("button", { name: /^VER/ })).toHaveText(/^VER [1-9]\d?$/);
 });
 
-test("tarjeta: en hover pasa a la 2.ª foto y muestra tallas", async ({ page }) => {
+test("tarjeta: en hover pasa a la 2.ª foto, sin tallas; nombre en una línea con el precio", async ({
+  page,
+}) => {
   // Está en la 2.ª tanda del orden por defecto (Camisetas): puede llegar mientras el grid crece.
   const card = products(page).filter({ hasText: "Camiseta Satenier 1" });
+  // Posición de la raya activa del índice de fotos (0 = 1.ª foto).
+  const active = () =>
+    card
+      .locator("span[data-active]")
+      .evaluate((el) => [...(el.parentElement?.children ?? [])].indexOf(el));
   await expect(async () => {
     await card.hover();
-    await expect(card.getByText("2/2")).toBeVisible({ timeout: 1_000 });
+    expect(await active()).toBe(1);
   }).toPass();
-  await expect(card.getByText("XL", { exact: true })).toBeVisible();
-  await expect(card.locator("[data-soldout]")).toHaveText("S");
+  // Ya no hay franja de tallas en la tarjeta.
+  await expect(card.getByText("XL", { exact: true })).toHaveCount(0);
   await card.getByRole("button", { name: /Foto siguiente/ }).click();
-  await expect(card.getByText("1/2")).toBeVisible();
+  await expect.poll(active).toBe(0);
   await page.mouse.move(5, 600);
-  await expect(card.locator("[data-hovered]")).toHaveCount(0);
+  await expect(page.locator("[data-product][data-hovered]")).toHaveCount(0);
+  // Nombre: una línea, recortado con «…»; el precio, en la misma fila.
+  const name = card.getByRole("button", { name: "Camiseta Satenier 1", exact: true });
+  await expect(name).toHaveCSS("white-space", "nowrap");
+  await expect(name).toHaveCSS("text-overflow", "ellipsis");
+  const price = card.getByText(/€$/).first();
+  const [nameBox, priceBox] = [await name.boundingBox(), await price.boundingBox()];
+  expect(Math.abs((nameBox?.y ?? 0) - (priceBox?.y ?? 99))).toBeLessThan(6);
 });
 
 test("[ MENÚ ] oculta y muestra el menú", async ({ page }) => {

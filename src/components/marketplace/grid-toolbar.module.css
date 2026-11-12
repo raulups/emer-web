@@ -108,4 +108,11 @@
   .sortLabel {
     display: none;
   }
+
+  /* El orden ocupa su fila entera, repartido: tres blancos de toque cómodos. */
+  .sort {
+    flex-basis: 100%;
+    justify-content: space-between;
+    margin: 0;
+  }
 }

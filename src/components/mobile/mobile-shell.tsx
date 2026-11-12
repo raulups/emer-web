@@ -8,7 +8,8 @@ import styles from "./mobile-shell.module.css";
 
 /**
  * Shell de móvil: en lugar del switch MARKETPLACE / EXPLORA, una sola etiqueta [ MARKETPLACE ]
- * arriba al centro (sube al principio). Los menús van en la barra inferior del Marketplace.
+ * arriba al centro (sube al principio). No es fija: se va con el scroll, igual que la barra de
+ * ORDENAR que tiene debajo. Los menús van en la barra inferior del Marketplace.
  */
 export function MobileShell({ children }: { children: ReactNode }) {
   return (

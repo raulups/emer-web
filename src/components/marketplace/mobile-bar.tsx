@@ -8,9 +8,9 @@ import { nextColumns } from "@/lib/grid";
 import { type Filters, toggle } from "@/lib/marketplace";
 import { BrandGrid } from "./brand-grid";
 import { BrandSearch, matchBrands } from "./brand-search";
+import { CategoryGrid } from "./category-grid";
 import { FilterFields } from "./filter-fields";
 import styles from "./mobile-bar.module.css";
-import { OptionRow } from "./option-row";
 
 export type Sheet = "categories" | "brands" | "filters";
 
@@ -104,7 +104,7 @@ type SheetsProps = {
 };
 
 /**
- * Hojas inferiores de la barra: categorías (elegir cierra), marcas (con buscador) y filtros (VER n
+ * Hojas inferiores de la barra: categorías con su icono (elegir cierra), marcas (con buscador) y filtros (VER n
  * cierra).
  */
 export function MobileSheets(props: SheetsProps) {
@@ -131,25 +131,12 @@ export function MobileSheets(props: SheetsProps) {
   return (
     <>
       <BottomSheet open={open === "categories"} onClose={onClose} title="CATEGORÍAS">
-        <nav className={styles.list} aria-label="Categorías">
-          <OptionRow
-            label="Ver todo"
-            count={props.allCount}
-            variant="sheet"
-            selected={filters.cat === null}
-            onClick={() => pick(null)}
-          />
-          {props.categories.map((category) => (
-            <OptionRow
-              key={category.id}
-              label={category.name}
-              count={category.count}
-              variant="sheet"
-              selected={filters.cat === category.id}
-              onClick={() => pick(category.id)}
-            />
-          ))}
-        </nav>
+        <CategoryGrid
+          categories={props.categories}
+          allCount={props.allCount}
+          selected={filters.cat}
+          onPick={pick}
+        />
       </BottomSheet>
 
       <BottomSheet

@@ -188,10 +188,12 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const chips = activeFilters(filters, { categories: categoryNames, brands: brandNames }).map(
     (chip) => ({ key: chip.key, label: chip.label, onRemove: () => update(chip.remove) }),
   );
-  const anchorTop = useCallback(
-    () => Math.max(SHELL_TOP, toolbar.current?.getBoundingClientRect().bottom ?? SHELL_TOP),
-    [],
-  );
+  // Lo que tapa el grid por arriba: en escritorio el switch (fijo); en móvil nada (el título se
+  // va con el scroll).
+  const anchorTop = useCallback(() => {
+    const covered = mobile ? 0 : SHELL_TOP;
+    return Math.max(covered, toolbar.current?.getBoundingClientRect().bottom ?? covered);
+  }, [mobile]);
   /** VER MÁS DE la marca desde el popup: solo esa marca, sin más filtros, y se cierra. */
   const seeBrand = (id: string) => {
     setFilters({ ...EMPTY_FILTERS, brands: [id] });

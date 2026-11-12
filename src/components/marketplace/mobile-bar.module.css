@@ -106,16 +106,6 @@
 
 /* ---------- Hojas ---------- */
 
-.list {
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-}
-
 .actions {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,12 +1,11 @@
 "use client";
 
-import { type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent, useRef, useState } from "react";
 import type { Product } from "@/lib/data";
 import { discount, price } from "@/lib/format";
 import { fitCrossOrigin, fitOnLoad, fitRef } from "@/lib/image-fit";
 import { sizedImage } from "@/lib/marketplace";
 import styles from "./product-card.module.css";
-import { useProductSizes } from "./use-product-sizes";
 
 /** Fotos por tarjeta como máximo (el índice «n/N» se mantiene legible). */
 const MAX_PHOTOS = 8;
@@ -27,9 +26,11 @@ type Props = {
 };
 
 /**
- * Tarjeta sin borde (README §3). En hover pasa a la 2.ª foto, aparecen las flechas, sube la
- * franja de tallas con el índice y el nombre se subraya; al salir vuelve a la 1.ª. Toda la
- * tarjeta abre el detalle (popup); la tienda se visita desde él.
+ * Tarjeta sin borde (README §3). En hover pasa a la 2.ª foto, aparecen las flechas y el índice
+ * de fotos y el nombre se subraya; al salir vuelve a la 1.ª. El hover es solo de ratón (o foco
+ * de teclado): en táctil, un cambio en el primer toque hace que Safari no dispare el clic, y la
+ * tarjeta tiene que abrir a la primera. Toda la tarjeta abre el detalle (popup); la tienda se
+ * visita desde él. Nombre en una línea (con «…») y precio a la derecha.
  */
 export function ProductCard({ product, brandName, eager = false, onOpen }: Props) {
   const [hovered, setHovered] = useState(false);
@@ -37,7 +38,6 @@ export function ProductCard({ product, brandName, eager = false, onOpen }: Props
   const media = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [loadedUpTo, setLoadedUpTo] = useState(0);
-  const sizes = useProductSizes(product.id, hovered);
 
   const photos = (product.image_urls.length > 0 ? product.image_urls : [product.main_image_url])
     .filter((src): src is string => Boolean(src))
@@ -66,9 +66,15 @@ export function ProductCard({ product, brandName, eager = false, onOpen }: Props
       className={styles.card}
       data-product={product.id}
       data-hovered={hovered || undefined}
-      onMouseEnter={enter}
-      onMouseLeave={leave}
-      onFocus={enter}
+      onPointerEnter={(event: PointerEvent) => {
+        if (event.pointerType === "mouse") enter();
+      }}
+      onPointerLeave={(event: PointerEvent) => {
+        if (event.pointerType === "mouse") leave();
+      }}
+      onFocus={(event) => {
+        if (event.target.matches(":focus-visible")) enter();
+      }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) leave();
       }}
@@ -99,29 +105,13 @@ export function ProductCard({ product, brandName, eager = false, onOpen }: Props
 
         {off > 0 && <span className={styles.tag}>−{off}%</span>}
 
-        <div className={styles.strip} aria-hidden="true">
-          <div className={styles.sizes}>
-            {sizes?.map((size) => (
-              <span
-                key={size.size_label}
-                className={styles.size}
-                data-soldout={!size.available || undefined}
-              >
-                {size.size_label}
-              </span>
+        {multi && (
+          <div className={styles.index} aria-hidden="true">
+            {photos.map((src, k) => (
+              <span key={src} className={styles.dot} data-active={k === index || undefined} />
             ))}
           </div>
-          {multi && (
-            <div className={styles.index}>
-              {photos.map((src, k) => (
-                <span key={src} className={styles.dot} data-active={k === index || undefined} />
-              ))}
-              <span className={styles.counter}>
-                {index + 1}/{count}
-              </span>
-            </div>
-          )}
-        </div>
+        )}
         {multi && (
           <>
             <button

@@ -15,7 +15,8 @@
       "!test-results",
       "!.lighthouseci",
       "!design_handoff_emer_web",
-      "!handoff_sugerir_footer"
+      "!handoff_sugerir_footer",
+      "!src/icons"
     ]
   },
   "formatter": {

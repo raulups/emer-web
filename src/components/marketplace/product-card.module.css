@@ -9,6 +9,11 @@
 /* Botón estirado: el nombre abre el detalle y su ::after cubre toda la tarjeta. */
 .link,
 .link:hover {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   padding: 0;
   border: 0;
   background: none;
@@ -92,50 +97,25 @@
   line-height: 1;
 }
 
-/* Franja de tallas: banda negra que sube desde abajo (0.6s). */
-.strip {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 12px;
-  background: var(--black);
-  color: var(--paper);
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  transform: translateY(101%);
-  transition: transform 0.6s var(--ease-out-expo);
-}
-
-.card[data-hovered] .strip {
-  transform: translateY(0);
-}
-
-.sizes {
-  display: flex;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 14px;
-  min-width: 0;
-  min-height: 1lh;
-}
-
-.size[data-soldout] {
-  color: var(--grey-text);
-  text-decoration: line-through;
-}
-
+/* Índice de fotos: rayas abajo, en blanco en modo diferencia; aparece con el hover. */
 .index {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  z-index: 2;
   display: flex;
-  flex: none;
   align-items: center;
   gap: 4px;
+  color: #fff;
+  mix-blend-mode: difference;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.5s var(--ease-out-expo);
+  pointer-events: none;
+}
+
+.card[data-hovered] .index {
+  opacity: 1;
 }
 
 .dot {
@@ -153,15 +133,6 @@
   opacity: 1;
 }
 
-.counter {
-  margin-left: 6px;
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-}
-
 /* Flechas ‹ ›: aparecen en hover desde fuera (±8px). */
 .arrow {
   position: absolute;
@@ -169,7 +140,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  bottom: 44px;
+  bottom: 0;
   z-index: 2;
   width: 44px;
   padding: 0;
@@ -226,9 +197,12 @@
   gap: 12px;
 }
 
+/* Nombre en una sola línea: lo que quepa y «…»; el precio, a la derecha. */
 .name {
+  flex: 1 1 auto;
   min-width: 0;
   margin: 0;
+  overflow: hidden;
   font-family: var(--font-mono);
   font-weight: 300;
   font-size: var(--t-label);
@@ -246,6 +220,7 @@
 }
 
 .price {
+  flex: none;
   font-family: var(--font-mono);
   font-weight: 300;
   font-size: var(--t-label);
@@ -273,19 +248,10 @@
   white-space: nowrap;
 }
 
-/* Tarjetas estrechas (muchas por fila): el precio baja bajo el nombre. */
-@container (max-width: 180px) {
-  .row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .track,
   .image,
-  .strip,
+  .index,
   .dot,
   .arrow {
     transition-duration: 0.01ms;

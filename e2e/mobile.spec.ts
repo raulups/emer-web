@@ -63,7 +63,33 @@ test.describe("móvil", () => {
     expect(padding).toBeGreaterThanOrEqual(box?.height ?? 0);
   });
 
-  test("CATEGORÍA: hoja con la lista; elegir filtra y cierra", async ({ page }) => {
+  test("un toque en la foto abre el popup de la pieza (sin hover que se coma el toque)", async ({
+    page,
+  }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    const media = products(page).first().locator("[data-media]");
+    await expect(media).toBeVisible();
+    const box = await media.boundingBox();
+    await page.touchscreen.tap((box?.x ?? 0) + 40, (box?.y ?? 0) + 40);
+    await expect(page.locator("dialog[open]")).toBeVisible();
+    await expect(page.locator("[data-product][data-hovered]")).toHaveCount(0);
+  });
+
+  test("[ MARKETPLACE ] y ORDENAR se van con el scroll", async ({ page }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    const title = page.getByRole("button", { name: "Marketplace: volver arriba" });
+    const sort = page.getByRole("group", { name: "ORDENAR" });
+    await expect(title).toBeInViewport();
+    await expect(sort).toBeInViewport();
+    await page.evaluate(() => window.scrollTo(0, 700));
+    await expect(title).not.toBeInViewport();
+    await expect(sort).not.toBeInViewport();
+  });
+
+  test("CATEGORÍA: hoja con iconos; elegir filtra y cierra", async ({ page }) => {
     await skipPrompt(page);
     await page.goto("/web");
     await expect(products(page).first()).toBeVisible();
@@ -76,7 +102,12 @@ test.describe("móvil", () => {
       "aria-current",
       "true",
     );
-    await sheet.getByRole("button", { name: /^Camisetas/ }).click();
+    // Cada tipo de prenda lleva su icono (máscara CSS con el SVG de `src/icons/`).
+    const tile = sheet.getByRole("button", { name: /^Camisetas/ });
+    await expect
+      .poll(() => tile.evaluate((el) => getComputedStyle(el).getPropertyValue("--icon")))
+      .toContain("url(");
+    await tile.click();
     await expect.poll(() => isOpen(page)).toBe(false);
     await expect(products(page).first()).toContainText("Camiseta");
     await expect(bar(page).getByRole("button", { name: /CATEGORÍA/ })).toContainText(/camisetas/i);

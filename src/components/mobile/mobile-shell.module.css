@@ -1,6 +1,7 @@
 .shell {
   --shell-top: 76px;
 
+  position: relative;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -16,8 +17,9 @@
   flex-direction: column;
 }
 
+/* Arriba del todo y en el flujo de la página: con el scroll se va, no tapa las fotos. */
 .title {
-  position: fixed;
+  position: absolute;
   top: 26px;
   left: 50%;
   z-index: 50;
