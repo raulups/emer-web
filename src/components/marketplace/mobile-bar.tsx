@@ -28,8 +28,10 @@ type BarProps = {
 
 type Item = {
   sheet: Sheet;
-  /** Lo que se lee en la barra: la etiqueta o, en CATEGORÍA, el tipo elegido. */
-  text: string;
+  /** Etiqueta fija, pequeña, arriba. */
+  kicker: string;
+  /** Lo elegido, debajo («TODO», el tipo, «TODAS»…); con contador, el número en su cuadro. */
+  value: string;
   /** Contador (marcas elegidas, filtros activos); 0 = nada. */
   count: number;
   active: boolean;
@@ -38,11 +40,11 @@ type Item = {
 };
 
 /**
- * Barra inferior del Marketplace en móvil: una pieza negra flotante (con aire a los lados y abajo
- * por las esquinas redondeadas de la pantalla) con CATEGORÍA, MARCAS y FILTROS, que abren su
- * hoja, y el botón de productos por fila (1 → 2 → 3). Una línea por botón: CATEGORÍA enseña el
- * tipo elegido; MARCAS y FILTROS, un contador en un cuadro blanco. Lo activo va subrayado. Se
- * esconde al bajar y vuelve al subir (`useHideOnScroll`); con una hoja abierta, siempre a la vista.
+ * Barra inferior del Marketplace en móvil: una pieza blanca flotante con filo negro (con aire a
+ * los lados y abajo por las esquinas redondeadas de la pantalla). CATEGORÍA, MARCAS y FILTROS abren
+ * su hoja; cada botón lleva la etiqueta pequeña arriba y lo elegido debajo (lo activo, subrayado;
+ * los contadores, en un cuadro negro). El último botón cambia los productos por fila (1 → 2 → 3).
+ * Se esconde al bajar y vuelve al subir (`useHideOnScroll`); con una hoja abierta, siempre a la vista.
  */
 export function MobileBar(props: BarProps) {
   const nav = useRef<HTMLElement>(null);
@@ -50,21 +52,24 @@ export function MobileBar(props: BarProps) {
   const items: Item[] = [
     {
       sheet: "categories",
-      text: props.category ?? "CATEGORÍA",
+      kicker: "CATEGORÍA",
+      value: props.category ?? "TODO",
       count: 0,
       active: props.category !== null,
       label: `CATEGORÍA: ${props.category ?? "TODO"}`,
     },
     {
       sheet: "brands",
-      text: "MARCAS",
+      kicker: "MARCAS",
+      value: "TODAS",
       count: props.brandCount,
       active: props.brandCount > 0,
       label: `MARCAS: ${props.brandCount === 0 ? "TODAS" : `${props.brandCount} ELEGIDAS`}`,
     },
     {
       sheet: "filters",
-      text: "FILTROS",
+      kicker: "FILTROS",
+      value: "NINGUNO",
       count: props.filterCount,
       active: props.filterCount > 0,
       label: `FILTROS: ${props.filterCount === 0 ? "NINGUNO" : `${props.filterCount} ACTIVOS`}`,
@@ -84,12 +89,16 @@ export function MobileBar(props: BarProps) {
           data-active={item.active || undefined}
           onClick={() => props.onOpen(item.sheet)}
         >
-          <span className={styles.text} aria-hidden="true">
-            {item.text}
+          <span className={styles.kicker} aria-hidden="true">
+            {item.kicker}
           </span>
-          {item.count > 0 && (
+          {item.count > 0 ? (
             <span key={item.count} className={styles.count} aria-hidden="true">
               {item.count}
+            </span>
+          ) : (
+            <span className={styles.value} aria-hidden="true">
+              {item.value}
             </span>
           )}
         </button>

@@ -1,11 +1,12 @@
 /*
- * Barra inferior (móvil): pieza negra flotante, sin sombras ni radios. Con aire a los lados y
- * abajo (las esquinas redondeadas de la pantalla cortaban). Se esconde bajando (`data-hidden`).
+ * Barra inferior (móvil): pieza blanca flotante con filo negro, sin sombras ni radios. Con aire a
+ * los lados y abajo (las esquinas redondeadas de la pantalla cortaban). Se esconde bajando
+ * (`data-hidden`). Cada botón: etiqueta pequeña arriba, lo elegido debajo.
  */
 .bar {
-  --bar-h: 52px;
+  --bar-h: 56px;
   --bar-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
-  --rule: rgba(255, 255, 255, 0.18);
+  --rule: var(--hairline-strong);
 
   position: fixed;
   right: 12px;
@@ -13,10 +14,11 @@
   left: 12px;
   z-index: 45;
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 52px;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 56px;
   height: var(--bar-h);
-  background: var(--black);
-  color: var(--paper);
+  border: var(--line) solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
   animation: arrive 0.9s var(--ease-out-expo) 0.2s both;
   transition: transform 0.6s var(--ease-out-expo);
 }
@@ -34,13 +36,8 @@
 .item,
 .columns {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   min-width: 0;
   height: 100%;
-  padding: 0 10px;
   border: 0;
   border-right: var(--line) solid var(--rule);
   background: none;
@@ -51,22 +48,59 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Texto en una línea; lo activo, subrayado (la raya crece desde la izquierda). */
-.text {
+/* Dos líneas alineadas a la izquierda: etiqueta y valor. */
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 12px;
+  text-align: left;
+}
+
+/* Raya negra arriba: marca el botón cuya hoja está abierta (crece desde la izquierda). */
+.item::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.item[aria-expanded="true"]::before {
+  transform: scaleX(1);
+}
+
+.kicker {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--grey-text);
+}
+
+/* Valor en una línea; lo activo (categoría elegida), subrayado. */
+.value {
   position: relative;
+  max-width: 100%;
   overflow: hidden;
+  padding-bottom: 2px;
   font-size: var(--t-label);
   letter-spacing: var(--track-label);
+  line-height: 1;
   text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.62;
-  transition:
-    opacity 0.3s linear,
-    transform 0.25s var(--ease-out-expo);
+  transition: transform 0.25s var(--ease-out-expo);
 }
 
-.text::after {
+.value::after {
   content: "";
   position: absolute;
   right: 0;
@@ -79,29 +113,19 @@
   transition: transform 0.6s var(--ease-out-expo);
 }
 
-.item[data-active] .text {
-  padding-bottom: 3px;
-  opacity: 1;
-}
-
-.item[data-active] .text::after {
+.item[data-active] .value::after {
   transform: scaleX(1);
 }
 
-.item[aria-expanded="true"] .text {
-  opacity: 1;
-}
-
-/* Contador: cuadro blanco con el número; aparece con un pequeño salto. */
+/* Contador: cuadro negro con el número; aparece con un pequeño salto. */
 .count {
-  flex: none;
-  min-width: 16px;
-  padding: 2px 4px;
-  background: var(--paper);
-  color: var(--black);
-  font-size: 10px;
+  min-width: 18px;
+  padding: 2px 5px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11px;
   letter-spacing: 0;
-  line-height: 12px;
+  line-height: 13px;
   text-align: center;
   animation: pop 0.5s var(--ease-out-expo) both;
 }
@@ -114,6 +138,9 @@
 }
 
 .columns {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-right: 0;
 }
 
@@ -132,14 +159,15 @@
 }
 
 /* Respuesta al toque: el contenido se recoge un poco. */
-.item:active .text,
+.item:active .value,
+.item:active .count,
 .columns:active .icon {
   transform: scale(0.94);
 }
 
 .item:focus-visible,
 .columns:focus-visible {
-  outline: 1px solid var(--paper);
+  outline: 1px solid var(--ink);
   outline-offset: -5px;
 }
 
@@ -163,8 +191,9 @@
   }
 
   .bar,
-  .text,
-  .text::after,
+  .item::before,
+  .value,
+  .value::after,
   .icon {
     transition-duration: 0.01ms;
   }
