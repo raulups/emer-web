@@ -4,6 +4,13 @@ Revisión final contra los prototipos: ver `docs/REVISION_FINAL.md`.
 
 Todo lo aplazado durante la implementación, para abordarlo al final. Se actualiza en cada PR.
 
+## Legal
+
+- [ ] **Domicilio completo** en `src/lib/legal.ts` (hoy solo CP + ciudad; la LSSI pide la dirección).
+- [ ] **Hosting de la web**: nombrar el proveedor en `/privacidad` (Destinatarios) cuando se despliegue.
+- [ ] **Plazo de las sugerencias**: `/privacidad` dice «hasta resolverla y como máximo 12 meses»; confirmar o cambiar.
+- [ ] **Instagram y TikTok** del footer siguen en `#`.
+
 ## Assets que faltan
 
 - [ ] Favicon: SVG + PNG 32 y 180 (apple-touch).

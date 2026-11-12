@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { MouseEvent, ReactNode } from "react";
 import { ScrambleText } from "@/components/ui/scramble-text";
 import { bus } from "@/lib/bus";
+import { LEGAL_PAGES } from "@/lib/legal";
 import styles from "./footer.module.css";
 
 type Item = { label: string; href: string; onClick?: () => void };
@@ -40,12 +41,7 @@ const COLUMNS: readonly { title: string; items: readonly Item[] }[] = [
   },
   {
     title: "Legal",
-    // TODO: páginas legales (otra fase).
-    items: [
-      { label: "Privacidad", href: "#" },
-      { label: "Términos", href: "#" },
-      { label: "Cookies", href: "#" },
-    ],
+    items: LEGAL_PAGES,
   },
 ];
 

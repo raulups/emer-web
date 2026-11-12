@@ -39,3 +39,32 @@
   outline: 1px solid currentColor;
   outline-offset: 6px;
 }
+
+/* Enlaces legales al final del catálogo, por encima de la barra inferior fija. */
+.footer {
+  padding: 32px 16px calc(96px + env(safe-area-inset-bottom));
+  border-top: var(--line) solid var(--hairline);
+}
+
+.legal {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+}
+
+.legalLink {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--grey-text);
+  text-decoration: none;
+}
+
+.legalLink:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 4px;
+}

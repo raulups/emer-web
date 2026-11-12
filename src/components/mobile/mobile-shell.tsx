@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { BracketLabel } from "@/components/ui/bracket-label";
+import { LEGAL_PAGES } from "@/lib/legal";
 import { scrollToY } from "@/lib/motion/scroll";
 import { AppPrompt } from "./app-prompt";
 import styles from "./mobile-shell.module.css";
@@ -32,6 +34,15 @@ export function MobileShell({ children }: { children: ReactNode }) {
       <main id="contenido" className={styles.main}>
         {children}
       </main>
+      <footer className={styles.footer}>
+        <nav className={styles.legal} aria-label="Información legal">
+          {LEGAL_PAGES.map((page) => (
+            <Link key={page.href} className={styles.legalLink} href={page.href}>
+              {page.label}
+            </Link>
+          ))}
+        </nav>
+      </footer>
       <AppPrompt />
     </div>
   );

@@ -2,11 +2,13 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
+import Link from "next/link";
 import { type FormEvent, useLayoutEffect, useRef, useState } from "react";
 import button from "@/components/ui/button.module.css";
 import { ScrambleText } from "@/components/ui/scramble-text";
 import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
+import { OWNER } from "@/lib/legal";
 import { clamp01, easeOutCubic as E, lerpBy } from "@/lib/motion/math";
 import { scrollToY } from "@/lib/motion/scroll";
 import { subscribe, type Tick } from "@/lib/motion/ticker";
@@ -365,6 +367,11 @@ export function SuggestBrand({ brands }: Props) {
                 <span className={styles.meterFill} style={{ transform: `scaleX(${fill})` }} />
               </span>
             </button>
+            <p className={styles.notice} data-sf="3" data-spe>
+              Responsable: {OWNER.name}. Finalidad: valorar la marca sugerida. Puedes ejercer tus
+              derechos en <a href={`mailto:${OWNER.email}`}>{OWNER.email}</a>. Más información en la{" "}
+              <Link href="/privacidad">política de privacidad</Link>.
+            </p>
             {status === "error" && (
               <p className={styles.error} role="alert">
                 No se pudo enviar. Inténtalo de nuevo.
