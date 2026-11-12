@@ -3,6 +3,7 @@
 import { type CSSProperties, useRef, useState } from "react";
 import type { Product } from "@/lib/data";
 import { discount, price } from "@/lib/format";
+import { fitCrossOrigin, fitOnLoad, fitRef } from "@/lib/image-fit";
 import { sizedImage } from "@/lib/marketplace";
 import styles from "./product-card.module.css";
 import { useProductSizes } from "./use-product-sizes";
@@ -86,6 +87,9 @@ export function ProductCard({ product, brandName, eager = false, onOpen }: Props
                   loading={k === 0 && !eager ? "lazy" : "eager"}
                   fetchPriority={k === 0 && eager ? "high" : undefined}
                   decoding="async"
+                  crossOrigin={fitCrossOrigin(src)}
+                  ref={fitRef}
+                  onLoad={fitOnLoad}
                   className={styles.image}
                 />
               )}

@@ -14,6 +14,7 @@ import {
 import button from "@/components/ui/button.module.css";
 import type { Product } from "@/lib/data";
 import { discount, price } from "@/lib/format";
+import { fitCrossOrigin, fitOnLoad, fitRef } from "@/lib/image-fit";
 import { sizedImage } from "@/lib/marketplace";
 import { lockScroll } from "@/lib/motion/scroll";
 import styles from "./product-modal.module.css";
@@ -172,6 +173,9 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
                     height={(IMAGE_WIDTH * 4) / 3}
                     loading={k === 0 ? "eager" : "lazy"}
                     decoding="async"
+                    crossOrigin={fitCrossOrigin(src)}
+                    ref={fitRef}
+                    onLoad={fitOnLoad}
                     className={styles.image}
                   />
                 </div>
@@ -222,6 +226,9 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
                       height={(THUMB_WIDTH * 4) / 3}
                       loading="lazy"
                       decoding="async"
+                      crossOrigin={fitCrossOrigin(src)}
+                      ref={fitRef}
+                      onLoad={fitOnLoad}
                       className={styles.image}
                     />
                   </button>

@@ -1,4 +1,5 @@
 import gsap from "gsap";
+import { copyFit } from "@/lib/image-fit";
 
 /**
  * Coreografía del popup de producto. La foto no se escala dentro del popup (la grande puede no
@@ -63,8 +64,15 @@ export function cardOf(
   return { card, media, image };
 }
 
-function placeGhost(ghost: HTMLImageElement, src: string, at: DOMRect): void {
-  ghost.src = src;
+function copyGhost(ghost: HTMLImageElement, from: HTMLImageElement): void {
+  // Mismo modo CORS que el original (antes que `src`): así sale de la caché sin pedirla otra vez.
+  copyFit(from, ghost);
+  ghost.src = from.currentSrc || from.src;
+}
+
+/** El fantasma copia la foto (y su encaje, `image-fit`) y se coloca sobre el marco del popup. */
+function placeGhost(ghost: HTMLImageElement, from: HTMLImageElement, at: DOMRect): void {
+  copyGhost(ghost, from);
   gsap.set(ghost, {
     left: at.left,
     top: at.top,
@@ -139,7 +147,7 @@ export function openStage(stage: Stage, id: string | null): void {
 
   const { card, image } = from;
   const start = zoomed(mediaBox, image);
-  placeGhost(ghost, image.currentSrc || image.src, frameBox);
+  placeGhost(ghost, image, frameBox);
   gsap.set(card, { opacity: 0 });
   gsap.set(frame, { opacity: 0 });
   gsap.fromTo(
@@ -206,8 +214,8 @@ export function closeStage(stage: Stage, id: string, done: () => void): () => vo
   const shown = frameImage(frame);
   if (to && mediaBox && visible(mediaBox) && shown) {
     const frameBox = frame.getBoundingClientRect();
-    if (ghost.hidden) placeGhost(ghost, shown.currentSrc || shown.src, frameBox);
-    else ghost.src = shown.currentSrc || shown.src;
+    if (ghost.hidden) placeGhost(ghost, shown, frameBox);
+    else copyGhost(ghost, shown);
     gsap.set(to.card, { opacity: 0 });
     gsap.to(sheet, {
       ...flip(to.card.getBoundingClientRect(), sheet.getBoundingClientRect(), false),

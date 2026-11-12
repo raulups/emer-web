@@ -68,6 +68,11 @@
   transition: transform 1.2s var(--ease-out-expo);
 }
 
+/* Foto más ancha que el marco y de fondo liso: entera, con bandas del color del fondo (`image-fit`). */
+.image[data-fit="contain"] {
+  object-fit: contain;
+}
+
 .card[data-hovered] .image {
   transform: scale(1.035);
 }
