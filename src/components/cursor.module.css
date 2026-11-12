@@ -1,3 +1,14 @@
+/* Los dos van como popover (top layer): fuera los estilos de popover del navegador. */
+.dot,
+.logo {
+  inset: 0 auto auto 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  color: inherit;
+}
+
 .dot {
   position: fixed;
   top: 0;
@@ -30,6 +41,7 @@
   z-index: 9999;
   width: 0;
   height: 0;
+  background: none;
   pointer-events: none;
 }
 

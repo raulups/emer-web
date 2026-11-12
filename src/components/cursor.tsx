@@ -10,6 +10,19 @@ const LOGO_ZONE = "[data-cursor-logo]";
 /** Controles dentro de una marca: con ellos vuelve el punto. */
 const CONTROL = 'a, button, input, select, textarea, label, [role="button"], [data-cursor="link"]';
 
+/**
+ * El cursor va en la «top layer» (popover manual) para quedar por encima de los `<dialog>` modales,
+ * que también viven ahí. La top layer se apila por orden de entrada: cada vez que se abre un diálogo
+ * se vuelve a meter el cursor, así queda el último (encima).
+ */
+function raise(nodes: readonly HTMLElement[]): void {
+  for (const node of nodes) {
+    if (typeof node.showPopover !== "function") return;
+    if (node.matches(":popover-open")) node.hidePopover();
+    node.showPopover();
+  }
+}
+
 /** Logo de la marca bajo `target`, o `null` si toca el punto (fuera de marca o sobre un control suyo). */
 function logoAt(target: EventTarget | null): string | null {
   if (!(target instanceof Element)) return null;
@@ -90,8 +103,19 @@ export function Cursor() {
     sync();
     query.addEventListener("change", sync);
 
+    const layers = [el, box];
+    raise(layers);
+    const dialogs = new MutationObserver((records) => {
+      const opened = records.some(
+        (r) => r.target instanceof HTMLDialogElement && r.target.hasAttribute("open"),
+      );
+      if (opened) raise(layers);
+    });
+    dialogs.observe(document.body, { subtree: true, attributes: true, attributeFilter: ["open"] });
+
     return () => {
       query.removeEventListener("change", sync);
+      dialogs.disconnect();
       disable();
     };
   }, []);
@@ -104,6 +128,7 @@ export function Cursor() {
         data-cursor
         data-off={logo ? "" : undefined}
         aria-hidden="true"
+        popover="manual"
         hidden
       />
       <div
@@ -111,6 +136,7 @@ export function Cursor() {
         className={styles.logo}
         data-on={logo ? "" : undefined}
         aria-hidden="true"
+        popover="manual"
         hidden
       >
         {shown && (

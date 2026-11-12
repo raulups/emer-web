@@ -1,11 +1,9 @@
 /*
- * Barra del grid: pegada bajo el shell mientras se recorre el catálogo. Tres zonas: recuento,
- * filtros activos (crecen y se desplazan si no caben) y orden.
+ * Barra del grid, encima de la primera fila y en el flujo (se va con el scroll: una franja fija
+ * tapaba las fotos al pasar por debajo). Tres zonas: recuento, filtros activos (crecen y se
+ * desplazan si no caben) y orden.
  */
 .bar {
-  position: sticky;
-  top: var(--shell-top, 76px);
-  z-index: 30;
   display: flex;
   gap: 24px;
   align-items: center;
@@ -13,7 +11,6 @@
   margin: 0 0 28px;
   padding: 6px 0;
   border-bottom: var(--line) solid var(--hairline);
-  background: var(--paper);
 }
 
 .count {

@@ -414,8 +414,6 @@ test("barra del grid: recuento, filtros activos que se quitan a un clic y BORRAR
   const active = region.getByRole("list", { name: "Filtros activos" });
   await expect(active.getByRole("button")).toHaveText(["Gorras y gorros×", "Satenier×"]);
   await expect(region.getByText("3 PIEZAS")).toBeVisible();
-  // La barra se queda fija bajo el shell.
-  await expect(active).toBeInViewport();
   await active.getByRole("button", { name: "Quitar Gorras y gorros" }).click();
   await expect(active.getByRole("button")).toHaveText(["Satenier×"]);
   await expect(menu(page).getByRole("button", { name: /^Ver todo/ })).toHaveAttribute(
@@ -505,11 +503,11 @@ test("VISTA: la primera tarjeta visible se queda donde estaba al cambiar las col
   const view = page.getByRole("group", { name: "Productos por fila" });
   await page.evaluate(() => window.scrollTo(0, 900));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(800);
-  // La primera foto que asoma bajo la barra fija (identificada por su pieza: las fotos de ejemplo
-  // se repiten entre piezas).
+  // La primera foto que asoma bajo el shell (identificada por su pieza: las fotos de ejemplo se
+  // repiten entre piezas). La barra del grid ya se ha ido con el scroll.
   const first = await page.evaluate(() => {
     const medias = [...document.querySelectorAll("[data-media]")];
-    const top = 122;
+    const top = 76;
     const media = medias.find((m) => m.getBoundingClientRect().bottom > top);
     const id = media?.closest("[data-product]")?.getAttribute("data-product") ?? "";
     return { id, y: media?.getBoundingClientRect().top ?? 0 };

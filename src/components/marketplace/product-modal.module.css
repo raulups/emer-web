@@ -38,10 +38,23 @@
   outline: none;
 }
 
+/* Copia de la foto de la tarjeta que vuela hasta el marco; la posición y el tamaño los fija el JS. */
+.ghost {
+  position: fixed;
+  z-index: 4;
+  display: block;
+  object-fit: cover;
+  background: var(--placeholder);
+  pointer-events: none;
+}
+
+.ghost[hidden] {
+  display: none;
+}
+
+/* Velo liso (sin `backdrop-filter`: repintar el desenfoque en cada frame frenaba la apertura). */
 .dialog::backdrop {
-  background: rgba(255, 255, 255, 0.55);
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
+  background: rgba(255, 255, 255, 0.86);
   opacity: 1;
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }

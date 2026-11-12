@@ -189,7 +189,7 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
     (chip) => ({ key: chip.key, label: chip.label, onRemove: () => update(chip.remove) }),
   );
   const anchorTop = useCallback(
-    () => toolbar.current?.getBoundingClientRect().bottom ?? SHELL_TOP,
+    () => Math.max(SHELL_TOP, toolbar.current?.getBoundingClientRect().bottom ?? SHELL_TOP),
     [],
   );
   /** VER MÁS DE la marca desde el popup: solo esa marca, sin más filtros, y se cierra. */

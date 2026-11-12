@@ -17,6 +17,7 @@ import { discount, price } from "@/lib/format";
 import { sizedImage } from "@/lib/marketplace";
 import { lockScroll } from "@/lib/motion/scroll";
 import styles from "./product-modal.module.css";
+import { closeStage, openStage } from "./product-modal-motion";
 import type { Opened } from "./use-product-route";
 import { useProductSizes } from "./use-product-sizes";
 
@@ -25,11 +26,6 @@ gsap.registerPlugin(useGSAP);
 const IMAGE_WIDTH = 960;
 const THUMB_WIDTH = 160;
 const MAX_PHOTOS = 8;
-/** Si la animación de cierre no termina (pestaña oculta…), se cierra igual. */
-const CLOSE_FALLBACK_MS = 900;
-
-type Phase = "hidden" | "open" | "closing";
-
 type Props = {
   opened: Opened | null;
   brandName: string;
@@ -54,133 +50,66 @@ const photosOf = (product: Product) =>
 export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
   const sheet = useRef<HTMLDivElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<Phase>("hidden");
-  const [shown, setShown] = useState<Opened | null>(null);
+  const ghost = useRef<HTMLImageElement>(null);
+  /** Corta un cierre a medias si la pieza se vuelve a abrir (p. ej. «adelante» en el historial). */
+  const cancelClose = useRef<(() => void) | null>(null);
+  /** Pieza que se sigue pintando mientras dura el cierre (cuando `opened` ya es null). */
+  const [shown, setShown] = useState<Product | null>(null);
   const [index, setIndex] = useState(0);
   const titleId = useId();
-  const current = opened ?? shown;
-  const product = current?.product ?? null;
-  const sizes = useProductSizes(product?.id ?? "", phase === "open" && product !== null);
+  const product = opened?.product ?? shown;
+  const sizes = useProductSizes(product?.id ?? "", opened !== null);
 
-  // Abrir / cerrar el diálogo nativo según llegue (o se vaya) la pieza.
-  useEffect(() => {
-    const el = dialog.current;
-    if (!el) return;
-    if (opened) {
-      setShown(opened);
-      setIndex(0);
-      if (!el.open) el.showModal();
-      el.focus({ preventScroll: true });
-      setPhase("open");
-    } else if (el.open) {
-      setPhase("closing");
-    }
-  }, [opened]);
+  // Nueva pieza: desde la primera foto. (Ajuste de estado durante el render, sin efecto.)
+  const [lastId, setLastId] = useState<string | null>(null);
+  if (opened && opened.product.id !== lastId) {
+    setLastId(opened.product.id);
+    setShown(opened.product);
+    setIndex(0);
+  }
 
   useEffect(() => {
-    if (phase === "hidden") return;
+    if (!product) return;
     lockScroll(true);
     return () => lockScroll(false);
-  }, [phase]);
+  }, [product]);
 
-  const finish = () => {
-    dialog.current?.close();
-    setPhase("hidden");
-    setShown(null);
-  };
-
-  // Entrada: la tarjeta se oculta y, desde su sitio, la caja blanca y la foto crecen hasta el
-  // popup; detrás van apareciendo los detalles. Salida: los detalles se apagan y caja y foto
-  // vuelven a encoger hasta la tarjeta, que reaparece.
+  // Abrir / cerrar en el mismo efecto de layout que mide y anima: el popup nunca se pinta un frame
+  // sin su estado inicial. La coreografía está en `product-modal-motion.ts`.
   useGSAP(
     () => {
       const el = dialog.current;
-      const photo = frame.current;
-      const box = sheet.current;
-      if (!el || !photo || !box || phase === "hidden") return;
-      const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const origin = current?.origin ?? null;
-      const card = product
-        ? document.querySelector<HTMLElement>(`[data-product="${product.id}"]`)
-        : null;
-      const rise = el.querySelectorAll("[data-rise]");
-      const grow = (node: HTMLElement, from: DOMRect) => {
-        const to = node.getBoundingClientRect();
-        if (to.width === 0 || to.height === 0) return null;
-        return {
-          x: from.left - to.left,
-          y: from.top - to.top,
-          scaleX: from.width / to.width,
-          scaleY: from.height / to.height,
-          transformOrigin: "0 0",
-        };
-      };
-      const restoreCard = () => {
-        if (card) {
-          gsap.to(card, { opacity: 1, duration: 0.35, overwrite: true, clearProps: "opacity" });
-        }
-      };
-
-      if (phase === "open") {
-        if (still) return;
-        const boxFrom = origin ? grow(box, origin.card) : null;
-        const photoFrom = origin ? grow(photo, origin.media) : null;
-        if (boxFrom && photoFrom) {
-          if (card) gsap.set(card, { opacity: 0 });
-          const settle = { x: 0, y: 0, scaleX: 1, scaleY: 1, duration: 0.85, ease: "expo.inOut" };
-          gsap.fromTo(box, boxFrom, { ...settle, clearProps: "transform" });
-          gsap.fromTo(photo, photoFrom, { ...settle, clearProps: "transform" });
-        } else {
-          gsap.from([box, photo], {
-            opacity: 0,
-            y: 24,
-            duration: 0.7,
-            ease: "expo.out",
-            clearProps: "all",
-          });
-        }
-        gsap.from(rise, {
-          opacity: 0,
-          y: 18,
-          duration: 0.7,
-          delay: boxFrom ? 0.45 : 0.15,
-          ease: "expo.out",
-          stagger: 0.05,
-          clearProps: "opacity,transform",
-        });
+      const stage =
+        sheet.current && panel.current && frame.current && ghost.current
+          ? {
+              sheet: sheet.current,
+              panel: panel.current,
+              frame: frame.current,
+              ghost: ghost.current,
+            }
+          : null;
+      if (!el || !stage) return;
+      if (opened) {
+        cancelClose.current?.();
+        cancelClose.current = null;
+        el.dataset.phase = "open";
+        if (!el.open) el.showModal();
+        el.focus({ preventScroll: true });
+        openStage(stage, opened.origin ? opened.product.id : null);
         return;
       }
-
-      // closing
-      const done = () => {
-        restoreCard();
-        finish();
-      };
-      if (still) {
-        done();
-        return;
-      }
-      const timer = window.setTimeout(done, CLOSE_FALLBACK_MS);
-      const boxTo = origin ? grow(box, origin.card) : null;
-      const photoTo = origin ? grow(photo, origin.media) : null;
-      gsap.to(rise, { opacity: 0, duration: 0.2, ease: "power2.out", overwrite: true });
-      if (boxTo && photoTo) {
-        const shrink = { duration: 0.6, ease: "expo.inOut", overwrite: true as const };
-        gsap.to(box, { ...boxTo, ...shrink });
-        gsap.to(photo, { ...photoTo, ...shrink, onComplete: done });
-      } else {
-        gsap.to([box, photo], {
-          opacity: 0,
-          y: 16,
-          duration: 0.3,
-          overwrite: true,
-          onComplete: done,
-        });
-      }
-      return () => window.clearTimeout(timer);
+      if (!el.open || !shown) return;
+      el.dataset.phase = "closing";
+      cancelClose.current = closeStage(stage, shown.id, () => {
+        cancelClose.current = null;
+        el.close();
+        setShown(null);
+        setLastId(null);
+      });
     },
-    { scope: dialog, dependencies: [phase, product?.id] },
+    { dependencies: [opened] },
   );
 
   const onCancel = (event: SyntheticEvent<HTMLDialogElement>) => {
@@ -209,7 +138,6 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
       ref={dialog}
       className={styles.dialog}
       aria-labelledby={titleId}
-      data-phase={phase}
       data-lenis-prevent
       tabIndex={-1}
       onCancel={onCancel}
@@ -220,7 +148,7 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
     >
       {/* La caja blanca con borde: nace de la tarjeta y crece hasta aquí. */}
       <div ref={sheet} className={styles.sheet} aria-hidden="true" />
-      <div className={styles.panel}>
+      <div ref={panel} className={styles.panel}>
         <button
           type="button"
           className={styles.close}
@@ -385,6 +313,9 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
           </div>
         </div>
       </div>
+      {/* Copia de la foto de la tarjeta que vuela hasta el marco (ver `product-modal-motion.ts`). */}
+      {/* biome-ignore lint/performance/noImgElement: copia de una imagen ya cargada en la tarjeta */}
+      <img ref={ghost} className={styles.ghost} alt="" aria-hidden="true" hidden />
     </dialog>
   );
 }
