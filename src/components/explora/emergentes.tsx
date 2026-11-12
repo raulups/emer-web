@@ -1,13 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  type FocusEvent,
+  type PointerEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import typo from "@/components/ui/type.module.css";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { price } from "@/lib/format";
 import { pad } from "@/lib/motion/math";
 import { brandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
+import { placeHover } from "./catalog-hover";
 import styles from "./emergentes.module.css";
 import { openMarketplace } from "./novedades";
 
@@ -41,13 +50,15 @@ const PAGE = LAYOUT.length * 2;
 
 /**
  * Una foto del grid: lleva al Marketplace filtrado si la marca tiene piezas; si no, a su web. Con
- * el hover, el nombre sube encima de la foto y las piezas salen en columna en el lado libre.
+ * el hover, el nombre (en grande) y las piezas salen en el espacio libre alrededor de la foto, en
+ * una composición distinta cada vez (`catalog-hover.ts`); la foto queda siempre despejada.
+ * `side`: lado libre por defecto (antes del primer hover y sin ratón).
  */
-function Tile({ brand }: { brand: ExploraBrand }) {
+function Tile({ brand, side }: { brand: ExploraBrand; side: "left" | "right" }) {
   const { primary } = brandActions(brand);
   const content = (
     <>
-      <span className={styles.photo}>
+      <span className={styles.photo} data-cat-photo>
         <BrandImage
           sources={brand.portrait}
           alt={brand.name}
@@ -59,12 +70,19 @@ function Tile({ brand }: { brand: ExploraBrand }) {
         />
       </span>
       <span className={styles.nameMask} aria-hidden="true">
-        <span className={`${typo.editorial} ${styles.name}`}>{brand.name}</span>
+        <span className={`${typo.editorial} ${styles.name}`} data-cat-name>
+          {brand.name}
+        </span>
       </span>
-      <span className={styles.pieces} aria-hidden="true">
+      <span className={styles.pieces} aria-hidden="true" data-cat-pieces>
         {brand.products.length > 0 ? (
           brand.products.slice(0, PIECES).map((product, j) => (
-            <span key={product.id} className={styles.piece} style={{ "--j": j } as CSSProperties}>
+            <span
+              key={product.id}
+              className={styles.piece}
+              data-cat-piece
+              style={{ "--j": j } as CSSProperties}
+            >
               <span className={styles.piecePhoto}>
                 <BrandImage
                   sources={product.image ? [product.image] : []}
@@ -89,6 +107,14 @@ function Tile({ brand }: { brand: ExploraBrand }) {
     className: styles.tile,
     "data-cat-row": brand.id,
     "data-cursor-logo": brand.logo ?? undefined,
+    "data-name": "top",
+    "data-name-align": "start",
+    "data-pieces": side,
+    "data-pieces-align": "start",
+    onPointerEnter: (event: PointerEvent<HTMLElement>) => {
+      if (event.pointerType === "mouse") placeHover(event.currentTarget);
+    },
+    onFocus: (event: FocusEvent<HTMLElement>) => placeHover(event.currentTarget),
   };
   if (primary === "market")
     return (
@@ -202,7 +228,7 @@ export function Emergentes({ brands }: Props) {
               }
               data-side={spot?.side}
             >
-              <Tile brand={brand} />
+              <Tile brand={brand} side={spot?.side ?? "right"} />
             </li>
           );
         })}

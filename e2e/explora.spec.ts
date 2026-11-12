@@ -595,30 +595,48 @@ test("Catálogo (5.ª sección): solo un grid asimétrico con la foto de todas l
   expect(new Set(shapes).size).toBeGreaterThan(3);
 });
 
-test("Catálogo: con el hover, el nombre sube encima de la foto y las piezas salen a un lado", async ({
+test("Catálogo: con el hover, nombre y piezas salen alrededor de la foto, nunca encima, y cambian de sitio", async ({
   page,
 }) => {
   await openExplora(page);
   const catalog = page.getByRole("region", { name: "Catálogo" });
   const tile = catalog.getByRole("link", { name: /^Satenier: ver sus \d+ piezas/ });
   await tile.scrollIntoViewIfNeeded();
-  const name = tile.locator("[class$='_name']");
-  const pieces = tile.locator("[class$='_piece']");
+  const name = tile.locator("[data-cat-name]");
+  const pieces = tile.locator("[data-cat-piece]");
   await expect(name).not.toHaveCSS("transform", "none");
-  await tile.hover();
-  await expect(name).toHaveText("Satenier");
-  await expect(name).toHaveCSS("transform", "none");
-  await expect(pieces).toHaveCount(3);
-  await expect(pieces.last()).toHaveCSS("opacity", "1");
-  // Encima de la foto el nombre; a un lado (fuera de la foto) las piezas.
-  const photo = await tile.locator("[class$='_photo']").boundingBox();
-  const nameBox = await name.boundingBox();
-  const pieceBox = await pieces.first().boundingBox();
-  expect((nameBox?.y ?? 0) + (nameBox?.height ?? 0)).toBeLessThanOrEqual((photo?.y ?? 0) + 1);
-  const outside =
-    (pieceBox?.x ?? 0) >= (photo?.x ?? 0) + (photo?.width ?? 0) ||
-    (pieceBox?.x ?? 0) + (pieceBox?.width ?? 0) <= (photo?.x ?? 0);
-  expect(outside).toBe(true);
+
+  // Hasta que nada pise la foto, con nombre y piezas en lados distintos.
+  const hoverOnce = async () => {
+    await page.mouse.move(2, 2);
+    await tile.hover();
+    await expect(name).toHaveText("Satenier");
+    await expect(name).toHaveCSS("transform", "none");
+    await expect(pieces).toHaveCount(3);
+    await expect(pieces.last()).toHaveCSS("opacity", "1");
+    const photo = await tile.locator("[data-cat-photo]").boundingBox();
+    const boxes = [
+      await name.boundingBox(),
+      ...(await Promise.all((await pieces.all()).map((p) => p.boundingBox()))),
+    ];
+    for (const box of boxes) {
+      const overlaps =
+        box !== null &&
+        photo !== null &&
+        box.x < photo.x + photo.width - 1 &&
+        box.x + box.width > photo.x + 1 &&
+        box.y < photo.y + photo.height - 1 &&
+        box.y + box.height > photo.y + 1;
+      expect(overlaps).toBe(false);
+    }
+    const sides = await tile.evaluate((el) => [el.dataset.name, el.dataset.pieces]);
+    expect(sides[0]).not.toBe(sides[1]);
+    return tile.getAttribute("data-combo");
+  };
+  const first = await hoverOnce();
+  const second = await hoverOnce();
+  // Cada hover elige otra composición (si cabe más de una).
+  expect(second).not.toBe(first);
 });
 
 test("Catálogo: cada marca lleva a sus piezas o, sin stock, a su tienda", async ({ page }) => {

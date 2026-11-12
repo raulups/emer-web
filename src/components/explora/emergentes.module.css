@@ -28,6 +28,7 @@
 }
 
 .tile {
+  --gap: clamp(22px, 2.2vw, 44px);
   position: relative;
   display: block;
   color: var(--ink);
@@ -73,57 +74,156 @@
   transform: scale(1.04);
 }
 
-/* Nombre: encima de la foto, sube desde su máscara. No ocupa sitio en el grid. */
+/*
+ * Hover: nombre y piezas en el espacio libre alrededor de la foto, nunca encima. El lado y la
+ * alineación de cada uno los elige `catalog-hover.ts` en cada hover (`data-name`, `data-pieces`,
+ * `data-*-align`); aquí solo se colocan. Separados de la foto por `--gap` (igual que `GAP`).
+ */
+
+/* Nombre en grande: sale desde el lado de la foto, a través de su máscara. */
 .nameMask {
   position: absolute;
-  bottom: calc(100% + 10px);
-  left: 0;
-  max-width: 200%;
   overflow: clip;
   pointer-events: none;
+}
+
+.tile[data-name="top"] .nameMask {
+  bottom: calc(100% + var(--gap));
+}
+
+.tile[data-name="bottom"] .nameMask {
+  top: calc(100% + var(--gap));
+}
+
+/* A los lados, en vertical: a la derecha se lee de arriba abajo; a la izquierda, de abajo arriba. */
+.tile:is([data-name="left"], [data-name="right"]) .nameMask {
+  writing-mode: vertical-rl;
+}
+
+.tile[data-name="right"] .nameMask {
+  left: calc(100% + var(--gap));
+}
+
+.tile[data-name="left"] .nameMask {
+  right: calc(100% + var(--gap));
+  transform: rotate(180deg);
+}
+
+.tile:is([data-name="top"], [data-name="bottom"])[data-name-align="start"] .nameMask {
+  left: 0;
+}
+
+.tile:is([data-name="top"], [data-name="bottom"])[data-name-align="end"] .nameMask {
+  right: 0;
+}
+
+.tile:is([data-name="left"], [data-name="right"])[data-name-align="start"] .nameMask {
+  top: 0;
+}
+
+.tile:is([data-name="left"], [data-name="right"])[data-name-align="end"] .nameMask {
+  bottom: 0;
 }
 
 .name {
   display: block;
   color: var(--ink);
-  font-size: clamp(28px, 2.6vw, 44px);
+  font-size: clamp(40px, 4.6vw, 88px);
+  line-height: 1;
   white-space: nowrap;
   transform: translateY(110%);
   transition: transform 0.35s var(--ease-out-expo);
 }
 
-.tile:is(:hover, :focus-visible) .name {
-  transform: none;
-  transition-duration: 0.8s;
+.tile[data-name="bottom"] .name {
+  transform: translateY(-110%);
 }
 
-/* Piezas: en columna, en el lado libre de la foto (`data-side` en el hueco del grid). */
+/* En vertical, el eje del texto gira: entra también desde el lado de la foto. */
+.tile:is([data-name="left"], [data-name="right"]) .name {
+  transform: translateX(-110%);
+}
+
+.tile:is(:hover, :focus-visible) .name {
+  transform: none;
+  transition-duration: 0.9s;
+}
+
+/* Piezas: en fila arriba o abajo, en columna a los lados. */
 .pieces {
   --piece-w: clamp(54px, 4.6vw, 84px);
   position: absolute;
-  top: 0;
-  left: calc(100% + 14px);
   display: flex;
-  flex-direction: column;
   gap: 10px;
-  width: var(--piece-w);
   pointer-events: none;
 }
 
-[data-side="left"] .pieces {
-  right: calc(100% + 14px);
-  left: auto;
+.tile:is([data-pieces="left"], [data-pieces="right"]) .pieces {
+  flex-direction: column;
+  width: var(--piece-w);
 }
 
+.tile[data-pieces="right"] .pieces {
+  left: calc(100% + var(--gap));
+}
+
+.tile[data-pieces="left"] .pieces {
+  right: calc(100% + var(--gap));
+}
+
+.tile:is([data-pieces="top"], [data-pieces="bottom"]) .pieces {
+  flex-direction: row;
+}
+
+.tile[data-pieces="top"] .pieces {
+  bottom: calc(100% + var(--gap));
+}
+
+.tile[data-pieces="bottom"] .pieces {
+  top: calc(100% + var(--gap));
+}
+
+.tile:is([data-pieces="left"], [data-pieces="right"])[data-pieces-align="start"] .pieces {
+  top: 0;
+}
+
+.tile:is([data-pieces="left"], [data-pieces="right"])[data-pieces-align="end"] .pieces {
+  bottom: 0;
+}
+
+.tile:is([data-pieces="top"], [data-pieces="bottom"])[data-pieces-align="start"] .pieces {
+  left: 0;
+}
+
+.tile:is([data-pieces="top"], [data-pieces="bottom"])[data-pieces-align="end"] .pieces {
+  right: 0;
+}
+
+/* Cada pieza entra desde el lado de la foto. */
 .piece {
+  --from: translateY(14px);
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: 4px;
+  width: var(--piece-w);
   opacity: 0;
-  transform: translateY(14px);
+  transform: var(--from);
   transition:
     opacity 0.2s linear,
     transform 0.3s var(--ease-out-expo);
+}
+
+.tile[data-pieces="bottom"] .piece {
+  --from: translateY(-14px);
+}
+
+.tile[data-pieces="right"] .piece {
+  --from: translateX(-14px);
+}
+
+.tile[data-pieces="left"] .piece {
+  --from: translateX(14px);
 }
 
 .tile:is(:hover, :focus-visible) .piece {
@@ -132,7 +232,7 @@
   transition:
     opacity 0.45s var(--ease-out-expo),
     transform 0.8s var(--ease-out-expo);
-  transition-delay: calc(80ms + var(--j, 0) * 70ms);
+  transition-delay: calc(160ms + var(--j, 0) * 70ms);
 }
 
 .piecePhoto {
@@ -156,20 +256,22 @@
 
 .tile:is(:hover, :focus-visible) .soon {
   opacity: 1;
-  transition-delay: 80ms;
+  transition-delay: 160ms;
 }
 
 /* Sin hover (táctil) o sin sitio a los lados: el nombre, siempre a la vista bajo la foto; sin
    piezas. */
 @media (hover: none), (max-width: 900px) {
-  .nameMask {
+  .tile .nameMask {
     position: static;
     display: block;
     max-width: none;
     padding-top: 8px;
+    writing-mode: horizontal-tb;
+    transform: none;
   }
 
-  .name {
+  .tile .name {
     font-size: 22px;
     white-space: normal;
     transform: none;
