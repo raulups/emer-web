@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { flushSync } from "react-dom";
+import { track } from "@/lib/analytics";
 import { bus } from "@/lib/bus";
 import { scrollToY } from "@/lib/motion/scroll";
 import styles from "./shell.module.css";
@@ -42,6 +43,7 @@ export function Shell({ marketplace, explora }: Props) {
 
   const select = (next: View) => {
     if (next === view) return;
+    track("view_switch", { from: view, to: next });
     const change = () => {
       setView(next);
       setHover(null);

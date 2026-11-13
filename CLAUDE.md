@@ -75,6 +75,12 @@ Pendientes aplazados para el final: `docs/PENDIENTES.md` (añadir ahí cualquier
 - Si falta un endpoint público de lectura en el backend, pedirlo/anotarlo; no saltarse el backend.
 - Backend dormido (Render free): las lecturas que bloquean la pantalla van con `wakeFetch` (`lib/backend-wake.ts`: reintenta en 502/503/504 y sin respuesta, enseña el aviso) en el cliente y con `withinGrace` + `WakeRetry` en las secciones de servidor. No usarlo en peticiones secundarias (hover, tallas).
 
+## Analítica
+
+- Google Analytics 4 (misma propiedad que la app en Firebase), `NEXT_PUBLIC_GA_MEASUREMENT_ID`. Sin ID no se carga nada ni sale el aviso.
+- `lib/analytics.ts` (`track`, consentimiento) + `components/analytics/` (layout: aviso de cookies, page_view por ruta, clics con `data-track`, enlaces externos, errores JS, esperas al backend). Nada se carga ni se envía sin aceptar.
+- Medir un clic: `data-track="evento"` + `data-track-<param>="valor"` en el elemento. Medir otra cosa: `track("evento", { ... })`. Nombres de eventos iguales que en la app.
+
 ## Convenciones
 
 - TypeScript sin `any`; `import type` para tipos.

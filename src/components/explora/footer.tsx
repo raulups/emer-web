@@ -41,7 +41,10 @@ const COLUMNS: readonly { title: string; items: readonly Item[] }[] = [
   },
   {
     title: "Legal",
-    items: LEGAL_PAGES,
+    items: [
+      ...LEGAL_PAGES,
+      { label: "Configurar cookies", href: "#", onClick: () => bus.emit("consent:open", null) },
+    ],
   },
 ];
 

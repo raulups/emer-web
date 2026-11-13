@@ -1,6 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
+import { track } from "@/lib/analytics";
 import styles from "./brand-search.module.css";
+
+/** Una búsqueda cuenta cuando se deja de escribir un momento. */
+const SEARCH_DWELL_MS = 1_200;
 
 type Props = {
   value: string;
@@ -13,6 +18,16 @@ type Props = {
 
 /** Buscar marca: campo de 1px de línea; al escribir, la lista se queda con las que coinciden. */
 export function BrandSearch({ value, onChange, matches, variant = "menu" }: Props) {
+  useEffect(() => {
+    const term = value.trim().toLowerCase();
+    if (!term) return;
+    const timer = window.setTimeout(() => {
+      track("search", { term, results_count: matches });
+      if (matches === 0) track("search_no_results", { term });
+    }, SEARCH_DWELL_MS);
+    return () => window.clearTimeout(timer);
+  }, [value, matches]);
+
   return (
     <label className={styles.field} data-variant={variant}>
       <span className="sr-only">Buscar marca</span>

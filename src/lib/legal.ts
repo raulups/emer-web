@@ -6,7 +6,7 @@ export const OWNER = {
   email: "emerappcontact@gmail.com",
 } as const;
 
-export const LEGAL_UPDATED = "12 de noviembre de 2026";
+export const LEGAL_UPDATED = "13 de noviembre de 2026";
 
 export const LEGAL_PAGES = [
   { href: "/legal", label: "Aviso legal" },

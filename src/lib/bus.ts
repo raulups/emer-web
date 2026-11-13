@@ -18,6 +18,8 @@ type Events = {
   "suggest:open": null;
   /** Detalle de un producto de Explora en hover (`null` al salir). */
   "product:peek": ProductPeekEvent | null;
+  /** Volver a enseñar el aviso de cookies de analítica. */
+  "consent:open": null;
 };
 
 type Listener<K extends keyof Events> = (payload: Events[K]) => void;

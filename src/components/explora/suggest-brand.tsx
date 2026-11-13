@@ -6,6 +6,7 @@ import Link from "next/link";
 import { type FormEvent, useLayoutEffect, useRef, useState } from "react";
 import button from "@/components/ui/button.module.css";
 import { ScrambleText } from "@/components/ui/scramble-text";
+import { track } from "@/lib/analytics";
 import { bus } from "@/lib/bus";
 import type { ExploraBrand } from "@/lib/explora-data";
 import { OWNER } from "@/lib/legal";
@@ -264,6 +265,7 @@ export function SuggestBrand({ brands }: Props) {
       setStatus("error");
       return;
     }
+    track("suggest_brand_submit");
     setSentName(name.trim());
     setName("");
     setInstagram("");

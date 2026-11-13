@@ -2,7 +2,8 @@
 
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { bus } from "@/lib/bus";
 import type { ExploraData } from "@/lib/explora-data";
 import { clamp01, easeInOutQuad, easeOutCubic } from "@/lib/motion/math";
@@ -31,6 +32,7 @@ gsap.registerPlugin(useGSAP);
  * 2.ª `Novedades`, 3.ª `Catalogo`, 4.ª `Llegadas` y 5.ª `Emergentes` como componentes).
  */
 const SECTIONS = ["Destacados", "Populares", "Emergentes", "Novedades", "Catálogo"] as const;
+const SECTION_DWELL_MS = 1_500;
 
 /** Píxeles que avanza el carrusel de Emergentes por cada píxel de scroll. */
 const CAT_SPEED = 1.42;
@@ -58,6 +60,15 @@ export function Explora({ data }: Props) {
   const { destacados, populares, emergentes, novedades, todas } = data;
   const root = useRef<HTMLDivElement>(null);
   const [section, setSection] = useState(0);
+
+  // Una vista de sección cuenta si se queda en ella un momento (no al pasar de largo).
+  useEffect(() => {
+    const timer = window.setTimeout(
+      () => track("explora_section_view", { section: SECTIONS[section] ?? SECTIONS[0] }),
+      SECTION_DWELL_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [section]);
 
   useGSAP(
     () => {

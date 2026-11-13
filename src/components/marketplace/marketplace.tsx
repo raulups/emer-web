@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { track } from "@/lib/analytics";
 import { bus } from "@/lib/bus";
 import type { Brand } from "@/lib/data";
 import { type Device, GRID, gridCookie } from "@/lib/grid";
@@ -84,6 +85,45 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
     }
   }, [filters.brands]);
 
+  // Estadísticas: qué filtro se ha puesto o si se han quitado todos.
+  const tracked = useRef(filters);
+  useEffect(() => {
+    const prev = tracked.current;
+    tracked.current = filters;
+    if (prev === filters) return;
+    if (!hasFilters(filters) && hasFilters(prev)) {
+      track("filters_clear");
+      return;
+    }
+    const added = changedFilter(prev, filters);
+    if (prev.brands.length !== filters.brands.length) {
+      const id =
+        added?.kind === "brand"
+          ? added.value
+          : prev.brands.find((b) => !filters.brands.includes(b));
+      track("brand_filter_toggle", {
+        brand_id: id,
+        brand_name: id ? brandNamesRef.current.get(id) : undefined,
+        selected: added?.kind === "brand",
+      });
+    }
+    if (!added || added.kind === "brand") return;
+    if (added.kind === "cat") {
+      track("category_select", {
+        category_id: added.value,
+        category: categoryNamesRef.current.get(added.value),
+      });
+      return;
+    }
+    const value =
+      "value" in added
+        ? added.value
+        : added.kind === "price"
+          ? `${filters.lo ?? ""}-${filters.hi ?? ""}`
+          : "on";
+    track("filter_apply", { type: added.kind, value });
+  }, [filters]);
+
   // Filtros pedidos desde otra sección (footer → Ofertas).
   useEffect(
     () => bus.on("market:filters", (next) => setFilters({ ...EMPTY_FILTERS, ...next })),
@@ -117,6 +157,10 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
       ),
     [initial.page.facets.categories, products.facets.categories],
   );
+  const brandNamesRef = useRef(brandNames);
+  brandNamesRef.current = brandNames;
+  const categoryNamesRef = useRef(categoryNames);
+  categoryNamesRef.current = categoryNames;
   // Loader: empieza por el filtro recién pulsado y sigue con otros del mismo tipo (otra
   // categoría, otra marca, otra talla…). Sin filtro nuevo: las marcas elegidas o las que más
   // piezas tienen.
@@ -181,6 +225,7 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   }, []);
   const changeColumns = (next: number) => {
     setColumns(next);
+    track("columns_change", { columns: next, device });
     // biome-ignore lint/suspicious/noDocumentCookie: preferencia de vista; la lee el servidor
     document.cookie = `${gridCookie(device)}=${next}; path=/; max-age=${YEAR_S}; samesite=lax`;
   };
@@ -196,10 +241,27 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   }, [mobile]);
   /** VER MÁS DE la marca desde el popup: solo esa marca, sin más filtros, y se cierra. */
   const seeBrand = (id: string) => {
+    track("brand_view", { brand_id: id, brand_name: brandNames.get(id), source: "producto" });
     setFilters({ ...EMPTY_FILTERS, brands: [id] });
     route.close();
   };
   const loading = products.status === "loading";
+  const loadMore = () => {
+    if (products.hasMore && !products.loadingMore) {
+      track("load_more", { loaded: products.items.length, category_id: filters.cat });
+    }
+    products.loadMore();
+  };
+  const openProduct: typeof route.open = (product, origin) => {
+    track("product_view", {
+      product_id: product.id,
+      brand_id: product.brand_id,
+      brand_name: brandNames.get(product.brand_id ?? ""),
+      price: product.current_price,
+      source: "marketplace",
+    });
+    route.open(product, origin);
+  };
 
   const grid = (
     <section
@@ -227,14 +289,14 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         error={products.status === "error"}
         hasMore={products.hasMore}
         loadingMore={products.loadingMore}
-        onLoadMore={products.loadMore}
+        onLoadMore={loadMore}
         onRetry={products.reload}
         device={device}
         columns={columns}
         loaderWords={loaderWords}
         chips={[]}
         onClear={clear}
-        onOpen={route.open}
+        onOpen={openProduct}
         anchorTop={anchorTop}
       />
     </section>

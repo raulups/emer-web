@@ -70,6 +70,8 @@ export function AppPrompt() {
                   href={store.href}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-track="app_download_click"
+                  data-track-store={store.name}
                 >
                   {store.name.toUpperCase()}
                 </a>

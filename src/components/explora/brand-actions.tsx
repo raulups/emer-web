@@ -80,6 +80,10 @@ export function BrandActions({ brand, tone = "line", className }: Props) {
           data-primary={primary === "market" || undefined}
           href={`/marketplace?brand=${brand.id}`}
           draggable={false}
+          data-track="brand_view"
+          data-track-brand-id={brand.id}
+          data-track-brand-name={brand.name}
+          data-track-source="explora"
           onPointerDown={onPointerDown}
           onClick={openMarketplace}
         >
@@ -94,6 +98,10 @@ export function BrandActions({ brand, tone = "line", className }: Props) {
           target="_blank"
           rel="noopener noreferrer"
           draggable={false}
+          data-track="store_click"
+          data-track-brand-id={brand.id}
+          data-track-brand-name={brand.name}
+          data-track-source="explora"
           onPointerDown={onPointerDown}
           onClick={openStore}
         >

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@/components/analytics/analytics";
 import { BackendWake } from "@/components/backend-wake";
 import { Cursor } from "@/components/cursor";
 import { SmoothScroll } from "@/components/smooth-scroll";
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <BackendWake />
         <Cursor />
         <SmoothScroll />
+        <Analytics />
       </body>
     </html>
   );

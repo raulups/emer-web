@@ -314,6 +314,11 @@ export function ProductModal({ opened, brandName, onClose, onBrand }: Props) {
               href={product.product_url}
               target="_blank"
               rel="noopener noreferrer"
+              data-track="product_store_click"
+              data-track-product-id={product.id}
+              data-track-brand-id={product.brand_id ?? undefined}
+              data-track-brand-name={brandName}
+              data-track-price={product.current_price ?? undefined}
             >
               IR A LA TIENDA ↗<span className="sr-only"> (se abre en otra pestaña)</span>
             </a>

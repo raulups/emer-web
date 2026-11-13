@@ -23,8 +23,8 @@ export default function PrivacidadPage() {
 
       <h2>2. Qué datos se tratan y para qué</h2>
       <p>
-        Emer no tiene registro de usuarios, no usa analítica ni publicidad y no vende datos. Solo se
-        tratan los datos estrictamente necesarios en estos casos:
+        Emer no tiene registro de usuarios, no muestra publicidad y no vende datos. Solo se tratan
+        los datos necesarios en estos casos:
       </p>
       <ul>
         <li>
@@ -39,6 +39,16 @@ export default function PrivacidadPage() {
           ejercicio de derechos, el cumplimiento de una obligación legal (art. 6.1.a y 6.1.c RGPD).
           Plazo: el necesario para atenderte y, después, el de prescripción de posibles
           responsabilidades.
+        </li>
+        <li>
+          <strong>Estadísticas de uso.</strong> Solo si aceptas las cookies de analítica, Google
+          Analytics registra de forma seudónima las páginas y secciones que visitas y lo que pulsas
+          (marcas, piezas, filtros, búsquedas, enlaces a tiendas), junto a un identificador
+          aleatorio guardado en una cookie, el tipo de dispositivo, el navegador y la ubicación
+          aproximada (país y ciudad) deducida de la IP, para saber qué funciona y mejorar Emer.
+          También se registran los errores de la web. No se usan con fines publicitarios. Base
+          legal: tu consentimiento (art. 6.1.a RGPD), que puedes retirar en cualquier momento desde
+          «Configurar cookies». Plazo: 14 meses.
         </li>
         <li>
           <strong>Datos técnicos de navegación.</strong> Los servidores registran de forma
@@ -59,6 +69,10 @@ export default function PrivacidadPage() {
         <li>Render Services, Inc.: alojamiento del servidor (backend).</li>
         <li>Supabase, Inc.: base de datos.</li>
         <li>El proveedor de alojamiento de la web.</li>
+        <li>
+          Google Ireland Limited / Google LLC: estadísticas de uso (Google Analytics), solo si las
+          aceptas.
+        </li>
       </ul>
       <p>
         Algunos de estos proveedores pueden tratar datos fuera del Espacio Económico Europeo. En ese
