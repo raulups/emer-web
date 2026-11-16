@@ -321,6 +321,24 @@ function facets(scope: RawProduct[]): RawProductFacets {
   };
 }
 
+/** Imitación de `sort=recommended`: marcas intercaladas conservando su orden. */
+function roundRobinByBrand(items: readonly RawProduct[]): RawProduct[] {
+  const groups = new Map<string, RawProduct[]>();
+  for (const item of items) {
+    const key = item.brand_id ?? "";
+    groups.set(key, [...(groups.get(key) ?? []), item]);
+  }
+  const queues = [...groups.values()];
+  const out: RawProduct[] = [];
+  for (let round = 0; out.length < items.length; round++) {
+    for (const queue of queues) {
+      const item = queue[round];
+      if (item) out.push(item);
+    }
+  }
+  return out;
+}
+
 function productsPage(params: URLSearchParams, scope: RawProduct[]): ApiEnvelope<RawProductsPage> {
   const filters = productFilters(params);
   const items = scope.filter(filters.all);
@@ -329,6 +347,7 @@ function productsPage(params: URLSearchParams, scope: RawProduct[]): ApiEnvelope
     const dir = sort === "price_asc" ? 1 : -1;
     items.sort((a, b) => ((a.current_price ?? 0) - (b.current_price ?? 0)) * dir);
   }
+  if (sort === "recommended") items.splice(0, items.length, ...roundRobinByBrand(items));
   const pageSize = Math.min(100, Math.max(1, Number(params.get("page_size") ?? 24) || 24));
   const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
   const from = (page - 1) * pageSize;

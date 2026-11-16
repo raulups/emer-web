@@ -253,7 +253,8 @@ export type BrandsQuery = PageParams & {
   city?: string;
 };
 
-export type ProductSort = "newest" | "price_asc" | "price_desc";
+/** `recommended`: orden del catálogo del backend (novedad, stock, marcas intercaladas). */
+export type ProductSort = "newest" | "price_asc" | "price_desc" | "recommended";
 
 /** Parámetros reales de `/products` (snake_case en la URL; ver products.ts). */
 export type ProductsQuery = {

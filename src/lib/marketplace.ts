@@ -147,7 +147,8 @@ export function activeFilters(
 
 /**
  * Orden por defecto del Marketplace (sin filtros ni orden explícito): se recorre una categoría
- * entera (más nuevos primero) antes de pasar a la siguiente. Se compara normalizado.
+ * entera (`sort=recommended`: el backend puntúa e intercala las marcas) antes de pasar a la
+ * siguiente. Se compara normalizado.
  */
 export const CATEGORY_ORDER = [
   "SUDADERAS",
@@ -214,29 +215,6 @@ export function isDefaultOrder(f: Filters): boolean {
     f.hi == null &&
     f.sort === "new"
   );
-}
-
-/**
- * Intercala las marcas (round-robin por `brand_id`) conservando el orden relativo dentro de cada
- * marca: A1 A2 B1 C1 B2 → A1 B1 C1 A2 B2.
- */
-export function interleaveBrands<T extends { brand_id: string | null }>(items: readonly T[]): T[] {
-  const groups = new Map<string, T[]>();
-  for (const item of items) {
-    const key = item.brand_id ?? "";
-    const group = groups.get(key);
-    if (group) group.push(item);
-    else groups.set(key, [item]);
-  }
-  const queues = [...groups.values()];
-  const out: T[] = [];
-  for (let round = 0; out.length < items.length; round++) {
-    for (const queue of queues) {
-      const item = queue[round];
-      if (item) out.push(item);
-    }
-  }
-  return out;
 }
 
 /** Posición del recorrido por categorías: índice en el orden y página dentro de la categoría. */

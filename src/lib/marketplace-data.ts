@@ -4,7 +4,6 @@ import {
   type FeedCursor,
   type Filters,
   formatCursor,
-  interleaveBrands,
   isDefaultOrder,
   toProductsQuery,
 } from "@/lib/marketplace";
@@ -64,10 +63,10 @@ async function queryPage(filters: Filters, page: number): Promise<DataResult<Mar
 }
 
 /**
- * Orden por defecto: `/products?category_id=<id>&sort=newest&page=N` hasta `has_more = false`
+ * Orden por defecto: `/products?category_id=<id>&sort=recommended&page=N` hasta `has_more = false`
  * y después la siguiente categoría, con `brand_id` si hay marca. Las categorías sin productos
- * (según las facetas, que responden a la marca) se saltan sin pedirlas. Cada página intercala
- * las marcas. Total, facetas y recuento de ofertas son los de la consulta sin categoría, para que
+ * (según las facetas, que responden a la marca) se saltan sin pedirlas. El backend ya intercala
+ * las marcas y muestra un color por línea antes que el resto. Total, facetas y recuento de ofertas son los de la consulta sin categoría, para que
  * el menú no cambie. `null` si no se pueden ordenar las categorías (paginación normal).
  */
 async function defaultOrderPage(
@@ -91,7 +90,13 @@ async function defaultOrderPage(
   const category = order[at.cat];
 
   const [chunk, saleCount] = await Promise.all([
-    category ? getProducts({ ...toProductsQuery(filters, at.page), categoryId: category }) : null,
+    category
+      ? getProducts({
+          ...toProductsQuery(filters, at.page),
+          categoryId: category,
+          sort: "recommended",
+        })
+      : null,
     cursor === null ? saleCountOf(filters, base.data) : 0,
   ]);
   if (chunk && !chunk.ok) return chunk;
@@ -108,7 +113,7 @@ async function defaultOrderPage(
     ok: true,
     data: {
       page: {
-        items: chunk ? interleaveBrands(chunk.data.items) : [],
+        items: chunk ? chunk.data.items : [],
         total: base.data.total,
         page: 1,
         hasMore: next !== null,

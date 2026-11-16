@@ -204,7 +204,7 @@ Mismos filtros en ambos. La única diferencia es el valor por defecto de `availa
 | `isOnSale` | `true`/`false` | sin filtro | |
 | `available` | `true`/`false` | **`/products`: `true`**. **`/brands/{id}/products`: sin filtro** | Para ver también agotados en `/products` hay que enviar `available=false`; no hay forma de pedir "todos" en `/products` (ver sección 7). |
 | `minPrice`, `maxPrice` | número | sin filtro | Comparan con `current_price`. Los productos con precio `null` quedan fuera si se usa alguno. |
-| `sort` | `newest` \| `oldest` \| `price_asc` \| `price_desc` | `newest` | Un valor desconocido cae a `newest` en silencio. Orden por `created_at`. Con precio, los `null` van al final en `price_asc` y al principio en `price_desc`. |
+| `sort` | `newest` \| `oldest` \| `price_asc` \| `price_desc` \| `discount` \| `recommended` | `newest` | Un valor desconocido cae a `newest` en silencio. Orden por `created_at`. Con precio, los `null` van al final en `price_asc` y al principio en `price_desc`. `recommended` (orden por defecto del Marketplace, dentro de cada categoría): puntúa novedad (`published_at`, decae en ~20 días), stock por tallas, bajada de precio en 7 días, oferta y marca emergente, más una variación diaria estable; saca primero un color por línea de producto (primera palabra del nombre) e intercala las marcas. Las páginas no se solapan dentro del mismo día. |
 
 Los parámetros en snake_case (`brand_id`, `category_id`) **se ignoran sin error**: en producción `?brand_id=...` devolvió el total completo (11322). Hay que usar camelCase.
 
