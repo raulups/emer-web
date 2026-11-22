@@ -7,12 +7,16 @@ import type { ProductSort, ProductsQuery } from "@/lib/data";
 
 export type Sort = "new" | "asc" | "desc";
 
+/** HOMBRE / MUJER: el backend añade lo unisex y lo que no sabe, detrás de lo seguro. */
+export type Gender = "men" | "women";
+
 export type Filters = {
   cat: string | null;
   brands: readonly string[];
   sizes: readonly string[];
   colors: readonly string[];
   sale: boolean;
+  gender: Gender | null;
   sort: Sort;
   /** `null` = sin límite (extremo del rango). */
   lo: number | null;
@@ -25,6 +29,7 @@ export const EMPTY_FILTERS: Filters = {
   sizes: [],
   colors: [],
   sale: false,
+  gender: null,
   sort: "new",
   lo: null,
   hi: null,
@@ -37,6 +42,11 @@ export const SORT_OPTIONS: readonly { value: Sort; label: string; short: string 
   { value: "new", label: "NOVEDADES", short: "NOVEDADES" },
   { value: "asc", label: "PRECIO ASCENDENTE", short: "PRECIO ↑" },
   { value: "desc", label: "PRECIO DESCENDENTE", short: "PRECIO ↓" },
+];
+
+export const GENDER_OPTIONS: readonly { value: Gender; label: string }[] = [
+  { value: "women", label: "MUJER" },
+  { value: "men", label: "HOMBRE" },
 ];
 
 /** Tallas del panel; `value` es la talla normalizada del backend. */
@@ -64,10 +74,14 @@ export function toggle(list: readonly string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
-/** FILTROS (n): tallas + colores + ofertas + precio. */
+/** FILTROS (n): género + tallas + colores + ofertas + precio. */
 export function filterCount(f: Filters): number {
   return (
-    f.sizes.length + f.colors.length + (f.sale ? 1 : 0) + (f.lo != null || f.hi != null ? 1 : 0)
+    (f.gender ? 1 : 0) +
+    f.sizes.length +
+    f.colors.length +
+    (f.sale ? 1 : 0) +
+    (f.lo != null || f.hi != null ? 1 : 0)
   );
 }
 
@@ -75,7 +89,8 @@ export function filterCount(f: Filters): number {
 export type FilterChange =
   | { kind: "cat" | "brand" | "size" | "color"; value: string }
   | { kind: "sort"; value: Sort }
-  | { kind: "sale" | "price" };
+  | { kind: "sale" | "price" }
+  | { kind: "gender"; value: Gender };
 
 export function changedFilter(prev: Filters, next: Filters): FilterChange | null {
   const added = (a: readonly string[], b: readonly string[]) => b.find((v) => !a.includes(v));
@@ -86,6 +101,7 @@ export function changedFilter(prev: Filters, next: Filters): FilterChange | null
   if (size) return { kind: "size", value: size };
   const color = added(prev.colors, next.colors);
   if (color) return { kind: "color", value: color };
+  if (next.gender && next.gender !== prev.gender) return { kind: "gender", value: next.gender };
   if (next.sale && !prev.sale) return { kind: "sale" };
   if (next.sort !== prev.sort) return { kind: "sort", value: next.sort };
   if ((next.lo != null || next.hi != null) && (next.lo !== prev.lo || next.hi !== prev.hi)) {
@@ -118,6 +134,14 @@ export function activeFilters(
       key: `brand:${id}`,
       label: names.brands.get(id) ?? "Marca",
       remove: { brands: f.brands.filter((b) => b !== id) },
+    });
+  }
+  if (f.gender) {
+    const label = GENDER_OPTIONS.find((o) => o.value === f.gender)?.label ?? f.gender;
+    list.push({
+      key: "gender",
+      label: label.charAt(0) + label.slice(1).toLowerCase(),
+      remove: { gender: null },
     });
   }
   for (const size of f.sizes) {
@@ -157,6 +181,7 @@ export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
     sizes: f.sizes,
     colors: f.colors,
     onSale: f.sale || undefined,
+    gender: f.gender ?? undefined,
     minPrice: f.lo ?? undefined,
     maxPrice: f.hi ?? undefined,
     sort: SORT_TO_API[f.sort],
@@ -171,6 +196,7 @@ export function toSearchParams(f: Filters, page = 1): URLSearchParams {
   for (const size of f.sizes) params.append("size", size);
   for (const color of f.colors) params.append("color", color);
   if (f.sale) params.set("on_sale", "true");
+  if (f.gender) params.set("gender", f.gender);
   if (f.lo != null) params.set("min_price", String(f.lo));
   if (f.hi != null) params.set("max_price", String(f.hi));
   return params;
@@ -240,10 +266,15 @@ export function parseSearchParams(params: URLSearchParams): ParsedQuery {
   if ((params.has("min_price") && lo === null) || (params.has("max_price") && hi === null)) {
     return { ok: false, error: "precio no válido" };
   }
+  const genderParam = params.get("gender");
+  if (genderParam !== null && genderParam !== "men" && genderParam !== "women") {
+    return { ok: false, error: "gender no válido" };
+  }
+  const sale = params.get("on_sale") === "true";
   return {
     ok: true,
     page,
-    filters: { cat, brands, sizes, colors, sale: params.get("on_sale") === "true", sort, lo, hi },
+    filters: { cat, brands, sizes, colors, sale, gender: genderParam, sort, lo, hi },
   };
 }
 

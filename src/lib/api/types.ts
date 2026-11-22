@@ -102,6 +102,7 @@ export type RawProduct = {
   image_urls: string[];
   color_name: string | null;
   color_hex?: string | null;
+  gender?: "men" | "women" | "unisex" | null;
   attributes?: RawProductAttributes;
   sizes?: RawProductSize[];
   price_history?: RawPriceHistory[];
@@ -267,6 +268,8 @@ export type ProductsQuery = {
   /** Nombres de color de las facetas; cualquiera de ellos. */
   colors?: readonly string[];
   onSale?: boolean;
+  /** men/women: también trae unisex y sin género, detrás (ver API_CONTRACT). */
+  gender?: "men" | "women";
   minPrice?: number;
   maxPrice?: number;
   sort?: ProductSort;

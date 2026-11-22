@@ -243,7 +243,9 @@ export function MobileSheets(props: SheetsProps) {
         open={open === "filters"}
         onClose={onClose}
         title="FILTROS"
-        footer={actions(() => onChange({ sizes: [], colors: [], sale: false, lo: null, hi: null }))}
+        footer={actions(() =>
+          onChange({ gender: null, sizes: [], colors: [], sale: false, lo: null, hi: null }),
+        )}
       >
         <FilterFields
           layout="stacked"
