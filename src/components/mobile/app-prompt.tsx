@@ -7,6 +7,7 @@ import { DisplayTitle } from "@/components/ui/display-title";
 import { APP_LINKS, APP_PROMPT_KEY } from "@/lib/app-links";
 import { isWaking, subscribeWake } from "@/lib/backend-wake";
 import styles from "./app-prompt.module.css";
+import { WaitlistForm } from "./waitlist-form";
 
 function shouldShow(): boolean {
   try {
@@ -84,6 +85,7 @@ export function AppPrompt() {
             </li>
           ))}
         </ul>
+        <WaitlistForm />
         <button type="button" className={`${button.text} ${styles.continue}`} onClick={close}>
           SEGUIR EN LA WEB
         </button>
