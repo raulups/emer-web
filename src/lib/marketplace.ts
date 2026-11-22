@@ -48,8 +48,13 @@ export const SIZE_OPTIONS: readonly { value: string; label: string }[] = [
   { value: "ONE SIZE", label: "ÚNICA" },
 ];
 
+/**
+ * NOVEDADES (el orden por defecto) es `recommended` con o sin filtros: el backend recorre las
+ * categorías por posición y, en cada una, saca rondas de las piezas más nuevas de cada marca
+ * (destacadas, populares y el resto). Con una categoría elegida, solo esa.
+ */
 const SORT_TO_API: Record<Sort, ProductSort> = {
-  new: "newest",
+  new: "recommended",
   asc: "price_asc",
   desc: "price_desc",
 };
@@ -143,25 +148,6 @@ export function activeFilters(
   return list;
 }
 
-// ---------- Orden por defecto ----------
-
-/**
- * Orden por defecto: sin categoría, talla, color, oferta, precio ni orden explícito (la marca sí
- * se admite). Se pide `sort=recommended` y el backend decide el orden: categorías por posición y,
- * en cada una, rondas de las piezas más nuevas de cada marca (destacadas, populares y el resto).
- */
-export function isDefaultOrder(f: Filters): boolean {
-  return (
-    f.cat === null &&
-    f.sizes.length === 0 &&
-    f.colors.length === 0 &&
-    !f.sale &&
-    f.lo == null &&
-    f.hi == null &&
-    f.sort === "new"
-  );
-}
-
 export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
   return {
     page,
@@ -173,7 +159,7 @@ export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
     onSale: f.sale || undefined,
     minPrice: f.lo ?? undefined,
     maxPrice: f.hi ?? undefined,
-    sort: isDefaultOrder(f) ? "recommended" : SORT_TO_API[f.sort],
+    sort: SORT_TO_API[f.sort],
   };
 }
 
