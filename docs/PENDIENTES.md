@@ -83,7 +83,7 @@ Todo lo aplazado durante la implementación, para abordarlo al final. Se actuali
 
 - [ ] **Halos fuera**: el switch, [ MENÚ ], [ SALTAR ], VISTA, el título de móvil, las flechas de la tarjeta, [ SALTAR ] y el contador de la Landing van en blanco con `mix-blend-mode: difference` (se invierten sobre lo que tengan debajo). La etiqueta de descuento y la franja de tallas son bandas negras. Sobre fotos de grises medios el contraste baja: revisar con fotos reales. Las opciones inactivas del switch (40 %) se leen peor sobre fotos con mucho detalle.
 - [ ] **VISTA (productos por fila)**: escritorio 2–6 (por defecto 4), móvil 1–3 (por defecto 2). Si no caben a 150 px (96 px en móvil) se ponen menos. Se guarda en la cookie `emer-grid-<dispositivo>` para que el servidor pinte ya con ellas. Con muchas por fila el precio baja bajo el nombre (`@container`).
-- [ ] **Loader**: tragaperras con las categorías del catálogo (GSAP, solo transform/opacity). Sin movimiento, palabra fija. No está en el diseño.
+- [ ] **Loader**: una línea fina que barre (`grid-loader`, GSAP, solo transform). Sin movimiento, la línea llena y quieta. No está en el diseño.
 - [ ] **Vacío y error**: 0 gigante en contorno con los filtros activos (se quitan uno a uno) y BORRAR FILTROS; error con cinta SIN CONEXIÓN y REINTENTAR. La cinta corre con una animación CSS infinita (transform). No están en el diseño.
 - [ ] **Explora — cambios sobre el diseño (2026-10-18, a petición)**: confirmar con diseño.
   - Populares → Novedades: la transición arranca en cuanto la última marca está entera (el spacer se sube hasta 100vh desde `explora.tsx`, nunca antes de 60vh de sección); la lista va por encima y se desvanece en el primer 35 % del giro.
