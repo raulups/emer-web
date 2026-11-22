@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { type ReactNode, useRef, useState } from "react";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import button from "@/components/ui/button.module.css";
 import type { Brand, ProductFacets } from "@/lib/data";
@@ -28,23 +28,64 @@ type BarProps = {
 
 type Item = {
   sheet: Sheet;
-  /** Etiqueta fija, pequeña, arriba. */
-  kicker: string;
-  /** Lo elegido, debajo («TODO», el tipo, «TODAS»…); con contador, el número en su cuadro. */
-  value: string;
+  /** Texto bajo el icono: fijo, o lo elegido (la categoría). */
+  text: string;
   /** Contador (marcas elegidas, filtros activos); 0 = nada. */
   count: number;
   active: boolean;
   /** Nombre accesible completo («MARCAS: 2 elegidas»). */
   label: string;
+  icon: ReactNode;
 };
 
+/** Iconos de trazo fino (24×24, `currentColor`). */
+function Icon({ children }: { children: ReactNode }) {
+  return (
+    <svg
+      className={styles.svg}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.4}
+      strokeLinecap="square"
+      aria-hidden="true"
+    >
+      {children}
+    </svg>
+  );
+}
+
+const ICONS = {
+  categories: (
+    <Icon>
+      <rect x="4" y="4" width="6.5" height="6.5" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" />
+      <rect x="13.5" y="13.5" width="6.5" height="6.5" />
+    </Icon>
+  ),
+  brands: (
+    <Icon>
+      <path d="M4 4h8l8 8-8 8-8-8z" />
+      <circle cx="8.5" cy="8.5" r="1.2" />
+    </Icon>
+  ),
+  filters: (
+    <Icon>
+      <path d="M4 7h16M4 17h16" />
+      <rect x="7" y="5" width="3" height="4" fill="var(--paper)" />
+      <rect x="14" y="15" width="3" height="4" fill="var(--paper)" />
+    </Icon>
+  ),
+} as const;
+
 /**
- * Barra inferior del Marketplace en móvil: una pieza blanca flotante con filo negro (con aire a
- * los lados y abajo por las esquinas redondeadas de la pantalla). CATEGORÍA, MARCAS y FILTROS abren
- * su hoja; cada botón lleva la etiqueta pequeña arriba y lo elegido debajo (lo activo, subrayado;
- * los contadores, en un cuadro negro). El último botón cambia los productos por fila (1 → 2 → 3).
- * Se esconde al bajar y vuelve al subir (`useHideOnScroll`); con una hoja abierta, siempre a la vista.
+ * Barra inferior del Marketplace en móvil: navegación pegada al borde de abajo (con el hueco de la
+ * zona segura), fondo blanco y una línea fina arriba. CATEGORÍA, MARCAS y FILTROS abren su hoja;
+ * cada botón es un icono con su texto debajo. Lo elegido pasa a tinta (la categoría enseña su
+ * nombre) y los contadores van en una pastilla sobre el icono; la hoja abierta se marca con una
+ * raya arriba. El último botón cambia los productos por fila (1 → 2 → 3). Se esconde al bajar y
+ * vuelve al subir (`useHideOnScroll`); con una hoja abierta, siempre a la vista.
  */
 export function MobileBar(props: BarProps) {
   const nav = useRef<HTMLElement>(null);
@@ -52,27 +93,27 @@ export function MobileBar(props: BarProps) {
   const items: Item[] = [
     {
       sheet: "categories",
-      kicker: "CATEGORÍA",
-      value: props.category ?? "TODO",
+      text: props.category ?? "CATEGORÍA",
       count: 0,
       active: props.category !== null,
       label: `CATEGORÍA: ${props.category ?? "TODO"}`,
+      icon: ICONS.categories,
     },
     {
       sheet: "brands",
-      kicker: "MARCAS",
-      value: "TODAS",
+      text: "MARCAS",
       count: props.brandCount,
       active: props.brandCount > 0,
       label: `MARCAS: ${props.brandCount === 0 ? "TODAS" : `${props.brandCount} ELEGIDAS`}`,
+      icon: ICONS.brands,
     },
     {
       sheet: "filters",
-      kicker: "FILTROS",
-      value: "NINGUNO",
+      text: "FILTROS",
       count: props.filterCount,
       active: props.filterCount > 0,
       label: `FILTROS: ${props.filterCount === 0 ? "NINGUNO" : `${props.filterCount} ACTIVOS`}`,
+      icon: ICONS.filters,
     },
   ];
 
@@ -89,31 +130,35 @@ export function MobileBar(props: BarProps) {
           data-active={item.active || undefined}
           onClick={() => props.onOpen(item.sheet)}
         >
-          <span className={styles.kicker} aria-hidden="true">
-            {item.kicker}
+          <span className={styles.glyph} aria-hidden="true">
+            {item.icon}
+            {item.count > 0 && (
+              <span key={item.count} className={styles.count}>
+                {item.count}
+              </span>
+            )}
           </span>
-          {item.count > 0 ? (
-            <span key={item.count} className={styles.count} aria-hidden="true">
-              {item.count}
-            </span>
-          ) : (
-            <span className={styles.value} aria-hidden="true">
-              {item.value}
-            </span>
-          )}
+          <span className={styles.text} aria-hidden="true">
+            {item.text}
+          </span>
         </button>
       ))}
       <button
         type="button"
-        className={styles.columns}
+        className={styles.item}
         aria-label={`Productos por fila: ${props.columns}. Cambiar`}
         onClick={() => props.onColumns(nextColumns("mobile", props.columns))}
       >
-        <span className={styles.icon} aria-hidden="true">
-          {Array.from({ length: props.columns }, (_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: columnas sin identidad
-            <span key={i} className={styles.cell} />
-          ))}
+        <span className={styles.glyph} aria-hidden="true">
+          <span className={styles.grid}>
+            {Array.from({ length: props.columns }, (_, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: columnas sin identidad
+              <span key={i} className={styles.cell} />
+            ))}
+          </span>
+        </span>
+        <span className={styles.text} aria-hidden="true">
+          VISTA {props.columns}
         </span>
       </button>
     </nav>

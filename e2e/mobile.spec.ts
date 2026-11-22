@@ -45,7 +45,7 @@ test.describe("móvil", () => {
     await expect(page.getByRole("button", { name: "Menú" })).toHaveCount(0);
     await expect(page.getByRole("complementary", { name: "Menú del catálogo" })).toHaveCount(0);
 
-    // Barra flotante: con aire a los lados y abajo (esquinas redondeadas de la pantalla).
+    // Barra de navegación pegada al borde de abajo, a todo el ancho.
     const viewport = page.viewportSize();
     // Espera a que termine de entrar (deslizándose desde abajo).
     await expect
@@ -53,9 +53,15 @@ test.describe("móvil", () => {
       .toBe(0);
     const box = await bar(page).boundingBox();
     const fromBottom = (viewport?.height ?? 0) - ((box?.y ?? 0) + (box?.height ?? 0));
-    expect(fromBottom).toBeGreaterThanOrEqual(16);
-    expect(box?.x).toBeGreaterThanOrEqual(12);
-    await expect(bar(page).getByRole("button")).toHaveText(["CATEGORÍA", "MARCAS", "FILTROS", ""]);
+    expect(fromBottom).toBe(0);
+    expect(box?.x).toBe(0);
+    expect(box?.width).toBe(viewport?.width);
+    await expect(bar(page).getByRole("button")).toHaveText([
+      "CATEGORÍA",
+      "MARCAS",
+      "FILTROS",
+      "VISTA 2",
+    ]);
     await expect(bar(page).getByRole("button", { name: "CATEGORÍA: TODO" })).toBeVisible();
     await expect(bar(page).getByRole("button", { name: "MARCAS: TODAS" })).toBeVisible();
     await expect(bar(page).getByRole("button", { name: "FILTROS: NINGUNO" })).toBeVisible();
