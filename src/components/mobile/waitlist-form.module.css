@@ -1,0 +1,97 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.row {
+  display: flex;
+  gap: 0;
+}
+
+/* 16px: con menos, Safari de iOS amplía la página al enfocar. */
+.input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 48px;
+  margin: 0;
+  padding: 0 12px;
+  border: var(--line) solid var(--black);
+  border-right: 0;
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--black);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  appearance: none;
+}
+
+.input::placeholder {
+  color: var(--grey-mute);
+}
+
+.input:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 2px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--black);
+  text-decoration: underline wavy;
+  text-underline-offset: 4px;
+}
+
+.submit {
+  --btn-h: 48px;
+  flex: none;
+  padding: 0 16px;
+  background: var(--black);
+  color: var(--paper);
+}
+
+.submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.note,
+.error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.note {
+  color: var(--grey-text);
+}
+
+.error {
+  color: var(--black);
+  font-weight: var(--w-text);
+}
+
+.done {
+  margin: 0;
+  padding: 14px 12px;
+  border: var(--line) solid var(--black);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  line-height: 1.5;
+}
+
+.doneText {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  letter-spacing: normal;
+}

@@ -300,6 +300,10 @@ test.describe("móvil", () => {
     await page.keyboard.press("Tab");
     await expect(prompt(page).getByRole("button", { name: "Cerrar" })).toBeFocused();
     await page.keyboard.press("Tab");
+    await expect(prompt(page).getByRole("textbox", { name: "AVÍSAME CUANDO SALGA" })).toBeFocused();
+    await page.keyboard.press("Tab");
+    await expect(prompt(page).getByRole("button", { name: "AVÍSAME" })).toBeFocused();
+    await page.keyboard.press("Tab");
     await expect(prompt(page).getByRole("button", { name: "SEGUIR EN LA WEB" })).toBeFocused();
     // Más allá, el foco sale al navegador, nunca a la página de detrás (modal nativo).
     for (let i = 0; i < 3; i++) {
@@ -310,6 +314,32 @@ test.describe("móvil", () => {
       });
       expect(outside).toBe(false);
     }
+  });
+
+  test("aviso de la app: lista de espera con el email", async ({ page }) => {
+    await page.goto("/web");
+    const dialog = prompt(page);
+    const email = dialog.getByRole("textbox", { name: "AVÍSAME CUANDO SALGA" });
+    const submit = dialog.getByRole("button", { name: "AVÍSAME" });
+
+    await email.fill("no-es-un-email");
+    await submit.click();
+    await expect(dialog.getByRole("alert")).toContainText("Revisa el email");
+
+    await email.fill("error@emer.es");
+    await submit.click();
+    await expect(dialog.getByRole("alert")).toContainText("No se pudo guardar");
+
+    await email.fill("  Ana@Emer.ES ");
+    await submit.click();
+    await expect(dialog.getByRole("status")).toContainText("LISTO");
+    await expect(dialog.getByRole("status")).toContainText("ana@emer.es");
+    await expect(email).toHaveCount(0);
+
+    // En otra sesión del mismo navegador ya no pide el email.
+    await page.evaluate((key) => sessionStorage.removeItem(key), APP_PROMPT_KEY);
+    await page.reload();
+    await expect(prompt(page).getByRole("status")).toContainText("YA ESTÁS EN LA LISTA");
   });
 
   test("aviso de la app con «reducir movimiento»: aparece y se va sin animar", async ({ page }) => {

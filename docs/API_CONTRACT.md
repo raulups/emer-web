@@ -498,3 +498,7 @@ export async function api<T>(path: string): Promise<Envelope<T>> {
 * Si el rate limit es realmente compartido por todos los clientes (ver sección 6).
 * Valores posibles de `stock_status` además de `in_stock`, y tamaños reales de las imágenes de marca.
 * Cómo y cuándo se ejecuta el scraping (n8n está en la memoria del proyecto, no en este repo).
+
+## `POST /waitlist` — lista de espera de la app
+
+Cuerpo `{ "email": string, "source"?: "web-mobile" | "web" | "app" }` (por defecto `web-mobile`). El backend recorta y pasa a minúsculas el email, lo valida (`algo@dominio.tld`, ≤ 254) y lo guarda en `app_waitlist` (único). Respuestas: `201 { data: { created: true } }` si es nuevo, `200 { data: { created: false } }` si ya estaba, `400 { error: "invalid_email" | "invalid_source" | "invalid_body" }`. Limitador propio: 20 peticiones/min. La web llama desde `/api/waitlist` (servidor).
