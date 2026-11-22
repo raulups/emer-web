@@ -18,8 +18,8 @@ async function saleCountOf(filters: Filters) {
 }
 
 /**
- * Página del Marketplace. El orden lo decide el backend: sin filtros ni orden explícito,
- * `sort=recommended` (ver `isDefaultOrder`); si no, el orden elegido.
+ * Página del Marketplace. El orden lo decide el backend: `sort=recommended` con NOVEDADES (con o
+ * sin filtros); si no, el orden de precio elegido.
  */
 export async function getMarketplacePage(
   filters: Filters,

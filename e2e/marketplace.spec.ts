@@ -84,8 +84,11 @@ test("categorías: selección única con línea; marcas: selección múltiple", 
     "true",
   );
   await expect(menu(page).getByRole("button", { name: "BORRAR" })).toBeVisible();
-  // Gorras de Satenier (3) y Ruido (1) en las fixtures.
+  // Gorras de Satenier (3) y Ruido (1) en las fixtures; con categoría sigue el orden recomendado
+  // (marcas intercaladas): las dos primeras son de marcas distintas.
   await expect(products(page)).toHaveCount(4);
+  const [first, second] = (await kinds(page)).map(([, brand]) => brand);
+  expect(first).not.toBe(second);
   for (const card of await products(page).all()) {
     await expect(card).toContainText(/Satenier|Ruido/);
   }
