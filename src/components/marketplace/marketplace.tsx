@@ -54,7 +54,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const [panelOpen, setPanelOpen] = useState(false);
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [columns, setColumns] = useState(initialColumns);
-  const [hoveredBrand, setHoveredBrand] = useState<string | null>(null);
   const filtersButton = useRef<HTMLButtonElement>(null);
   const toolbar = useRef<HTMLDivElement>(null);
   const products = useProducts(filters, initialFilters, initial);
@@ -126,7 +125,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
     return { min: Math.floor(range.min), max: Math.ceil(range.max) };
   });
 
-  const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
   const brandNames = useMemo(() => new Map(brands.map((b) => [b.id, b.name])), [brands]);
   const menuBrands = useMemo(
     () =>
@@ -153,7 +151,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   categoryNamesRef.current = categoryNames;
   const allCount = categories.reduce((sum, c) => sum + c.count, 0);
   const colors = products.facets.colors.filter((c) => c.hex && c.count > 0);
-  const cardBrand = brandById.get(hoveredBrand ?? filters.brands[0] ?? "") ?? null;
 
   const update = useCallback((next: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...next }));
@@ -297,11 +294,9 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         selectedBrands={filters.brands}
         filterCount={filterCount(filters)}
         canClear={hasFilters(filters)}
-        cardBrand={cardBrand}
         filtersButtonRef={filtersButton}
         onCategory={(cat) => update({ cat })}
         onToggleBrand={(id) => update({ brands: toggle(filters.brands, id) })}
-        onHoverBrand={setHoveredBrand}
         onOpenFilters={() => setPanelOpen(true)}
         onClear={clear}
       />

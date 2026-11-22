@@ -51,20 +51,6 @@
   gap: 14px;
 }
 
-/* Hueco fijo para la ficha: aparecer no mueve la lista de marcas bajo el cursor. Si falta alto
-   (listas recogidas) se acorta antes de forzar scroll. */
-.slot {
-  flex: 0 1 265px;
-  min-height: 120px;
-  margin-top: -12px;
-}
-
-/* Con una lista abierta el menú crece y hace scroll: la ficha conserva su alto completo. */
-.inner:has([data-open]) .slot {
-  flex-basis: 265px;
-  flex-shrink: 0;
-}
-
 .filters {
   flex-shrink: 0;
   display: flex;
