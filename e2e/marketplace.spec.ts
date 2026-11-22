@@ -271,6 +271,16 @@ test("panel de filtros: COLOR muestra 5 y «Ver más» abre hasta 8", async ({ p
   await expect(naranja).toHaveAttribute("aria-pressed", "true");
 });
 
+test("género: MUJER pide gender=women y cuenta como filtro", async ({ page }) => {
+  await filtersButton(page).click();
+  const asked = page.waitForRequest((req) => req.url().includes("gender=women"));
+  const mujer = panel(page).getByRole("button", { name: /^MUJER/ });
+  await mujer.click();
+  await asked;
+  await expect(mujer).toHaveAttribute("aria-pressed", "true");
+  await expect(filtersButton(page)).toHaveText("FILTROS (1)");
+});
+
 test("precio: el slider se maneja con teclado", async ({ page }) => {
   await filtersButton(page).click();
   const min = panel(page).getByRole("slider", { name: "Precio mínimo" });

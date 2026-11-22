@@ -178,6 +178,9 @@ function sizesFor(b: number, i: number): RawProductSize[] {
   }));
 }
 
+/** Como en la base: casi todo sin género, algo de hombre, menos de mujer y poco unisex. */
+const GENDERS = [null, "men", null, "women", null, "men", "unisex"] as const;
+
 let createdSeq = 0;
 const RAW_PRODUCTS: RawProduct[] = BRANDS.flatMap((brand, b) =>
   Array.from({ length: brand.products }, (_, i): RawProduct => {
@@ -210,6 +213,7 @@ const RAW_PRODUCTS: RawProduct[] = BRANDS.flatMap((brand, b) =>
       image_urls: Array.from({ length: gallery }, (_, k) => image(i + b + k * 5)),
       color_name: color.name,
       color_hex: color.hex,
+      gender: GENDERS[(i + b) % GENDERS.length] ?? null,
       sizes: sizesFor(b, i),
       // Decreciente: «newest» conserva el orden de declaración.
       created_at: new Date(Date.UTC(2026, 8, 28) - createdSeq++ * 3_600_000).toISOString(),
@@ -283,6 +287,7 @@ function productFilters(params: URLSearchParams): { all: Filter; exceptCategory:
   const sizes = params.getAll("size");
   const colors = params.getAll("color");
   const onSale = params.get("on_sale") === "true";
+  const gender = params.get("gender");
   const min = params.has("min_price") ? Number(params.get("min_price")) : null;
   const max = params.has("max_price") ? Number(params.get("max_price")) : null;
   const exceptCategory: Filter = (p) =>
@@ -291,6 +296,7 @@ function productFilters(params: URLSearchParams): { all: Filter; exceptCategory:
       (p.sizes ?? []).some((s) => s.available && sizes.includes(s.size_normalized ?? ""))) &&
     (colors.length === 0 || (p.color_name !== null && colors.includes(p.color_name))) &&
     (!onSale || p.is_on_sale) &&
+    (!gender || p.gender === gender || p.gender === "unisex" || p.gender == null) &&
     (min === null || (p.current_price ?? 0) >= min) &&
     (max === null || (p.current_price ?? 0) <= max);
   return {
@@ -326,7 +332,7 @@ function facets(scope: RawProduct[]): RawProductFacets {
 }
 
 /** Imitación de `sort=recommended`: categorías por posición y, en cada una, marcas intercaladas. */
-function recommended(items: readonly RawProduct[]): RawProduct[] {
+function recommended(items: readonly RawProduct[], rank: GenderRank): RawProduct[] {
   const byCategory = new Map<string, RawProduct[]>();
   for (const item of items) {
     const key = item.category_id ?? "";
@@ -334,7 +340,17 @@ function recommended(items: readonly RawProduct[]): RawProduct[] {
   }
   return [...byCategory.entries()]
     .toSorted(([a], [b]) => byPosition(a) - byPosition(b))
-    .flatMap(([, group]) => roundRobinByBrand(group));
+    .flatMap(([, group]) =>
+      [0, 1, 2].flatMap((r) => roundRobinByBrand(group.filter((p) => rank(p) === r))),
+    );
+}
+
+/** Con filtro de género: 0 ese género, 1 unisex, 2 sin género (sin filtro, todo 0). */
+type GenderRank = (p: RawProduct) => number;
+
+function genderRank(gender: string | null): GenderRank {
+  if (!gender) return () => 0;
+  return (p) => (p.gender === gender ? 0 : p.gender === "unisex" ? 1 : 2);
 }
 
 function roundRobinByBrand(items: readonly RawProduct[]): RawProduct[] {
@@ -358,11 +374,14 @@ function productsPage(params: URLSearchParams, scope: RawProduct[]): ApiEnvelope
   const filters = productFilters(params);
   const items = scope.filter(filters.all);
   const sort = params.get("sort");
+  const rank = genderRank(params.get("gender"));
   if (sort === "price_asc" || sort === "price_desc") {
     const dir = sort === "price_asc" ? 1 : -1;
-    items.sort((a, b) => ((a.current_price ?? 0) - (b.current_price ?? 0)) * dir);
+    items.sort(
+      (a, b) => rank(a) - rank(b) || ((a.current_price ?? 0) - (b.current_price ?? 0)) * dir,
+    );
   }
-  if (sort === "recommended") items.splice(0, items.length, ...recommended(items));
+  if (sort === "recommended") items.splice(0, items.length, ...recommended(items, rank));
   const pageSize = Math.min(100, Math.max(1, Number(params.get("page_size") ?? 24) || 24));
   const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
   const from = (page - 1) * pageSize;

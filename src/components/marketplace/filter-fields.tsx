@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { ProductFacets } from "@/lib/data";
-import { type Filters, SIZE_OPTIONS, toggle } from "@/lib/marketplace";
+import { type Filters, GENDER_OPTIONS, SIZE_OPTIONS, toggle } from "@/lib/marketplace";
 import { ExpandableList } from "./expandable-list";
 import { BracketChoice, ColorChoice } from "./filter-choices";
 import styles from "./filter-fields.module.css";
@@ -29,7 +29,7 @@ function Section({ id, label, children }: { id: string; label: string; children:
   );
 }
 
-/** Campos de filtro (README §3): talla, precio, color y ofertas (el orden va en la barra del grid). */
+/** Campos de filtro (README §3): género, talla, precio, color y ofertas (el orden va en la barra del grid). */
 export function FilterFields(props: Props) {
   const { filters, priceRange, onChange } = props;
   const lo = filters.lo ?? priceRange.min;
@@ -42,6 +42,19 @@ export function FilterFields(props: Props) {
 
   return (
     <div className={styles.fields} data-layout={props.layout ?? "columns"}>
+      <Section id="filtro-genero" label="GÉNERO">
+        {GENDER_OPTIONS.map((gender) => (
+          <BracketChoice
+            key={gender.value}
+            label={gender.label}
+            selected={filters.gender === gender.value}
+            onToggle={() =>
+              onChange({ gender: filters.gender === gender.value ? null : gender.value })
+            }
+          />
+        ))}
+      </Section>
+
       <Section id="filtro-talla" label="TALLA">
         {SIZE_OPTIONS.map((size) => (
           <BracketChoice
