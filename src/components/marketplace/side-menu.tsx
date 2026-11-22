@@ -2,7 +2,6 @@
 
 import { type Ref, useState } from "react";
 import type { Brand, ProductFacets } from "@/lib/data";
-import { BrandCard } from "./brand-card";
 import { BrandGrid } from "./brand-grid";
 import { BrandSearch, matchBrands } from "./brand-search";
 import { ExpandableList } from "./expandable-list";
@@ -20,22 +19,20 @@ type Props = {
   selectedBrands: readonly string[];
   filterCount: number;
   canClear: boolean;
-  cardBrand: Brand | null;
   filtersButtonRef: Ref<HTMLButtonElement>;
   onCategory: (id: string | null) => void;
   onToggleBrand: (id: string) => void;
-  onHoverBrand: (id: string | null) => void;
   onOpenFilters: () => void;
   onClear: () => void;
 };
 
 /**
  * Menú lateral (README §3): categorías y MARCAS (rejilla de logos en dos columnas: seis a la
- * vista, «Ver más» abre las demás; con el buscador, solo las que coinciden), FILTROS (n) + BORRAR
- * y ficha.
+ * vista, «Ver más» abre las demás; con el buscador, solo las que coinciden) y FILTROS (n) +
+ * BORRAR. Su alto es el de su contenido (hace scroll solo si no cabe en pantalla).
  */
 export function SideMenu(props: Props) {
-  const { visible, categories, cat, filterCount, canClear, cardBrand } = props;
+  const { visible, categories, cat, filterCount, canClear } = props;
   const [query, setQuery] = useState("");
   const brands = matchBrands(props.brands, query);
 
@@ -76,7 +73,6 @@ export function SideMenu(props: Props) {
           brands={brands}
           selected={props.selectedBrands}
           onToggle={props.onToggleBrand}
-          onHover={props.onHoverBrand}
           expanded={query !== ""}
           tools={<BrandSearch value={query} onChange={setQuery} matches={brands.length} />}
         />
@@ -97,8 +93,6 @@ export function SideMenu(props: Props) {
             </button>
           )}
         </div>
-
-        <div className={styles.slot}>{cardBrand && <BrandCard brand={cardBrand} />}</div>
       </div>
     </aside>
   );

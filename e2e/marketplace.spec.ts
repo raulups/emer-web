@@ -120,29 +120,27 @@ test("CATEGORÍAS: 5 visibles y «Ver más» abre hasta 8", async ({ page }) => 
   await expect(bolsos).toHaveAttribute("aria-current", "true");
 });
 
-test("el menú cabe sin scroll de primeras y hace scroll al abrir las listas", async ({ page }) => {
-  const overflow = () =>
-    menu(page)
-      .locator("div")
-      .first()
-      .evaluate((el) => el.scrollHeight - el.clientHeight);
+test("el menú cabe sin scroll de primeras y crece al abrir las listas", async ({ page }) => {
+  const inner = menu(page).locator("div").first();
+  const overflow = () => inner.evaluate((el) => el.scrollHeight - el.clientHeight);
+  const height = () => inner.evaluate((el) => el.getBoundingClientRect().height);
   expect(await overflow()).toBeLessThanOrEqual(0);
+  const before = await height();
   await menu(page).getByRole("button", { name: "Ver más · 3" }).click();
   await menu(page).getByRole("button", { name: "Ver más · 2" }).click();
-  await expect.poll(overflow).toBeGreaterThan(0);
+  await expect.poll(height).toBeGreaterThan(before);
 });
 
-test("ficha de marca de la primera seleccionada, con fallback de imagen", async ({ page }) => {
+test("el menú mide lo que su contenido: sin hueco ni ficha al elegir marca", async ({ page }) => {
+  const inner = menu(page).locator("div").first();
+  const height = () => inner.evaluate((el) => el.getBoundingClientRect().height);
+  const before = await height();
+  expect(before).toBeLessThan(page.viewportSize()?.height ?? 0);
   await menu(page)
     .getByRole("button", { name: /^Imagen Rota/ })
     .click();
-  const card = menu(page).getByRole("figure", { name: "Marca: Imagen Rota" });
-  await expect(card).toBeVisible();
-  // La imagen de la marca no existe: se usa la del primer producto.
-  await expect(card.getByRole("img", { name: "Imagen Rota" })).toHaveAttribute(
-    "src",
-    /\/assets\/deco\/.+\.png$/,
-  );
+  await expect(menu(page).getByRole("figure")).toHaveCount(0);
+  expect(await height()).toBe(before);
 });
 
 test("panel de filtros: talla, VER n, Esc y estado vacío", async ({ page }) => {
