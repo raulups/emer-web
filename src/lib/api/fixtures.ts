@@ -42,16 +42,19 @@ const CAT = {
   bolsos: "1c2d3e4f-5061-4b72-9c83-a4b5c6d7e8f9",
   accesorios: "2d3e4f50-6172-4c83-8d94-b5c6d7e8f90a",
 } as const;
+/** En el orden de `categories.position`, como las devuelve el backend. */
 const CATEGORY_NAMES: Record<string, string> = {
-  [CAT.camisetas]: "Camisetas",
   [CAT.sudaderas]: "Sudaderas",
+  [CAT.camisetas]: "Camisetas",
   [CAT.pantalones]: "Pantalones",
-  [CAT.gorras]: "Gorras y gorros",
-  [CAT.calzado]: "Calzado",
   [CAT.chaquetas]: "Chaquetas",
+  [CAT.gorras]: "Gorras y gorros",
   [CAT.bolsos]: "Bolsos",
+  [CAT.calzado]: "Calzado",
   [CAT.accesorios]: "Accesorios",
 };
+const CATEGORY_POSITION = new Map(Object.keys(CATEGORY_NAMES).map((id, i) => [id, i]));
+const byPosition = (id: string | null) => CATEGORY_POSITION.get(id ?? "") ?? Infinity;
 /** Pocas piezas en estas categorías: sirven para probar «Ver más» sin alterar los recuentos base. */
 const EXTRA_KINDS = [
   { name: "Chaqueta", category: CAT.chaquetas },
@@ -308,6 +311,7 @@ function facets(scope: RawProduct[]): RawProductFacets {
   return {
     categories: [...count(scope.map((p) => p.category_id ?? ""))]
       .filter(([id]) => id)
+      .toSorted(([a], [b]) => byPosition(a) - byPosition(b))
       .map(([id, n]) => ({ id, name: CATEGORY_NAMES[id] ?? id, count: n })),
     sizes: [
       ...count(scope.flatMap((p) => (p.sizes ?? []).map((s) => s.size_normalized ?? ""))),
@@ -321,7 +325,18 @@ function facets(scope: RawProduct[]): RawProductFacets {
   };
 }
 
-/** Imitación de `sort=recommended`: marcas intercaladas conservando su orden. */
+/** Imitación de `sort=recommended`: categorías por posición y, en cada una, marcas intercaladas. */
+function recommended(items: readonly RawProduct[]): RawProduct[] {
+  const byCategory = new Map<string, RawProduct[]>();
+  for (const item of items) {
+    const key = item.category_id ?? "";
+    byCategory.set(key, [...(byCategory.get(key) ?? []), item]);
+  }
+  return [...byCategory.entries()]
+    .toSorted(([a], [b]) => byPosition(a) - byPosition(b))
+    .flatMap(([, group]) => roundRobinByBrand(group));
+}
+
 function roundRobinByBrand(items: readonly RawProduct[]): RawProduct[] {
   const groups = new Map<string, RawProduct[]>();
   for (const item of items) {
@@ -347,7 +362,7 @@ function productsPage(params: URLSearchParams, scope: RawProduct[]): ApiEnvelope
     const dir = sort === "price_asc" ? 1 : -1;
     items.sort((a, b) => ((a.current_price ?? 0) - (b.current_price ?? 0)) * dir);
   }
-  if (sort === "recommended") items.splice(0, items.length, ...roundRobinByBrand(items));
+  if (sort === "recommended") items.splice(0, items.length, ...recommended(items));
   const pageSize = Math.min(100, Math.max(1, Number(params.get("page_size") ?? 24) || 24));
   const page = Math.max(1, Number(params.get("page") ?? 1) || 1);
   const from = (page - 1) * pageSize;

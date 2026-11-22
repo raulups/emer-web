@@ -19,13 +19,11 @@ export type ProductsState = {
   hasMore: boolean;
   status: "idle" | "loading" | "error";
   loadingMore: boolean;
-  /** Siguiente página del recorrido por categorías (orden por defecto); null fuera de él. */
-  cursor: string | null;
 };
 
-async function request(filters: Filters, page: number, signal: AbortSignal, cursor?: string) {
+async function request(filters: Filters, page: number, signal: AbortSignal) {
   // Cualquier petición puede despertar el backend: el aviso y los reintentos van en `wakeFetch`.
-  const res = await wakeFetch(`/api/products?${toSearchParams(filters, page, cursor)}`, { signal });
+  const res = await wakeFetch(`/api/products?${toSearchParams(filters, page)}`, { signal });
   const body = (await res.json()) as Envelope;
   if (!res.ok || !body.success || !body.data) {
     throw new Error(body.error ?? `HTTP ${res.status}`);
@@ -43,7 +41,6 @@ export function useProducts(filters: Filters, initialFilters: Filters, initial: 
     hasMore: initial.page.hasMore,
     status: "idle",
     loadingMore: false,
-    cursor: initial.cursor,
   });
   const page = useRef(initial.page.page);
   const pending = useRef<AbortController | null>(null);
@@ -72,7 +69,6 @@ export function useProducts(filters: Filters, initialFilters: Filters, initial: 
             hasMore: data.page.hasMore,
             status: "idle",
             loadingMore: false,
-            cursor: data.cursor,
           });
         })
         .catch((error: unknown) => {
@@ -93,7 +89,7 @@ export function useProducts(filters: Filters, initialFilters: Filters, initial: 
     const controller = new AbortController();
     pending.current = controller;
     setState((s) => ({ ...s, loadingMore: true }));
-    request(filters, page.current + 1, controller.signal, state.cursor ?? undefined)
+    request(filters, page.current + 1, controller.signal)
       .then((data) => {
         page.current = data.page.page;
         setState((s) => {
@@ -103,7 +99,6 @@ export function useProducts(filters: Filters, initialFilters: Filters, initial: 
             items: [...s.items, ...data.page.items.filter((p) => !seen.has(p.id))],
             hasMore: data.page.hasMore,
             loadingMore: false,
-            cursor: data.cursor,
           };
         });
       })
@@ -112,7 +107,7 @@ export function useProducts(filters: Filters, initialFilters: Filters, initial: 
         console.error("[marketplace]", error);
         setState((s) => ({ ...s, loadingMore: false, hasMore: false }));
       });
-  }, [filters, state.hasMore, state.loadingMore, state.status, state.cursor]);
+  }, [filters, state.hasMore, state.loadingMore, state.status]);
 
   const reload = useCallback(() => setRetry((n) => n + 1), []);
 
