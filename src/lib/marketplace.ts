@@ -143,67 +143,12 @@ export function activeFilters(
   return list;
 }
 
-// ---------- Orden por defecto: por categorías ----------
+// ---------- Orden por defecto ----------
 
 /**
- * Orden por defecto del Marketplace (sin filtros ni orden explícito): se recorre una categoría
- * entera (`sort=recommended`: el backend puntúa e intercala las marcas) antes de pasar a la
- * siguiente. Se compara normalizado.
- */
-export const CATEGORY_ORDER = [
-  "SUDADERAS",
-  "CAMISETAS",
-  "PANTALONES",
-  "ABRIGOS Y CHAQUETAS",
-  "SHORTS Y FALDAS",
-  "GORRAS Y GORROS",
-  "ROPA INTERIOR Y CALCETINES",
-  "JERSEYS Y PUNTO",
-  "POLOS",
-  "TOPS",
-  "BAÑADORES",
-  "BOLSOS Y MOCHILAS",
-  "CALZADO",
-] as const;
-
-/**
- * Las categorías de `/categories` que no están en `CATEGORY_ORDER` van al final, en el orden de
- * la API. Con `false` sus productos no aparecerían nunca en el orden por defecto.
- */
-export const APPEND_UNLISTED_CATEGORIES = true;
-
-/** Minúsculas, sin acentos (Ñ → N) y con los espacios colapsados: «BAÑADORES» = «banadores». */
-export function normalizeName(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/** Ids de las categorías en el orden por defecto y los nombres de la lista que no existen. */
-export function categoryOrder(categories: readonly { id: string; name: string }[]): {
-  ids: string[];
-  missing: string[];
-} {
-  const byName = new Map(categories.map((c) => [normalizeName(c.name), c.id]));
-  const ids: string[] = [];
-  const missing: string[] = [];
-  for (const name of CATEGORY_ORDER) {
-    const id = byName.get(normalizeName(name));
-    if (id) ids.push(id);
-    else missing.push(name);
-  }
-  if (APPEND_UNLISTED_CATEGORIES) {
-    for (const c of categories) if (!ids.includes(c.id)) ids.push(c.id);
-  }
-  return { ids, missing };
-}
-
-/**
- * Orden por defecto: sin categoría, talla, color, oferta, precio ni orden explícito. La marca sí
- * se admite (mismo recorrido con `brand_id`).
+ * Orden por defecto: sin categoría, talla, color, oferta, precio ni orden explícito (la marca sí
+ * se admite). Se pide `sort=recommended` y el backend decide el orden: categorías por posición y,
+ * en cada una, rondas de las piezas más nuevas de cada marca (destacadas, populares y el resto).
  */
 export function isDefaultOrder(f: Filters): boolean {
   return (
@@ -217,20 +162,6 @@ export function isDefaultOrder(f: Filters): boolean {
   );
 }
 
-/** Posición del recorrido por categorías: índice en el orden y página dentro de la categoría. */
-export type FeedCursor = { cat: number; page: number };
-
-export const formatCursor = (c: FeedCursor): string => `${c.cat}.${c.page}`;
-
-/** `null` si no hay cursor; `undefined` si no es válido. */
-export function parseCursor(value: string | null): FeedCursor | null | undefined {
-  if (value === null) return null;
-  const match = /^(\d{1,3})\.(\d{1,4})$/.exec(value);
-  if (!match) return undefined;
-  const page = Number(match[2]);
-  return page >= 1 && page <= MAX_PAGE ? { cat: Number(match[1]), page } : undefined;
-}
-
 export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
   return {
     page,
@@ -242,17 +173,13 @@ export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
     onSale: f.sale || undefined,
     minPrice: f.lo ?? undefined,
     maxPrice: f.hi ?? undefined,
-    sort: SORT_TO_API[f.sort],
+    sort: isDefaultOrder(f) ? "recommended" : SORT_TO_API[f.sort],
   };
 }
 
-/**
- * Query string de `/api/products` (mismos nombres que la API del backend). Con `cursor`, la
- * siguiente página del recorrido por categorías del orden por defecto.
- */
-export function toSearchParams(f: Filters, page = 1, cursor?: string): URLSearchParams {
+/** Query string de `/api/products` (mismos nombres que la API del backend). */
+export function toSearchParams(f: Filters, page = 1): URLSearchParams {
   const params = new URLSearchParams({ page: String(page), sort: f.sort });
-  if (cursor) params.set("cursor", cursor);
   if (f.cat) params.set("category_id", f.cat);
   for (const id of f.brands) params.append("brand_id", id);
   for (const size of f.sizes) params.append("size", size);
@@ -300,7 +227,7 @@ function texts(values: string[]): string[] | null {
 }
 
 export type ParsedQuery =
-  | { ok: true; filters: Filters; page: number; cursor: FeedCursor | null }
+  | { ok: true; filters: Filters; page: number }
   | { ok: false; error: string };
 
 /** Valida el query string de `/api/products`. Nunca confía en la entrada. */
@@ -322,8 +249,6 @@ export function parseSearchParams(params: URLSearchParams): ParsedQuery {
   const sizes = texts(params.getAll("size"));
   const colors = texts(params.getAll("color"));
   if (!sizes || !colors) return { ok: false, error: "size o color no válidos" };
-  const cursor = parseCursor(params.get("cursor"));
-  if (cursor === undefined) return { ok: false, error: "cursor no válido" };
   const lo = price(params.get("min_price"));
   const hi = price(params.get("max_price"));
   if ((params.has("min_price") && lo === null) || (params.has("max_price") && hi === null)) {
@@ -332,7 +257,6 @@ export function parseSearchParams(params: URLSearchParams): ParsedQuery {
   return {
     ok: true,
     page,
-    cursor,
     filters: { cat, brands, sizes, colors, sale: params.get("on_sale") === "true", sort, lo, hi },
   };
 }

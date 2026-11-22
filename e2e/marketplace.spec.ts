@@ -31,7 +31,7 @@ test("orden por defecto: categorías en orden, marcas intercaladas y carga infin
   page,
 }) => {
   await expect(products(page).first()).toContainText("Sudadera");
-  // Cada vez que se llega al final se pide la página siguiente (y después, la categoría siguiente).
+  // Cada vez que se llega al final se pide la página siguiente.
   const last = page.getByRole("region", { name: "Productos" }).locator("li").last();
   await expect
     .poll(async () => {
@@ -43,13 +43,13 @@ test("orden por defecto: categorías en orden, marcas intercaladas y carga infin
   const names = await kinds(page);
   expect(names).toHaveLength(TOTAL);
   const blocks = blocksOf(names);
-  // CATEGORY_ORDER y, al final, las que no están en la lista (Chaquetas, Bolsos, Accesorios).
+  // El orden de `categories.position` que da el backend con sort=recommended.
   expect(blocks).toEqual([
     "Sudadera",
     "Camiseta",
     "Pantalón",
-    "Gorra",
     "Chaqueta",
+    "Gorra",
     "Bolso",
     "Cinturón",
   ]);
@@ -401,14 +401,18 @@ test("con un filtro u orden explícito se pagina normal; al quitarlo vuelve el o
     "aria-pressed",
     "true",
   );
-  // Una sola consulta paginada: primera página de 24, mezclando categorías.
-  await expect(products(page)).toHaveCount(24);
-  // Una consulta normal ordenada por precio (no el recorrido por categorías).
-  const prices = (await products(page).locator("h3 + span").allTextContents()).map((t) =>
-    Number(t.replace(/[^\d,]/g, "").replace(",", ".")),
-  );
-  expect(prices.length).toBe(24);
-  expect(prices).toEqual(prices.toSorted((x, y) => x - y));
+  // Una sola consulta paginada: primera página de 24, ordenada por precio (la página por defecto
+  // también trae 24: se espera a que lleguen las nuevas).
+  const prices = async () =>
+    (await products(page).locator("h3 + span").allTextContents()).map((t) =>
+      Number(t.replace(/[^\d,]/g, "").replace(",", ".")),
+    );
+  await expect
+    .poll(async () => {
+      const list = await prices();
+      return list.length === 24 && list.every((p, i) => i === 0 || (list[i - 1] ?? 0) <= p);
+    })
+    .toBe(true);
   await sort.getByRole("button", { name: "NOVEDADES" }).click();
   await expect(products(page).first()).toContainText("Sudadera");
 });
