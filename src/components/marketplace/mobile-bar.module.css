@@ -1,131 +1,124 @@
 /*
- * Barra inferior (móvil): pieza blanca flotante con filo negro, sin sombras ni radios. Con aire a
- * los lados y abajo (las esquinas redondeadas de la pantalla cortaban). Se esconde bajando
- * (`data-hidden`). Cada botón: etiqueta pequeña arriba, lo elegido debajo.
+ * Barra inferior (móvil): navegación pegada al borde de abajo, a todo el ancho, con la zona segura
+ * por debajo. Blanca, con una línea fina arriba; sin sombras ni radios. Se esconde bajando
+ * (`data-hidden`). Cada botón: icono arriba y texto pequeño debajo; en gris salvo lo elegido.
  */
 .bar {
-  --bar-h: 56px;
-  --bar-bottom: max(16px, calc(env(safe-area-inset-bottom) + 8px));
-  --rule: var(--hairline-strong);
+  --bar-h: 58px;
 
   position: fixed;
-  right: 12px;
-  bottom: var(--bar-bottom);
-  left: 12px;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 45;
   display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) 56px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  box-sizing: content-box;
   height: var(--bar-h);
-  border: var(--line) solid var(--ink);
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: var(--line) solid var(--hairline-strong);
   background: var(--paper);
-  color: var(--ink);
-  animation: arrive 0.9s var(--ease-out-expo) 0.2s both;
-  transition: transform 0.6s var(--ease-out-expo);
+  color: var(--grey-text);
+  animation: arrive 0.8s var(--ease-out-expo) 0.2s both;
+  transition: transform 0.5s var(--ease-out-expo);
 }
 
 @keyframes arrive {
   from {
-    transform: translateY(calc(100% + var(--bar-bottom)));
+    transform: translateY(100%);
   }
 }
 
 .bar[data-hidden] {
-  transform: translateY(calc(100% + var(--bar-bottom) + 4px));
+  transform: translateY(calc(100% + 1px));
 }
 
-.item,
-.columns {
+.item {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
   min-width: 0;
-  height: 100%;
+  height: var(--bar-h);
+  margin: 0;
+  padding: 0 6px;
   border: 0;
-  border-right: var(--line) solid var(--rule);
   background: none;
   color: inherit;
   font-family: var(--font-mono);
   font-weight: 300;
   cursor: pointer;
+  transition: color 0.3s var(--ease-out-expo);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Dos líneas alineadas a la izquierda: etiqueta y valor. */
-.item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 5px;
-  padding: 0 12px;
-  text-align: left;
+/* Elegido (categoría, marcas, filtros) o con su hoja abierta: en tinta. */
+.item[data-active],
+.item[aria-expanded="true"] {
+  color: var(--ink);
 }
 
-/* Raya negra arriba: marca el botón cuya hoja está abierta (crece desde la izquierda). */
+/* Raya arriba: la hoja abierta (crece desde el centro, sobre la línea de la barra). */
 .item::before {
   content: "";
   position: absolute;
   top: -1px;
-  right: 0;
-  left: 0;
-  height: 3px;
+  right: 22%;
+  left: 22%;
+  height: 2px;
   background: var(--ink);
   transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.5s var(--ease-out-expo);
+  transition: transform 0.45s var(--ease-out-expo);
 }
 
 .item[aria-expanded="true"]::before {
   transform: scaleX(1);
 }
 
-.kicker {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  text-transform: uppercase;
-  color: var(--grey-text);
-}
-
-/* Valor en una línea; lo activo (categoría elegida), subrayado. */
-.value {
+.glyph {
   position: relative;
-  max-width: 100%;
-  overflow: hidden;
-  padding-bottom: 2px;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  line-height: 1;
-  text-transform: uppercase;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
   transition: transform 0.25s var(--ease-out-expo);
 }
 
-.value::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  background: currentColor;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.6s var(--ease-out-expo);
+.svg {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
-.item[data-active] .value::after {
-  transform: scaleX(1);
+.text {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  /* Con 1, el `overflow` cortaba las tildes de las mayúsculas (CATEGORÍA). */
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-/* Contador: cuadro negro con el número; aparece con un pequeño salto. */
+/* Contador: pastilla negra sobre la esquina del icono; aparece con un pequeño salto. */
 .count {
-  min-width: 18px;
-  padding: 2px 5px;
+  position: absolute;
+  top: -5px;
+  right: -9px;
+  min-width: 15px;
+  height: 15px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border-radius: 8px;
   background: var(--ink);
   color: var(--paper);
-  font-size: 11px;
+  font-size: 9px;
   letter-spacing: 0;
-  line-height: 13px;
+  line-height: 15px;
   text-align: center;
   animation: pop 0.5s var(--ease-out-expo) both;
 }
@@ -137,38 +130,27 @@
   }
 }
 
-.columns {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-right: 0;
-}
-
-/* Icono: tantas columnas como productos por fila. */
-.icon {
+/* Icono de VISTA: tantas columnas como productos por fila. */
+.grid {
   display: grid;
   grid-auto-flow: column;
   gap: 2px;
-  width: 20px;
-  height: 20px;
-  transition: transform 0.25s var(--ease-out-expo);
+  width: 18px;
+  height: 18px;
 }
 
 .cell {
-  border: var(--line) solid currentColor;
+  border: 1.4px solid currentColor;
 }
 
-/* Respuesta al toque: el contenido se recoge un poco. */
-.item:active .value,
-.item:active .count,
-.columns:active .icon {
-  transform: scale(0.94);
+/* Respuesta al toque: el icono se recoge un poco. */
+.item:active .glyph {
+  transform: scale(0.88);
 }
 
-.item:focus-visible,
-.columns:focus-visible {
+.item:focus-visible {
   outline: 1px solid var(--ink);
-  outline-offset: -5px;
+  outline-offset: -6px;
 }
 
 /* ---------- Hojas ---------- */
@@ -191,10 +173,9 @@
   }
 
   .bar,
+  .item,
   .item::before,
-  .value,
-  .value::after,
-  .icon {
+  .glyph {
     transition-duration: 0.01ms;
   }
 }
