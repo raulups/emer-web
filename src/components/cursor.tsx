@@ -56,6 +56,25 @@ export function Cursor() {
     const query = window.matchMedia(FINE_POINTER);
     let x = -1;
     let y = -1;
+    /** Posición del punto en el cambio de vista (su captura no sigue a `translate`). */
+    let follow: Animation | null = null;
+    const followInTransition = () => {
+      if (!root.dataset.slide) {
+        follow = null;
+        return;
+      }
+      const half = el.offsetWidth / 2;
+      try {
+        const next = root.animate(
+          { transform: [`translate(${x - half}px, ${y - half}px)`] },
+          { pseudoElement: "::view-transition-group(cursor)", duration: 0, fill: "forwards" },
+        );
+        follow?.cancel();
+        follow = next;
+      } catch {
+        // Sin soporte de animar los pseudoelementos del cambio de vista: el punto espera al final.
+      }
+    };
 
     const update = (next: string | null) => {
       setLogo(next);
@@ -71,6 +90,7 @@ export function Cursor() {
       box.style.translate = at;
       el.hidden = false;
       box.hidden = false;
+      followInTransition();
     };
     const over = (e: PointerEvent) => update(logoAt(e.target));
     // Con scroll el contenido se mueve bajo un ratón quieto: se vuelve a mirar qué hay debajo.
