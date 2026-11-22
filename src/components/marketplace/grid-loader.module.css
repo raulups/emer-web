@@ -1,37 +1,3 @@
-.loader {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 18px;
-  color: var(--black);
-}
-
-/* Una línea: la palabra cambia de ancho y los corchetes la siguen. */
-.window {
-  display: flex;
-  gap: 0.22em;
-  align-items: baseline;
-  justify-content: center;
-  max-width: 100%;
-  font-family: var(--font-sans-bold);
-  font-weight: 700;
-  letter-spacing: var(--track-sans-bold);
-  text-transform: uppercase;
-  line-height: 1;
-  font-size: min(7vw, 72px);
-  white-space: nowrap;
-}
-
-.word {
-  overflow: hidden;
-  text-overflow: clip;
-}
-
-.bracket {
-  font-family: var(--font-serif-display);
-  font-weight: 400;
-}
-
 .track {
   position: relative;
   display: block;
@@ -46,15 +12,6 @@
   inset: 0;
   background: var(--black);
   transform: translateX(-100%);
-}
-
-.caption {
-  color: var(--grey-text);
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: var(--t-label);
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
 }
 
 @media (prefers-reduced-motion: reduce) {

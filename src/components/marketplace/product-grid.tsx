@@ -31,7 +31,6 @@ type Props = {
   /** Productos por fila (si caben: con poco ancho, menos). */
   columns: number;
   /** Palabras del loader (nombres de marca). */
-  loaderWords: readonly string[];
   /** Filtros activos, para quitarlos desde la pantalla de «sin resultados». */
   chips: readonly FilterChip[];
   onClear: () => void;
@@ -134,7 +133,7 @@ export function ProductGrid(props: Props) {
         {showLoader && (
           <div className={styles.loaderLayer}>
             <div className={styles.loaderSticky}>
-              <GridLoader words={props.loaderWords} />
+              <GridLoader />
             </div>
           </div>
         )}

@@ -76,7 +76,7 @@ export function MarketplaceSkeleton() {
     <div className={styles.skeleton} aria-busy="true">
       <p className="sr-only">Cargando el catálogo</p>
       <div className={styles.loading}>
-        <GridLoader words={[]} caption="CARGANDO MARCAS" />
+        <GridLoader />
       </div>
       <div className={styles.aside} />
       <ul className={styles.grid}>

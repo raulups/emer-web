@@ -10,12 +10,9 @@ import {
   BRAND_PARAM,
   changedFilter,
   EMPTY_FILTERS,
-  type FilterChange,
   type Filters,
   filterCount,
   hasFilters,
-  SIZE_OPTIONS,
-  SORT_OPTIONS,
   toggle,
 } from "@/lib/marketplace";
 import type { MarketplacePage } from "@/lib/marketplace-data";
@@ -62,13 +59,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   const toolbar = useRef<HTMLDivElement>(null);
   const products = useProducts(filters, initialFilters, initial);
   const route = useProductRoute(initial.page.items);
-  // Último filtro puesto (estado derivado en el mismo render: el loader ya sale con él).
-  const [seen, setSeen] = useState<{ filters: Filters; change: FilterChange | null }>({
-    filters,
-    change: null,
-  });
-  if (seen.filters !== filters) setSeen({ filters, change: changedFilter(seen.filters, filters) });
-  const change = seen.filters === filters ? seen.change : changedFilter(seen.filters, filters);
 
   useEffect(() => {
     if (!mobile && window.matchMedia(NARROW).matches) setSide(false);
@@ -161,56 +151,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
   brandNamesRef.current = brandNames;
   const categoryNamesRef = useRef(categoryNames);
   categoryNamesRef.current = categoryNames;
-  // Loader: empieza por el filtro recién pulsado y sigue con otros del mismo tipo (otra
-  // categoría, otra marca, otra talla…). Sin filtro nuevo: las marcas elegidas o las que más
-  // piezas tienen.
-  const loaderWords = useMemo(() => {
-    const topBrands = brands
-      .toSorted((a, b) => b.product_count - a.product_count)
-      .map((b) => b.name);
-    const lead = (first: string | undefined, others: readonly string[]) =>
-      first ? [first, ...others.filter((w) => w !== first)] : [...others];
-    switch (change?.kind) {
-      case "cat":
-        return lead(
-          categoryNames.get(change.value),
-          products.facets.categories.map((c) => c.name),
-        );
-      case "brand":
-        return lead(brandNames.get(change.value), topBrands);
-      case "size":
-        return lead(
-          SIZE_OPTIONS.find((o) => o.value === change.value)?.label ?? change.value,
-          SIZE_OPTIONS.map((o) => o.label),
-        );
-      case "color":
-        return lead(
-          change.value,
-          products.facets.colors.map((c) => c.name),
-        );
-      case "sort":
-        return lead(
-          SORT_OPTIONS.find((o) => o.value === change.value)?.label,
-          SORT_OPTIONS.map((o) => o.label),
-        );
-      case "sale":
-        return lead("OFERTAS", topBrands);
-      case "price":
-        return lead(`${filters.lo ?? priceRange.min}–${filters.hi ?? priceRange.max} €`, topBrands);
-    }
-    const picked = filters.brands.map((id) => brandNames.get(id)).filter(Boolean) as string[];
-    return picked.length > 0 ? picked : topBrands.slice(0, 6);
-  }, [
-    brands,
-    brandNames,
-    categoryNames,
-    change,
-    filters.brands,
-    filters.lo,
-    filters.hi,
-    priceRange,
-    products.facets,
-  ]);
   const allCount = categories.reduce((sum, c) => sum + c.count, 0);
   const colors = products.facets.colors.filter((c) => c.hex && c.count > 0);
   const cardBrand = brandById.get(hoveredBrand ?? filters.brands[0] ?? "") ?? null;
@@ -293,7 +233,6 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         onRetry={products.reload}
         device={device}
         columns={columns}
-        loaderWords={loaderWords}
         chips={[]}
         onClear={clear}
         onOpen={openProduct}

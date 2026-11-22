@@ -219,7 +219,7 @@ test("VISTA: productos por fila de 2 a 6, recordados al volver", async ({ page }
   );
 });
 
-test("loader: mientras llegan los resultados sale la tragaperras de categorías", async ({
+test("loader: mientras llegan los resultados sale una línea de carga", async ({
   page,
 }) => {
   let release = () => {};
@@ -233,7 +233,7 @@ test("loader: mientras llegan los resultados sale la tragaperras de categorías"
   await menu(page)
     .getByRole("button", { name: /^Camisetas/ })
     .click();
-  const loader = page.getByText("BUSCANDO PIEZAS");
+  const loader = page.locator("[data-grid-loader]");
   await expect(loader).toBeVisible();
   await expect(page.getByRole("region", { name: "Productos" }).locator("[data-grid]")).toHaveCSS(
     "opacity",

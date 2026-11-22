@@ -19,6 +19,8 @@ const RATIO_TOLERANCE = 1.03;
 const SAMPLE_WIDTH = 40;
 /** Diferencia máxima por canal (0–255) para considerar lisa una fila. */
 const FLAT_TOLERANCE = 14;
+/** Fondo sobre el que se miran las fotos con transparencia (si no, sus píxeles salen negros). */
+const TRANSPARENT_BACKDROP = "#fff";
 /** Hosts que permiten leer sus píxeles (CORS abierto). */
 const CORS_HOSTS = new Set(["cdn.shopify.com"]);
 
@@ -68,6 +70,8 @@ function measure(img: HTMLImageElement): Fit {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx) return { contain: false };
   try {
+    ctx.fillStyle = TRANSPARENT_BACKDROP;
+    ctx.fillRect(0, 0, width, height);
     ctx.drawImage(img, 0, 0, width, height);
     const { data } = ctx.getImageData(0, 0, width, height);
     // Segunda fila desde cada borde: la primera a veces trae un filo del JPEG.
