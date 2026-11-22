@@ -5,11 +5,12 @@ import { PATH, type Placement, placeCard } from "./carousel-path";
  * Entrada de Destacados: las fotos aparecen apiladas como una baraja en el centro (donde queda la
  * activa) y se reparten de arriba abajo hasta su sitio en la diagonal: primero la de encima (la
  * última marca), que sale disparada fuera de pantalla, y al final la primera, que se queda en el
- * centro. Hasta que acaba no se puede mover el carrusel. Tiempos en segundos.
+ * centro. Cualquier gesto (rueda, teclas, swipe, clic) la acelera hasta el final; hasta entonces
+ * no se mueve el carrusel. Tiempos en segundos.
  */
 export const DEAL = {
   /** La baraja sube y aparece. */
-  riseS: 0.55,
+  riseS: 0.35,
   riseY: 48,
   /** Escala de la baraja respecto a la foto activa. */
   deckScale: 0.86,
@@ -18,14 +19,16 @@ export const DEAL = {
   /** Desorden de la baraja: giro máximo (grados) y desplazamiento máximo (px). */
   jitterDeg: 4,
   jitterPx: 5,
-  /** Pausa con la baraja quieta antes de repartir. */
-  holdS: 0.15,
+  /** Pausa con la baraja quieta antes de repartir (sin pausa: se reparte mientras sube). */
+  holdS: 0,
   /** Separación entre una foto y la siguiente (con muchas marcas se acorta hasta caber en `spreadS`). */
-  stepS: 0.13,
-  spreadS: 1.3,
+  stepS: 0.08,
+  spreadS: 0.6,
   /** Vuelo de cada foto y asentado de la primera. */
-  flyS: 0.95,
-  settleS: 0.7,
+  flyS: 0.75,
+  settleS: 0.55,
+  /** Velocidad de la entrada tras un gesto del usuario (×). */
+  skipSpeed: 5,
   /** Por debajo de las fotos ya repartidas y de la ficha. */
   deckZ: 150,
 } as const;

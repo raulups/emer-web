@@ -219,9 +219,7 @@ test("VISTA: productos por fila de 2 a 6, recordados al volver", async ({ page }
   );
 });
 
-test("loader: mientras llegan los resultados sale una línea de carga", async ({
-  page,
-}) => {
+test("loader: mientras llegan los resultados sale una línea de carga", async ({ page }) => {
   let release = () => {};
   const gate = new Promise<void>((resolve) => {
     release = resolve;

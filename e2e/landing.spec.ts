@@ -58,8 +58,8 @@ test("con la respuesta ya recibida: la barra se llena rápido y abre el Marketpl
   page,
 }) => {
   await page.goto("/");
-  // El túnel dura 6 s; después, la barra (0,6 s) y la cortina.
-  await expect(page.locator("main[data-loading]")).toBeAttached({ timeout: 9000 });
+  // El túnel dura 3,5 s; después, la barra (0,4 s) y la cortina.
+  await expect(page.locator("main[data-loading]")).toBeAttached({ timeout: 6000 });
   await expect(page.getByRole("status")).toHaveText("CARGANDO MARKETPLACE");
   await page.waitForURL("**/web", { timeout: 4000 });
   await expect(page.getByRole("region", { name: "Productos" })).toBeVisible();

@@ -129,10 +129,10 @@ test("Destacados: entrada en baraja la primera vez; mientras, no se mueve", asyn
 
   const pop = page.locator("[data-pop]");
   await expect(pop).toHaveAttribute("data-ready", "false");
-  // La rueda no avanza ni mueve la página durante la entrada.
+  // La rueda durante la entrada la acelera hasta el final, sin avanzar de marca ni mover la página.
   await page.mouse.move(400, 400);
   await page.mouse.wheel(0, 120);
-  await expect(pop).toHaveAttribute("data-ready", "true", { timeout: 8000 });
+  await expect(pop).toHaveAttribute("data-ready", "true", { timeout: 1500 });
   await expect(counter(page)).toContainText("01 / 03");
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   // Ya repartidas: la siguiente, arriba a la derecha.

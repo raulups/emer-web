@@ -15,7 +15,7 @@ import { write } from "@/lib/motion/write";
 import { BrandActions } from "./brand-actions";
 import { BrandImage } from "./brand-image";
 import { createCardHover } from "./card-hover";
-import { dealCard, dealDuration } from "./carousel-deal";
+import { DEAL, dealCard, dealDuration } from "./carousel-deal";
 import { bindCarouselInput } from "./carousel-input";
 import { cardTransform, PATH, placeCard, stepIndex } from "./carousel-path";
 import { NoStock } from "./no-stock";
@@ -34,6 +34,11 @@ const STILL = 0.05;
 const LEAVE_S = 1.1;
 /** Con la página más abajo de esto, la rueda vuelve a ser scroll. */
 const TOP_PX = 2;
+/**
+ * La baraja espera (invisible) a que las fotos estén decodificadas, como mucho esto (ms):
+ * decodificarlas a mitad del reparto congelaba frames de 50 ms.
+ */
+const DEAL_DECODE_WAIT_MS = 700;
 /** La entrada en baraja se ve la primera vez que se abre Explora en la sesión. */
 const DEAL_SEEN_KEY = "emer:destacados-deal";
 
@@ -104,11 +109,27 @@ export function Populares({ popular }: Props) {
         let pos = 0;
         let dirty = true;
         let wasMoving = false;
-        // Entrada en baraja: hasta que acaba no se puede mover el carrusel (ver `carousel-deal.ts`).
+        // Entrada en baraja: hasta que acaba no se puede mover el carrusel; un gesto la acelera
+        // hasta el final (ver `carousel-deal.ts`).
         deal.current ??= total > 0 && takeDeal();
         let dealing = deal.current;
-        let dealT0 = -1;
+        let dealT = 0;
+        let dealSpeed = 1;
         const dealEnd = dealDuration(total);
+        let dealStarted = !dealing;
+        const hurryDeal = () => {
+          dealStarted = true;
+          dealSpeed = DEAL.skipSpeed;
+        };
+        if (dealing) {
+          const decoded = cards.flatMap((card) =>
+            [...card.querySelectorAll("img")].map((img) => img.decode().catch(() => undefined)),
+          );
+          const wait = new Promise((resolve) => window.setTimeout(resolve, DEAL_DECODE_WAIT_MS));
+          void Promise.race([Promise.all(decoded), wait]).then(() => {
+            dealStarted = true;
+          });
+        }
         section.dataset.ready = String(!dealing);
 
         const select = (next: number) => {
@@ -134,15 +155,22 @@ export function Populares({ popular }: Props) {
         const unbind = bindCarouselInput({
           active: () => window.scrollY < TOP_PX,
           step: (dir) => {
-            if (dealing) return;
+            if (dealing) {
+              hurryDeal();
+              return;
+            }
             if (dir > 0 && target === total - 1) leave();
             else select(stepIndex(target, dir, total));
           },
         });
         // Pulsar una foto que no es la activa la trae al centro.
         const onClick = (event: MouseEvent) => {
+          if (dealing) {
+            hurryDeal();
+            return;
+          }
           const card = (event.target as Element | null)?.closest<HTMLElement>("[data-card]");
-          const i = card && !dealing ? cards.indexOf(card) : -1;
+          const i = card ? cards.indexOf(card) : -1;
           if (i >= 0) select(i);
         };
         section.addEventListener("click", onClick);
@@ -156,9 +184,11 @@ export function Populares({ popular }: Props) {
         const unbindHover = hover.bind(section);
 
         /** Un frame de la entrada: cada foto entre la baraja y su sitio. */
-        const dealFrame = (time: number) => {
-          if (dealT0 < 0) dealT0 = time;
-          const t = time - dealT0;
+        const dealFrame = (deltaMs: number) => {
+          // Con el reloj del ticker acotado (una pestaña que vuelve no salta al final de golpe).
+          // Hasta que las fotos están listas, la baraja se queda en t = 0 (invisible).
+          if (dealStarted) dealT += (Math.min(deltaMs, 50) / 1000) * dealSpeed;
+          const t = Math.min(dealT, dealEnd);
           cards.forEach((card, i) => {
             const place = dealCard(i, total, t, width, height);
             write(card, "visibility", place.opacity > 0.001 ? "visible" : "hidden");
@@ -174,9 +204,9 @@ export function Populares({ popular }: Props) {
           dirty = true;
         };
 
-        const frame: Tick = (time, deltaMs) => {
+        const frame: Tick = (_time, deltaMs) => {
           if (dealing) {
-            dealFrame(time);
+            dealFrame(deltaMs);
             return;
           }
           const next = lerpBy(pos, target, CAROUSEL_LERP, deltaMs);
