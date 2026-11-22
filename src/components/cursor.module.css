@@ -21,6 +21,8 @@
   background: #fff;
   mix-blend-mode: difference;
   pointer-events: none;
+  /* Capa propia en el cambio de vista (View Transitions): no se desliza con la página. */
+  view-transition-name: cursor;
   /* La posición va en `translate` (lo escribe el JS) y el tamaño en `scale`: así no se pisan. */
   transition:
     scale 0.35s var(--ease-out-expo),
