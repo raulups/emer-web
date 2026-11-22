@@ -32,7 +32,7 @@ const webUrl = () => `/web${window.location.search}`;
 type Warm = { done: boolean; total: number | null };
 
 /** El túnel espera a los logos como mucho esto (ms); si no llegan, sale sin ellos. */
-const LOGOS_WAIT_MS = 1_500;
+const LOGOS_WAIT_MS = 800;
 /** Piezas del túnel: con pocos logos se repiten hasta este mínimo; nunca más del máximo. */
 const TUNNEL_MIN = 18;
 const TUNNEL_MAX = 36;
