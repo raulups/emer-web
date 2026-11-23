@@ -1,8 +1,7 @@
 /*
  * Tiendas físicas (Explora, tras Sugerir marca). Mismo lenguaje que el resto: papel, etiquetas en
- * mono, titular serif + negrita, nombres de marca en Cormorant y línea fina. El mapa es Europa en
- * hairline sobre una retícula; `tiendas.tsx` escribe `transform`/`opacity` en la silueta y en los
- * puntos.
+ * mono, titular serif + negrita, nombres de marca en Cormorant y línea fina. El mapa es MapLibre con
+ * teselas de OpenFreeMap en escala de grises; los marcadores son HTML con estas clases.
  */
 .tiendas {
   position: relative;
@@ -195,59 +194,106 @@
   text-underline-offset: 5px;
 }
 
-/* ---- Mapa ---- */
+/* ---- Mapa (MapLibre + OpenFreeMap) ---- */
 .map {
   position: relative;
   min-width: 0;
   min-height: 60vh;
   overflow: hidden;
   border: var(--line) solid var(--ink);
-  /* Retícula de plano: fija en pantalla, da escala cuando la silueta ya se ha apagado. */
-  background-image:
-    linear-gradient(var(--hairline) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
-  background-size: 48px 48px;
-  background-position: -1px -1px;
+  background: #f4f4f2;
+  opacity: 0;
+  transition: opacity 0.8s var(--ease-out-expo);
 }
 
-.land {
-  position: absolute;
-  top: 0;
-  left: 0;
-  overflow: visible;
-  transform-origin: 0 0;
-  pointer-events: none;
+.map[data-ready] {
+  opacity: 1;
 }
 
-.landShape {
-  fill: var(--paper);
-  stroke: var(--ink);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+/* Base en escala de grises: el mapa acompaña, no compite con las marcas. */
+.map :global(.maplibregl-canvas) {
+  filter: grayscale(1) contrast(1.04);
 }
 
-.borders {
-  fill: none;
-  stroke: var(--grey-ghost);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
+.map :global(.maplibregl-ctrl-group) {
+  border-radius: 0;
+  border: var(--line) solid var(--ink);
+  box-shadow: none;
 }
 
-/* Punto de ciudad: el bucle lo coloca con `transform`; el centro del punto es el origen. */
-.spot {
+.map :global(.maplibregl-ctrl-group button) {
+  width: 34px;
+  height: 34px;
+}
+
+.map :global(.maplibregl-ctrl-group button + button) {
+  border-top: var(--line) solid var(--ink);
+}
+
+.map :global(.maplibregl-ctrl-attrib) {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.map :global(.maplibregl-cooperative-gesture-screen) {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  background: rgb(15 15 15 / 0.55);
+}
+
+/*
+ * Punto de ciudad: visible hasta SPOTS_ZOOM, luego da paso a las tiendas. MapLibre escribe
+ * `opacity` en línea en el nodo del marcador, así que el fundido va en sus hijos. El nodo va en
+ * `absolute` (como `.maplibregl-marker`): `all: unset` lo devolvería al flujo y se apilarían.
+ */
+.cityMarker {
+  all: unset;
   position: absolute;
   top: 0;
   left: 0;
   width: 0;
   height: 0;
+  cursor: pointer;
 }
 
-.cityDot {
-  all: unset;
+.spotMarker {
   position: absolute;
   top: 0;
   left: 0;
+  width: 0;
+  height: 0;
   cursor: pointer;
+  pointer-events: none;
+}
+
+.cityMarker > span,
+.spotMarker > span {
+  transition:
+    opacity 0.4s var(--ease-out-expo),
+    transform 0.5s var(--ease-out-expo);
+}
+
+.spotMarker > span {
+  opacity: 0;
+}
+
+.map[data-zoomed] .cityMarker {
+  pointer-events: none;
+}
+
+.map[data-zoomed] .cityMarker > span {
+  opacity: 0;
+}
+
+.map[data-zoomed] .spotMarker {
+  pointer-events: auto;
+}
+
+.map[data-zoomed] .spotMarker > span {
+  opacity: 1;
 }
 
 .dot,
@@ -257,41 +303,50 @@
   left: 0;
   border-radius: 50%;
   background: var(--ink);
-  transition: transform 0.5s var(--ease-out-expo);
 }
 
 .dot {
-  width: 9px;
-  height: 9px;
-  margin: -4.5px 0 0 -4.5px;
-  transform: scale(0);
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  box-shadow: 0 0 0 3px var(--paper);
 }
 
-.tiendas[data-in] .dot {
-  transform: scale(1);
+.cityMarker[data-hot] .dot {
+  transform: scale(1.6);
 }
 
-.cityDot[data-hot] .dot {
-  transform: scale(1.8);
-}
-
-.cityDotLabel {
+.cityMarkerLabel {
   position: absolute;
   top: 0;
   left: 12px;
-  padding: 2px 4px;
+  padding: 2px 6px;
   background: var(--paper);
+  border: var(--line) solid var(--ink);
   white-space: nowrap;
   transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
-.cityDotCount {
+.cityMarkerCount {
   color: var(--grey-text);
 }
 
-.cityDot[data-hot] .cityDotLabel {
-  text-decoration: underline;
-  text-underline-offset: 3px;
+.cityMarker[data-hot] .cityMarkerLabel,
+.cityMarker:hover .cityMarkerLabel {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.cityMarker[data-hot] .cityMarkerCount,
+.cityMarker:hover .cityMarkerCount {
+  color: var(--paper);
 }
 
 /* Tienda: punto con aro y la marca (o marcas, si comparten local) al lado. */
@@ -304,12 +359,12 @@
     0 0 0 5px var(--ink);
 }
 
-.spot[data-hot] .spotDot {
-  transform: scale(1.5);
+.spotMarker[data-hot] {
+  z-index: 2;
 }
 
-.spot[data-other] {
-  pointer-events: none;
+.spotMarker[data-hot] .spotDot {
+  transform: scale(1.5);
 }
 
 .spotLabel {
@@ -317,16 +372,17 @@
   top: 0;
   display: flex;
   flex-direction: column;
-  padding: 2px 6px;
+  padding: 3px 7px;
   background: var(--paper);
+  border: var(--line) solid var(--hairline-strong);
   transform: translateY(-50%);
 }
 
-.spot[data-side="right"] .spotLabel {
+.spotMarker[data-side="right"] .spotLabel {
   left: 16px;
 }
 
-.spot[data-side="left"] .spotLabel {
+.spotMarker[data-side="left"] .spotLabel {
   right: 16px;
   align-items: flex-end;
 }
@@ -334,81 +390,21 @@
 .spotBrand {
   font-family: var(--font-serif-editorial);
   font-weight: 300;
-  font-size: 22px;
-  line-height: 1;
+  font-size: 20px;
+  line-height: 1.05;
   letter-spacing: var(--track-name);
   white-space: nowrap;
+  color: var(--ink);
 }
 
-.spot[data-hot] .spotBrand {
+.spotMarker[data-hot] .spotLabel {
+  border-color: var(--ink);
+}
+
+.spotMarker[data-hot] .spotBrand {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 4px;
-}
-
-/* Calle con varios locales: línea de 1000px que el bucle estira con scaleX y gira. */
-.street {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.streetLine {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1000px;
-  height: 0;
-  border-top: 1px solid var(--grey-rule);
-  transform-origin: 0 0;
-}
-
-.streetLabel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 0;
-  height: 0;
-  transform-origin: 0 0;
-}
-
-.streetLabel > span {
-  position: absolute;
-  top: -6px;
-  left: 10px;
-  font-family: var(--font-mono);
-  font-weight: 300;
-  font-size: 11px;
-  letter-spacing: var(--track-label);
-  text-transform: uppercase;
-  color: var(--grey-text);
-  white-space: nowrap;
-}
-
-.scale {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  opacity: 0;
-}
-
-.scaleTrack {
-  display: block;
-  width: 100px;
-  height: 5px;
-}
-
-.scaleBar {
-  display: block;
-  width: 100px;
-  height: 5px;
-  border: 1px solid var(--ink);
-  border-top: 0;
-  box-sizing: border-box;
-  transform-origin: left;
 }
 
 @media (max-width: 767px) {
@@ -428,7 +424,7 @@
   }
 
   .spotBrand {
-    font-size: 17px;
+    font-size: 16px;
   }
 }
 
@@ -436,12 +432,11 @@
   .dot,
   .spotDot,
   .cityRowName,
-  .directions {
+  .directions,
+  .map,
+  .cityMarker > span,
+  .spotMarker > span {
     transition: none;
-  }
-
-  .dot {
-    transform: scale(1);
   }
 
   .detail {
