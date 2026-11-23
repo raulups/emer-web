@@ -238,6 +238,23 @@ const TAGS: Record<string, string[] | undefined> = {
   Tinta: undefined,
 };
 
+/** Tiendas de ejemplo (direcciones reales de calles comerciales; las marcas son inventadas). */
+const STORES: Record<string, [string, string, string, number, number][]> = {
+  Satenier: [
+    ["Madrid", "Calle de Fuencarral, 41", "España", 40.42281, -3.70116],
+    ["Barcelona", "Carrer de la Canuda, 13", "España", 41.38522, 2.17246],
+  ],
+  Scuffers: [
+    ["Madrid", "Calle de Fuencarral, 74", "España", 40.42511, -3.70074],
+    ["Valencia", "Carrer del Comte de Salvatierra, 19", "España", 39.46905, -0.36985],
+  ],
+  Nocturna: [
+    ["Madrid", "Calle de Fuencarral, 74", "España", 40.42511, -3.70074],
+    ["Milano", "Corso di Porta Ticinese, 64", "Italia", 45.45607, 9.18154],
+  ],
+  Marea: [["Amsterdam", "Leidsestraat 31", "Países Bajos", 52.36488, 4.88443]],
+};
+
 const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
   const products = RAW_PRODUCTS.filter((p) => p.brand_id === brand.id);
   return {
@@ -258,7 +275,17 @@ const RAW_BRANDS: RawBrand[] = BRANDS.map((brand, b) => {
         }
       : {}),
     created_at: `2026-0${9 - (b % 9)}-01T10:00:00.000000Z`,
-    store_locations: [],
+    store_locations: (STORES[brand.name] ?? []).map(([city, address, country, lat, lng], i) => ({
+      id: `${brand.id.slice(0, 24)}${String(i).padStart(12, "0")}`,
+      brand_id: brand.id,
+      name: null,
+      address,
+      city,
+      country,
+      latitude: lat,
+      longitude: lng,
+      place_id: null,
+    })),
     preview_products: products.slice(0, 3).map((p) => ({
       id: p.id,
       main_image_url: p.main_image_url,

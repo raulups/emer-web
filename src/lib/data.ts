@@ -13,6 +13,7 @@ import {
   type ProductFacets,
   type ProductSort,
   type ProductsQuery,
+  type StoreLocation,
 } from "@/lib/api";
 
 /**
@@ -49,6 +50,8 @@ export type Brand = {
   created_at: string;
   product_count: number;
   preview_products: PreviewProduct[];
+  /** Tiendas físicas activas (el backend ya filtra las ocultas). */
+  stores: StoreLocation[];
 };
 
 export type Product = {
@@ -114,6 +117,7 @@ function toBrand(b: ApiBrand): Brand {
       current_price: p.price,
       currency: p.currency,
     })),
+    stores: b.storeLocations,
   };
 }
 

@@ -35,8 +35,10 @@ function storeLocation(raw: RawStoreLocation): StoreLocation {
   return {
     id: raw.id,
     brandId: raw.brand_id,
+    name: raw.name ?? null,
     address: raw.address,
     city: raw.city,
+    country: raw.country ?? null,
     latitude: raw.latitude,
     longitude: raw.longitude,
     placeId: raw.place_id ?? null,

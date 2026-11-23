@@ -24,8 +24,10 @@ export type Paginated<T> = {
 export type RawStoreLocation = {
   id: string;
   brand_id: string;
+  name?: string | null;
   address: string;
   city: string;
+  country?: string | null;
   latitude: number;
   longitude: number;
   place_id: string | null;
@@ -139,8 +141,10 @@ export type RawCategory = {
 export type StoreLocation = {
   id: string;
   brandId: string;
+  name: string | null;
   address: string;
   city: string;
+  country: string | null;
   latitude: number;
   longitude: number;
   placeId: string | null;
