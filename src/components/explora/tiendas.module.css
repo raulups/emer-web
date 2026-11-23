@@ -1,0 +1,450 @@
+/*
+ * Tiendas físicas (Explora, tras Sugerir marca). Mismo lenguaje que el resto: papel, etiquetas en
+ * mono, titular serif + negrita, nombres de marca en Cormorant y línea fina. El mapa es Europa en
+ * hairline sobre una retícula; `tiendas.tsx` escribe `transform`/`opacity` en la silueta y en los
+ * puntos.
+ */
+.tiendas {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: 2vw 2vw 4vw;
+  background: var(--paper);
+  color: var(--ink);
+  box-sizing: border-box;
+  border-top: var(--line) solid var(--hairline);
+}
+
+.head {
+  display: flex;
+  justify-content: space-between;
+}
+
+.label,
+.cityMeta,
+.cityNum,
+.cityCount,
+.storeAddress,
+.directions,
+.cityDotLabel,
+.scaleText {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: var(--t-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+}
+
+.title {
+  --display-size: var(--t-display-half);
+  margin: 6vh 0 4vh;
+  font-size: var(--display-size);
+}
+
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(280px, 1fr) 2fr;
+  gap: 2vw;
+  min-height: 70vh;
+}
+
+/* ---- Lista de ciudades / tiendas ---- */
+.panel {
+  min-width: 0;
+  border-top: var(--line) solid var(--ink);
+}
+
+.cities {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cityRow {
+  all: unset;
+  display: grid;
+  grid-template-columns: 3em 1fr auto;
+  align-items: baseline;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 14px 0;
+  border-bottom: var(--line) solid var(--hairline);
+  cursor: pointer;
+}
+
+.cityRowName {
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: clamp(26px, 2.4vw, 40px);
+  line-height: var(--lh-editorial);
+  letter-spacing: var(--track-name);
+  transition: transform 0.6s var(--ease-out-expo);
+}
+
+.cityNum,
+.cityCount {
+  color: var(--grey-text);
+}
+
+.cityRow[data-hot] .cityRowName {
+  transform: translateX(12px);
+}
+
+.cityRow[data-hot] .cityCount {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cityRow:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  animation: rise 0.7s var(--ease-out-expo) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.back {
+  --btn-h: 44px;
+  align-self: flex-start;
+  padding: 0;
+}
+
+.cityName {
+  margin: 1vh 0 6px;
+  font-family: var(--font-sans-bold);
+  font-weight: 700;
+  font-size: clamp(44px, 5vw, 88px);
+  line-height: 0.9;
+  letter-spacing: var(--track-sans-bold);
+  text-transform: uppercase;
+}
+
+.cityMeta {
+  margin: 0 0 3vh;
+  color: var(--grey-text);
+}
+
+.stores {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: var(--line) solid var(--hairline);
+}
+
+.store {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "brand link"
+    "address link";
+  gap: 4px 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: var(--line) solid var(--hairline);
+}
+
+.storeBrand {
+  grid-area: brand;
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: 28px;
+  line-height: var(--lh-editorial);
+  letter-spacing: var(--track-name);
+}
+
+.storeAddress {
+  grid-area: address;
+  color: var(--grey-text);
+}
+
+.directions {
+  grid-area: link;
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: text-underline-offset 0.4s var(--ease-out-expo);
+  white-space: nowrap;
+}
+
+.directions:hover {
+  text-underline-offset: 7px;
+}
+
+.directions:focus-visible {
+  outline: 1px solid var(--ink);
+  outline-offset: 4px;
+}
+
+.store[data-hot] .storeBrand {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+
+/* ---- Mapa ---- */
+.map {
+  position: relative;
+  min-width: 0;
+  min-height: 60vh;
+  overflow: hidden;
+  border: var(--line) solid var(--ink);
+  /* Retícula de plano: fija en pantalla, da escala cuando la silueta ya se ha apagado. */
+  background-image:
+    linear-gradient(var(--hairline) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
+  background-size: 48px 48px;
+  background-position: -1px -1px;
+}
+
+.land {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.landShape {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.borders {
+  fill: none;
+  stroke: var(--grey-ghost);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Punto de ciudad: el bucle lo coloca con `transform`; el centro del punto es el origen. */
+.spot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+}
+
+.cityDot {
+  all: unset;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: pointer;
+}
+
+.dot,
+.spotDot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  transition: transform 0.5s var(--ease-out-expo);
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  transform: scale(0);
+}
+
+.tiendas[data-in] .dot {
+  transform: scale(1);
+}
+
+.cityDot[data-hot] .dot {
+  transform: scale(1.8);
+}
+
+.cityDotLabel {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  padding: 2px 4px;
+  background: var(--paper);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.cityDotCount {
+  color: var(--grey-text);
+}
+
+.cityDot[data-hot] .cityDotLabel {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Tienda: punto con aro y la marca (o marcas, si comparten local) al lado. */
+.spotDot {
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  box-shadow:
+    0 0 0 4px var(--paper),
+    0 0 0 5px var(--ink);
+}
+
+.spot[data-hot] .spotDot {
+  transform: scale(1.5);
+}
+
+.spot[data-other] {
+  pointer-events: none;
+}
+
+.spotLabel {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2px 6px;
+  background: var(--paper);
+  transform: translateY(-50%);
+}
+
+.spot[data-side="right"] .spotLabel {
+  left: 16px;
+}
+
+.spot[data-side="left"] .spotLabel {
+  right: 16px;
+  align-items: flex-end;
+}
+
+.spotBrand {
+  font-family: var(--font-serif-editorial);
+  font-weight: 300;
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: var(--track-name);
+  white-space: nowrap;
+}
+
+.spot[data-hot] .spotBrand {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+/* Calle con varios locales: línea de 1000px que el bucle estira con scaleX y gira. */
+.street {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.streetLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1000px;
+  height: 0;
+  border-top: 1px solid var(--grey-rule);
+  transform-origin: 0 0;
+}
+
+.streetLabel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
+}
+
+.streetLabel > span {
+  position: absolute;
+  top: -6px;
+  left: 10px;
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 11px;
+  letter-spacing: var(--track-label);
+  text-transform: uppercase;
+  color: var(--grey-text);
+  white-space: nowrap;
+}
+
+.scale {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  opacity: 0;
+}
+
+.scaleTrack {
+  display: block;
+  width: 100px;
+  height: 5px;
+}
+
+.scaleBar {
+  display: block;
+  width: 100px;
+  height: 5px;
+  border: 1px solid var(--ink);
+  border-top: 0;
+  box-sizing: border-box;
+  transform-origin: left;
+}
+
+@media (max-width: 767px) {
+  .tiendas {
+    padding: 20px 16px 48px;
+  }
+
+  .body {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .map {
+    order: -1;
+    min-height: 0;
+    aspect-ratio: 1;
+  }
+
+  .spotBrand {
+    font-size: 17px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot,
+  .spotDot,
+  .cityRowName,
+  .directions {
+    transition: none;
+  }
+
+  .dot {
+    transform: scale(1);
+  }
+
+  .detail {
+    animation: none;
+  }
+}

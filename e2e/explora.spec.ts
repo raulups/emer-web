@@ -439,6 +439,7 @@ test("índice: discreto en reposo, marca la sección actual y lleva a cada una",
     /Novedades/,
     /Catálogo/,
     /Sugerir marca/,
+    /Tiendas/,
   ]);
   await expect(index.getByRole("button", { name: /Destacados/ })).toHaveAttribute(
     "aria-current",
@@ -942,4 +943,23 @@ test("«Ver marca» abre el Marketplace filtrado por la marca", async ({ page })
       return texts.length > 0 && texts.every((t) => t.includes(brand));
     })
     .toBe(true);
+});
+
+test("tiendas: el mapa lista las ciudades y al elegir una enseña sus tiendas con cómo llegar", async ({
+  page,
+}) => {
+  await page.goto("/web");
+  await page.getByRole("button", { name: "Explora" }).click();
+  const section = page.locator("#tiendas");
+  await section.scrollIntoViewIfNeeded();
+  await expect(section.getByRole("heading", { name: "EN PERSONA" })).toBeVisible();
+  await section
+    .getByRole("button", { name: /Madrid/ })
+    .first()
+    .click();
+  await expect(section.getByRole("heading", { name: "Madrid" })).toBeVisible();
+  const link = section.getByRole("link", { name: "Cómo llegar ↗" }).first();
+  await expect(link).toHaveAttribute("href", /google\.com\/maps\/dir/);
+  await section.getByRole("button", { name: "← Todas las ciudades" }).click();
+  await expect(section.getByRole("button", { name: /Barcelona/ }).first()).toBeVisible();
 });

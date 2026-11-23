@@ -1,6 +1,7 @@
 import { type Brand, getBrandProducts, getBrands } from "@/lib/data";
 import { type ExploraSection, sectionsOf } from "@/lib/explora-tags";
 import { emergentBrands, newestBrands, popularBrands, portraitSources } from "@/lib/format";
+import type { MapStore } from "@/lib/stores";
 
 /** Piezas por marca: Destacados elige cuántas caben; las demás secciones enseñan hasta 3. */
 export const BRAND_PRODUCTS = 3;
@@ -48,6 +49,8 @@ export type ExploraData = {
   novedades: ExploraBrand[];
   /** Todas las marcas: 5.ª sección, Catálogo (componente `Emergentes`), y filas de Sugerir marca. */
   todas: ExploraBrand[];
+  /** Tiendas físicas de todas las marcas, para el mapa (componente `Tiendas`). */
+  tiendas: MapStore[];
 };
 
 function fromPreview(brand: Brand): ExploraBrand {
@@ -127,5 +130,20 @@ export async function getExploraData(): Promise<ExploraData | null> {
     emergentes: emergentBrands(tagged("emergentes")).map(fromPreview),
     novedades: newestBrands(tagged("novedades")).slice(0, NOVEDADES_MAX).map(fromPreview),
     todas: emergentBrands(brands).map(fromPreview),
+    tiendas: brands.flatMap((brand) =>
+      brand.stores.map((store) => ({
+        id: store.id,
+        brandId: brand.id,
+        brandName: brand.name,
+        logo: brand.logo,
+        name: store.name,
+        address: store.address,
+        city: store.city,
+        country: store.country,
+        lat: store.latitude,
+        lng: store.longitude,
+        placeId: store.placeId,
+      })),
+    ),
   };
 }

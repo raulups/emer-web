@@ -24,6 +24,7 @@ import { createProgressHint, type Span } from "./progress-hint";
 import { type IndexItem, SectionIndex } from "./section-index";
 import { SkipButton } from "./skip-button";
 import { SuggestBrand } from "./suggest-brand";
+import { Tiendas } from "./tiendas";
 
 gsap.registerPlugin(useGSAP);
 
@@ -57,7 +58,7 @@ const jumpDuration = (distance: number, vh: number) =>
  * guarda las marcas activas.
  */
 export function Explora({ data }: Props) {
-  const { destacados, populares, emergentes, novedades, todas } = data;
+  const { destacados, populares, emergentes, novedades, todas, tiendas } = data;
   const root = useRef<HTMLDivElement>(null);
   const [section, setSection] = useState(0);
 
@@ -102,6 +103,7 @@ export function Explora({ data }: Props) {
       const index = one("index");
       const goButtons = [...el.querySelectorAll<HTMLElement>("[data-go]")];
       const suggest = el.querySelector<HTMLElement>("#sugerir-marca") ?? one("none");
+      const stores = el.querySelector<HTMLElement>("#tiendas") ?? one("none");
 
       scrollToY(0, { immediate: true });
 
@@ -176,6 +178,7 @@ export function Explora({ data }: Props) {
             novedades: box.nw[0],
             catalogo: box.er[0],
             sugerir: docTop(suggest, scroll),
+            tiendas: docTop(stores, scroll),
           };
           dirty = true;
         };
@@ -370,6 +373,7 @@ export function Explora({ data }: Props) {
     novedades.length > 0 && { id: "novedades", label: "Novedades" },
     todas.length > 0 && { id: "catalogo", label: "Catálogo" },
     { id: "sugerir", label: "Sugerir marca" },
+    tiendas.length > 0 && { id: "tiendas", label: "Tiendas" },
   ].filter((item): item is IndexItem => Boolean(item));
 
   return (
@@ -401,6 +405,7 @@ export function Explora({ data }: Props) {
       <ProductPeek />
       {/* Tras Emergentes en pantalla: las listas de arriba solo se ven con «reducir movimiento». */}
       <SuggestBrand brands={todas} />
+      {tiendas.length > 0 && <Tiendas stores={tiendas} />}
       <Footer />
     </div>
   );
