@@ -45,3 +45,6 @@ next-env.d.ts
 /playwright-report/
 /test-results/
 /.lighthouseci/
+
+# worker de MapLibre (lo copia scripts/copy-maplibre-worker.mjs)
+/public/vendor/

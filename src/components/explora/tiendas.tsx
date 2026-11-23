@@ -23,6 +23,8 @@ type Props = { stores: readonly MapStore[] };
 
 /** Estilo vectorial claro de OpenFreeMap: gratis, sin clave ni límite de visitas. */
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
+/** Worker de MapLibre servido desde `public/` (lo copia `scripts/copy-maplibre-worker.mjs`). */
+const WORKER_URL = "/vendor/maplibre-gl-worker.mjs";
 /** Zoom a partir del cual los puntos de ciudad dan paso a las tiendas. */
 const SPOTS_ZOOM = 9;
 /** Lo más que se acerca al encuadrar una ciudad (con una sola tienda no baja hasta el portal). */
@@ -105,6 +107,7 @@ export function Tiendas({ stores }: Props) {
     const create = async () => {
       const maplibre = await import("maplibre-gl");
       if (cancelled) return;
+      maplibre.setWorkerUrl(new URL(WORKER_URL, window.location.origin).href);
       try {
         map = new maplibre.Map({
           container,
