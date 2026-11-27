@@ -171,7 +171,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /FILTROS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
+    const sheet = page.getByRole("dialog", { name: "FILTROS" });
     await expect(sheet).toBeVisible();
     await expect(sheet).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
 
@@ -240,7 +240,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /FILTROS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
+    const sheet = page.getByRole("dialog", { name: "FILTROS" });
     await expect(sheet.getByRole("heading", { name: "DESCUENTO" })).toBeVisible();
     await expect(sheet.getByRole("button", { name: "SOLO OFERTAS" })).toHaveCount(0);
     // Los ejemplos rebajan un 23 %: 25–50 % no trae nada, 0–25 % solo lo rebajado.

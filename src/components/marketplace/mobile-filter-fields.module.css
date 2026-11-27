@@ -1,8 +1,9 @@
 /* Hoja de FILTROS (móvil): secciones separadas por una línea fina; opciones cuadradas. */
+/* Las líneas de sección van a todo el ancho de la hoja (anula el padding lateral del cuerpo). */
 .fields {
   display: flex;
   flex-direction: column;
-  margin: 0 -16px;
+  margin: 0 -16px -32px;
 }
 
 .section {
@@ -10,7 +11,11 @@
   flex-direction: column;
   gap: 12px;
   padding: 20px 16px;
-  border-bottom: var(--line) solid #ddd;
+  border-bottom: var(--line) solid var(--hairline);
+}
+
+.section:first-child {
+  padding-top: 8px;
 }
 
 .section:last-child {

@@ -192,8 +192,7 @@ export function MobileSheets(props: SheetsProps) {
       <BottomSheet
         open={open === "filters"}
         onClose={onClose}
-        title="[ FILTROS ]"
-        variant="panel"
+        title="FILTROS"
         footer={
           <div className={styles.panelActions}>
             <button

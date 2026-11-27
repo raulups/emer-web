@@ -26,8 +26,6 @@ type Props = {
   describedBy?: string;
   /** Acciones fijas al pie (no se desplazan con el contenido). */
   footer?: ReactNode;
-  /** `panel`: cabecera en tinta y negrita con línea negra debajo (FILTROS del móvil). */
-  variant?: "default" | "panel";
   children: ReactNode;
 };
 
@@ -43,7 +41,6 @@ export function BottomSheet({
   labelledBy,
   describedBy,
   footer,
-  variant = "default",
   children,
 }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -105,7 +102,6 @@ export function BottomSheet({
       aria-labelledby={labelledBy ?? titleId}
       aria-describedby={describedBy}
       data-closing={phase === "closing" || undefined}
-      data-variant={variant}
       data-lenis-prevent
       tabIndex={-1}
       onCancel={onCancel}
