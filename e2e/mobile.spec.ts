@@ -79,9 +79,12 @@ test.describe("móvil", () => {
     await skipPrompt(page);
     await page.goto("/web");
     await expect(products(page).first()).toBeVisible();
-    await page.evaluate(() => window.scrollTo(0, 300));
-    await page.evaluate(() => window.scrollTo(0, 900));
-    await expect(dock(page)).toHaveAttribute("data-hidden", "");
+    // Los productos llegan en el HTML: se reintenta hasta que la barra ya escucha (hidratada).
+    await expect(async () => {
+      await page.evaluate(() => window.scrollTo(0, 300));
+      await page.evaluate(() => window.scrollTo(0, 900));
+      await expect(dock(page)).toHaveAttribute("data-hidden", "", { timeout: 500 });
+    }).toPass();
     await page.evaluate(() => window.scrollTo(0, 700));
     await expect(dock(page)).not.toHaveAttribute("data-hidden", "");
   });
@@ -119,7 +122,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /CATEGORÍA/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "CATEGORÍAS" });
+    const sheet = page.getByRole("dialog", { name: "[ CATEGORÍAS ]" });
     await expect(sheet).toBeVisible();
     await expect(sheet.getByRole("button", { name: /^Ver todo/ })).toHaveAttribute(
       "aria-current",
@@ -146,7 +149,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /MARCAS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "MARCAS" });
+    const sheet = page.getByRole("dialog", { name: "[ MARCAS ]" });
     await sheet.getByRole("button", { name: /^Satenier/ }).click();
     await expect(sheet.getByRole("button", { name: /^Satenier/ })).toHaveAttribute(
       "aria-pressed",
@@ -161,6 +164,40 @@ test.describe("móvil", () => {
     await expect(brands).toContainText("1");
   });
 
+  test("hoja con teclado en pantalla: sube encima del teclado y no se sale de lo visible", async ({
+    page,
+  }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    await bar(page)
+      .getByRole("button", { name: /MARCAS/ })
+      .click();
+    const sheet = page.getByRole("dialog", { name: "[ MARCAS ]" });
+    await sheet.getByRole("searchbox").or(sheet.getByRole("textbox")).first().fill("sol");
+    // El teclado no se puede abrir en Chromium: se simula encogiendo el visualViewport.
+    const keyboard = 300;
+    await page.evaluate((kb) => {
+      const vv = window.visualViewport;
+      if (!vv) return;
+      const height = window.innerHeight - kb;
+      Object.defineProperty(vv, "height", { configurable: true, get: () => height });
+      vv.dispatchEvent(new Event("resize"));
+    }, keyboard);
+    const viewport = page.viewportSize()?.height ?? 0;
+    await expect
+      .poll(async () => {
+        const box = await sheet.boundingBox();
+        return Math.round(viewport - ((box?.y ?? 0) + (box?.height ?? 0)));
+      })
+      .toBe(keyboard);
+    const box = await sheet.boundingBox();
+    expect(box?.y ?? -1).toBeGreaterThanOrEqual(0);
+    await expect(
+      sheet.getByRole("searchbox").or(sheet.getByRole("textbox")).first(),
+    ).toBeInViewport();
+  });
+
   test("FILTROS: hoja con scroll propio (táctil) sin mover la página; vacío con sus filtros", async ({
     page,
     context,
@@ -171,7 +208,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /FILTROS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "FILTROS" });
+    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
     await expect(sheet).toBeVisible();
     await expect(sheet).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
 
@@ -240,7 +277,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /FILTROS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "FILTROS" });
+    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
     await expect(sheet.getByRole("heading", { name: "DESCUENTO" })).toBeVisible();
     await expect(sheet.getByRole("button", { name: "SOLO OFERTAS" })).toHaveCount(0);
     // Los ejemplos rebajan un 23 %: 25–50 % no trae nada, 0–25 % solo lo rebajado.

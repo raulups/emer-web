@@ -10,8 +10,8 @@ const TOP_ZONE = 80;
 
 /**
  * Esconde un elemento fijo al bajar y lo enseña al subir (atributo `data-hidden`; la transición
- * es CSS, solo `transform`). Mientras `pinned`, siempre a la vista. Con Lenis escucha su evento de
- * scroll; sin él, `scroll` (pasivo). No anima por frame: solo cambia el atributo con el sentido.
+ * es CSS, solo `transform`). Mientras `pinned`, siempre a la vista. Escucha `scroll` (pasivo) y,
+ * con Lenis, también su evento. No anima por frame: solo cambia el atributo con el sentido.
  */
 export function useHideOnScroll(ref: RefObject<HTMLElement | null>, pinned: boolean): void {
   useEffect(() => {
@@ -37,15 +37,13 @@ export function useHideOnScroll(ref: RefObject<HTMLElement | null>, pinned: bool
       last = y;
     };
     onScroll();
-    const lenis = getLenis();
-    const off = lenis
-      ? lenis.on("scroll", onScroll)
-      : (() => {
-          window.addEventListener("scroll", onScroll, { passive: true });
-          return () => window.removeEventListener("scroll", onScroll);
-        })();
+    // Lenis mueve la ventana, así que `scroll` llega siempre (también si Lenis se crea después);
+    // su evento, si ya está, avisa en el mismo tick en que escribe el scroll.
+    window.addEventListener("scroll", onScroll, { passive: true });
+    const offLenis = getLenis()?.on("scroll", onScroll);
     return () => {
-      off();
+      window.removeEventListener("scroll", onScroll);
+      offLenis?.();
       delete el.dataset.hidden;
     };
   }, [ref, pinned]);

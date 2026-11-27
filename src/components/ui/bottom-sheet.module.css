@@ -2,10 +2,12 @@
 .sheet {
   position: fixed;
   inset: auto 0 0;
+  /* Con teclado (`--kb`, `--vvh` desde visualViewport): pegada encima y sin salirse de lo visible. */
+  bottom: var(--kb, 0px);
   box-sizing: border-box;
   width: 100%;
   max-width: none;
-  max-height: 88dvh;
+  max-height: min(88dvh, calc(var(--vvh, 100dvh) - 24px));
   margin: 0;
   padding: 0;
   overflow-y: auto;
@@ -124,4 +126,25 @@
 
 .body:last-child {
   padding-bottom: calc(24px + env(safe-area-inset-bottom));
+}
+
+/* `panel`: [ FILTROS ] en tinta y negrita, con línea negra bajo la cabecera y al pie. */
+.sheet[data-variant="panel"] .head {
+  padding: 14px 4px 14px 16px;
+  border-bottom: var(--line) solid var(--black);
+}
+
+.sheet[data-variant="panel"] .title {
+  color: var(--black);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.sheet[data-variant="panel"] .body {
+  padding-top: 16px;
+}
+
+.sheet[data-variant="panel"] .footer {
+  border-top-color: var(--black);
 }

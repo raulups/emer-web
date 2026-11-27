@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import type { ProductFacets } from "@/lib/data";
 import { price } from "@/lib/format";
 import { DISCOUNT_OPTIONS, type Filters, SIZE_OPTIONS, toggle } from "@/lib/marketplace";
@@ -60,11 +60,20 @@ function Square({
   );
 }
 
+/** Colores en una fila (caben en 360px con VER MÁS); el resto, al abrir. */
+const COLORS_VISIBLE = 8;
+
 /** Colores claros (#f…, #e…) llevan borde negro para que se vean sobre blanco. */
 const isLight = (hex: string) => /^#?[ef]/i.test(hex);
 
 /** Hoja de FILTROS del móvil: TALLA, PRECIO, COLOR y DESCUENTO. */
 export function MobileFilterFields({ filters, colors, priceRange, onChange }: Props) {
+  // Un color elegido entre los ocultos abre la lista para que se vea marcado.
+  const [moreColors, setMoreColors] = useState(() =>
+    colors.slice(COLORS_VISIBLE).some((c) => filters.colors.includes(c.name)),
+  );
+  const shownColors = moreColors ? colors : colors.slice(0, COLORS_VISIBLE);
+  const hiddenColors = colors.length - COLORS_VISIBLE;
   const lo = filters.lo ?? priceRange.min;
   const hi = filters.hi ?? priceRange.max;
   const setPrice = (nextLo: number, nextHi: number) =>
@@ -111,7 +120,7 @@ export function MobileFilterFields({ filters, colors, priceRange, onChange }: Pr
       {colors.length > 0 && (
         <Section id="m-filtro-color" label="COLOR">
           <div className={styles.swatches}>
-            {colors.map((color) => {
+            {shownColors.map((color) => {
               const hex = color.hex ?? "#fff";
               return (
                 <button
@@ -132,6 +141,16 @@ export function MobileFilterFields({ filters, colors, priceRange, onChange }: Pr
                 />
               );
             })}
+            {hiddenColors > 0 && (
+              <button
+                type="button"
+                className={styles.more}
+                aria-expanded={moreColors}
+                onClick={() => setMoreColors(!moreColors)}
+              >
+                {moreColors ? "VER MENOS" : `VER MÁS · ${hiddenColors}`}
+              </button>
+            )}
           </div>
         </Section>
       )}

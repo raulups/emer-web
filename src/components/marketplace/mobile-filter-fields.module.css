@@ -3,7 +3,7 @@
 .fields {
   display: flex;
   flex-direction: column;
-  margin: 0 -16px -32px;
+  margin: -16px -16px -32px;
 }
 
 .section {
@@ -11,11 +11,7 @@
   flex-direction: column;
   gap: 12px;
   padding: 20px 16px;
-  border-bottom: var(--line) solid var(--hairline);
-}
-
-.section:first-child {
-  padding-top: 8px;
+  border-bottom: var(--line) solid #ddd;
 }
 
 .section:last-child {
@@ -80,13 +76,14 @@
 .swatches {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
 }
 
 .swatch {
   box-sizing: border-box;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   margin: 0;
   padding: 0;
   border: var(--line) solid var(--swatch-border);
@@ -96,6 +93,29 @@
   cursor: pointer;
   transition: outline-color 0.2s var(--ease-out-expo);
   -webkit-tap-highlight-color: transparent;
+}
+
+/* VER MÁS / VER MENOS: texto subrayado en la misma fila, sin mover el resto. */
+.more {
+  height: 24px;
+  margin: 0 0 0 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.more:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 3px;
 }
 
 .swatch[data-selected] {

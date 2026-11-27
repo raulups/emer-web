@@ -26,6 +26,8 @@ type Props = {
   describedBy?: string;
   /** Acciones fijas al pie (no se desplazan con el contenido). */
   footer?: ReactNode;
+  /** `panel`: cabecera en tinta y negrita con línea negra debajo (hojas del Marketplace móvil). */
+  variant?: "default" | "panel";
   children: ReactNode;
 };
 
@@ -41,6 +43,7 @@ export function BottomSheet({
   labelledBy,
   describedBy,
   footer,
+  variant = "default",
   children,
 }: Props) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -66,6 +69,28 @@ export function BottomSheet({
     if (phase === "hidden") return;
     lockScroll(true);
     return () => lockScroll(false);
+  }, [phase]);
+
+  // Teclado en pantalla: el `fixed` va con el viewport de layout, que el teclado no encoge
+  // (iOS siempre, Android por defecto). Se sube la hoja al borde de lo visible y se limita su alto.
+  useEffect(() => {
+    const el = dialog.current;
+    const vv = window.visualViewport;
+    if (phase === "hidden" || !el || !vv) return;
+    const sync = () => {
+      const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      el.style.setProperty("--kb", `${Math.round(covered)}px`);
+      el.style.setProperty("--vvh", `${Math.round(vv.height)}px`);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+      el.style.removeProperty("--kb");
+      el.style.removeProperty("--vvh");
+    };
   }, [phase]);
 
   const finish = () => {
@@ -102,6 +127,7 @@ export function BottomSheet({
       aria-labelledby={labelledBy ?? titleId}
       aria-describedby={describedBy}
       data-closing={phase === "closing" || undefined}
+      data-variant={variant}
       data-lenis-prevent
       tabIndex={-1}
       onCancel={onCancel}

@@ -149,7 +149,12 @@ export function MobileSheets(props: SheetsProps) {
 
   return (
     <>
-      <BottomSheet open={open === "categories"} onClose={onClose} title="CATEGORÍAS">
+      <BottomSheet
+        open={open === "categories"}
+        onClose={onClose}
+        title="[ CATEGORÍAS ]"
+        variant="panel"
+      >
         <CategoryGrid
           categories={props.categories}
           allCount={props.allCount}
@@ -161,7 +166,8 @@ export function MobileSheets(props: SheetsProps) {
       <BottomSheet
         open={open === "brands"}
         onClose={onClose}
-        title="MARCAS"
+        title="[ MARCAS ]"
+        variant="panel"
         footer={
           <div className={styles.actions}>
             <button type="button" className={button.box} onClick={() => onChange({ brands: [] })}>
@@ -192,7 +198,8 @@ export function MobileSheets(props: SheetsProps) {
       <BottomSheet
         open={open === "filters"}
         onClose={onClose}
-        title="FILTROS"
+        title="[ FILTROS ]"
+        variant="panel"
         footer={
           <div className={styles.panelActions}>
             <button
