@@ -272,6 +272,8 @@ export type ProductsQuery = {
   /** Nombres de color de las facetas; cualquiera de ellos. */
   colors?: readonly string[];
   onSale?: boolean;
+  /** Rangos de descuento (`0-25`, `25-50`, `50`); cualquiera de ellos. */
+  discounts?: readonly ("0-25" | "25-50" | "50")[];
   /** men/women: también trae unisex y sin género, detrás (ver API_CONTRACT). */
   gender?: "men" | "women";
   minPrice?: number;

@@ -54,3 +54,38 @@
   letter-spacing: var(--track-label);
   text-transform: uppercase;
 }
+
+/* Hoja de móvil: raíl de 1px, tramo elegido de 3px y cuadrados de 16px (mínimo blanco con borde). */
+.slider[data-variant="square"] {
+  padding-top: 0;
+}
+
+/* Los cuadrados se centran en su valor: 8px de margen para que no salgan por los lados. */
+.slider[data-variant="square"] .track {
+  height: 20px;
+  margin: 0 8px;
+}
+
+.slider[data-variant="square"] .rail {
+  top: 9px;
+  background: #bbb;
+}
+
+.slider[data-variant="square"] .range {
+  top: 8px;
+  height: 3px;
+}
+
+.slider[data-variant="square"] .thumb {
+  top: 2px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 0;
+}
+
+.slider[data-variant="square"] .thumb[data-thumb="lo"] {
+  border: 1.5px solid var(--black);
+  background: var(--paper);
+}

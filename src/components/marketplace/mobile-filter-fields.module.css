@@ -1,0 +1,115 @@
+/* Hoja de FILTROS (móvil): secciones separadas por una línea fina; opciones cuadradas. */
+.fields {
+  display: flex;
+  flex-direction: column;
+  margin: 0 -16px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px;
+  border-bottom: var(--line) solid #ddd;
+}
+
+.section:last-child {
+  border-bottom: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  margin: 0;
+  color: #555;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 1px;
+  line-height: 1.3;
+}
+
+.value {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.row {
+  display: flex;
+  gap: 6px;
+}
+
+.square {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  padding: 0 4px;
+  border: var(--line) solid var(--black);
+  background: var(--paper);
+  color: var(--black);
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease-out-expo),
+    color 0.2s var(--ease-out-expo);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.square[data-selected] {
+  background: var(--black);
+  color: var(--paper);
+  font-weight: 700;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.swatch {
+  box-sizing: border-box;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: var(--line) solid var(--swatch-border);
+  background: var(--swatch);
+  outline: 1.5px solid transparent;
+  outline-offset: 3px;
+  cursor: pointer;
+  transition: outline-color 0.2s var(--ease-out-expo);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swatch[data-selected] {
+  outline-color: var(--black);
+}
+
+.square:focus-visible,
+.swatch:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 3px;
+}
+
+.swatch[data-selected]:focus-visible {
+  outline-width: 1.5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .square,
+  .swatch {
+    transition-duration: 0.01ms;
+  }
+}

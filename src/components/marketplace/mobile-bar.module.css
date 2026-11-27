@@ -1,126 +1,106 @@
 /*
- * Barra inferior (móvil): navegación pegada al borde de abajo, a todo el ancho, con la zona segura
- * por debajo. Blanca, con una línea fina arriba; sin sombras ni radios. Se esconde bajando
- * (`data-hidden`). Cada botón: icono arriba y texto pequeño debajo; en gris salvo lo elegido.
+ * Barra de filtros flotante (móvil): caja blanca con borde negro de 1px, sin radios ni sombras,
+ * a 16px de los lados y 28px del borde de abajo (más la zona segura). Encima, LIMPIAR FILTROS.
+ * Las dos piezas se esconden juntas bajando (`data-hidden` en `.dock`, solo `transform`).
  */
-.bar {
-  --bar-h: 58px;
+.dock {
+  --bar-h: 52px;
+  --dock-bottom: calc(28px + env(safe-area-inset-bottom));
 
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: 16px;
+  bottom: var(--dock-bottom);
+  left: 16px;
   z-index: 45;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  box-sizing: content-box;
-  height: var(--bar-h);
-  padding-bottom: env(safe-area-inset-bottom);
-  border-top: var(--line) solid var(--hairline-strong);
-  background: var(--paper);
-  color: var(--grey-text);
-  animation: arrive 0.8s var(--ease-out-expo) 0.2s both;
-  transition: transform 0.5s var(--ease-out-expo);
-}
-
-@keyframes arrive {
-  from {
-    transform: translateY(100%);
-  }
-}
-
-.bar[data-hidden] {
-  transform: translateY(calc(100% + 1px));
-}
-
-.item {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  min-width: 0;
-  height: var(--bar-h);
+  gap: 8px;
+  pointer-events: none;
+  transition: transform 0.28s ease;
+}
+
+.dock[data-hidden] {
+  transform: translateY(calc(100% + var(--dock-bottom) + 1px));
+}
+
+.dock > * {
+  pointer-events: auto;
+}
+
+.clear {
+  height: 28px;
   margin: 0;
-  padding: 0 6px;
+  padding: 0 10px;
   border: 0;
-  background: none;
-  color: inherit;
+  background: var(--paper);
+  color: var(--black);
   font-family: var(--font-mono);
-  font-weight: 300;
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
   cursor: pointer;
-  transition: color 0.3s var(--ease-out-expo);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Elegido (categoría, marcas, filtros) o con su hoja abierta: en tinta. */
-.item[data-active],
-.item[aria-expanded="true"] {
-  color: var(--ink);
+.bar {
+  display: flex;
+  align-self: stretch;
+  box-sizing: border-box;
+  height: var(--bar-h);
+  border: var(--line) solid var(--black);
+  background: var(--paper);
+  color: var(--black);
 }
 
-/* Raya arriba: la hoja abierta (crece desde el centro, sobre la línea de la barra). */
-.item::before {
-  content: "";
-  position: absolute;
-  top: -1px;
-  right: 22%;
-  left: 22%;
-  height: 2px;
-  background: var(--ink);
-  transform: scaleX(0);
-  transition: transform 0.45s var(--ease-out-expo);
-}
-
-.item[aria-expanded="true"]::before {
-  transform: scaleX(1);
-}
-
-.glyph {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  transition: transform 0.25s var(--ease-out-expo);
-}
-
-.svg {
-  display: block;
-  width: 22px;
-  height: 22px;
-}
-
-.text {
-  max-width: 100%;
-  overflow: hidden;
-  font-size: 9px;
-  letter-spacing: 0.08em;
+.item {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-right: var(--line) solid var(--black);
+  background: none;
+  color: inherit;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 1px;
   /* Con 1, el `overflow` cortaba las tildes de las mayúsculas (CATEGORÍA). */
   line-height: 1.4;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* Contador: pastilla negra sobre la esquina del icono; aparece con un pequeño salto. */
+.item[data-active] {
+  font-weight: 700;
+}
+
+/* Filtros activos del grupo: cuadrado negro de 16px; aparece con un pequeño salto. */
 .count {
-  position: absolute;
-  top: -5px;
-  right: -9px;
-  min-width: 15px;
-  height: 15px;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
   box-sizing: border-box;
-  padding: 0 4px;
-  border-radius: 8px;
-  background: var(--ink);
+  padding: 0 3px;
+  background: var(--black);
   color: var(--paper);
-  font-size: 9px;
+  font-weight: 500;
+  font-size: 10px;
   letter-spacing: 0;
-  line-height: 15px;
-  text-align: center;
-  animation: pop 0.5s var(--ease-out-expo) both;
+  line-height: 1;
+  animation: pop 0.4s var(--ease-out-expo) both;
 }
 
 @keyframes pop {
@@ -130,27 +110,44 @@
   }
 }
 
-/* Icono de VISTA: tantas columnas como productos por fila. */
-.grid {
-  display: grid;
-  grid-auto-flow: column;
-  gap: 2px;
-  width: 18px;
-  height: 18px;
+/* VISTA: 2 rectángulos de 7×16 (2 columnas) o 1 de 17×16 (1 columna). */
+.view {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 52px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cell {
-  border: 1.4px solid currentColor;
+  display: block;
+  box-sizing: border-box;
+  width: 7px;
+  height: 16px;
+  border: 1.5px solid currentColor;
 }
 
-/* Respuesta al toque: el icono se recoge un poco. */
-.item:active .glyph {
-  transform: scale(0.88);
+.cell[data-wide] {
+  width: 17px;
 }
 
-.item:focus-visible {
-  outline: 1px solid var(--ink);
-  outline-offset: -6px;
+.item:focus-visible,
+.view:focus-visible,
+.clear:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: -5px;
+}
+
+.clear:focus-visible {
+  outline-offset: 2px;
 }
 
 /* ---------- Hojas ---------- */
@@ -166,16 +163,58 @@
   width: 100%;
 }
 
+/* FILTROS: LIMPIAR (borde) + VER n PIEZAS (negro). */
+.panelActions {
+  display: flex;
+  gap: 8px;
+}
+
+.reset,
+.see {
+  height: 52px;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reset {
+  flex: none;
+  width: 116px;
+  padding: 0;
+  border: var(--line) solid var(--black);
+  background: var(--paper);
+  color: var(--black);
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.see {
+  flex: 1;
+  min-width: 0;
+  padding: 0 12px;
+  border: var(--line) solid var(--black);
+  background: var(--black);
+  color: var(--paper);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reset:focus-visible,
+.see:focus-visible {
+  outline: 1px solid var(--black);
+  outline-offset: 2px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bar,
   .count {
     animation: none;
   }
 
-  .bar,
-  .item,
-  .item::before,
-  .glyph {
+  .dock {
     transition-duration: 0.01ms;
   }
 }

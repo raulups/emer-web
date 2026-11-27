@@ -10,12 +10,17 @@ export type Sort = "new" | "asc" | "desc";
 /** HOMBRE / MUJER: el backend añade lo unisex y lo que no sabe, detrás de lo seguro. */
 export type Gender = "men" | "women";
 
+/** Rangos de DESCUENTO (móvil): mismo valor que el parámetro `discount` del backend. */
+export type Discount = "0-25" | "25-50" | "50";
+
 export type Filters = {
   cat: string | null;
   brands: readonly string[];
   sizes: readonly string[];
   colors: readonly string[];
   sale: boolean;
+  /** Rangos de descuento (OR entre ellos); con alguno, fuera lo que no tiene descuento. */
+  discounts: readonly Discount[];
   gender: Gender | null;
   sort: Sort;
   /** `null` = sin límite (extremo del rango). */
@@ -29,6 +34,7 @@ export const EMPTY_FILTERS: Filters = {
   sizes: [],
   colors: [],
   sale: false,
+  discounts: [],
   gender: null,
   sort: "new",
   lo: null,
@@ -48,6 +54,15 @@ export const GENDER_OPTIONS: readonly { value: Gender; label: string }[] = [
   { value: "women", label: "MUJER" },
   { value: "men", label: "HOMBRE" },
 ];
+
+export const DISCOUNT_OPTIONS: readonly { value: Discount; label: string }[] = [
+  { value: "0-25", label: "0–25%" },
+  { value: "25-50", label: "25–50%" },
+  { value: "50", label: "+50%" },
+];
+
+const isDiscount = (value: string): value is Discount =>
+  DISCOUNT_OPTIONS.some((o) => o.value === value);
 
 /** Tallas del panel; `value` es la talla normalizada del backend. */
 export const SIZE_OPTIONS: readonly { value: string; label: string }[] = [
@@ -74,20 +89,21 @@ export function toggle(list: readonly string[], value: string): string[] {
   return list.includes(value) ? list.filter((v) => v !== value) : [...list, value];
 }
 
-/** FILTROS (n): género + tallas + colores + ofertas + precio. */
+/** FILTROS (n): género + tallas + colores + ofertas + descuentos + precio. */
 export function filterCount(f: Filters): number {
   return (
     (f.gender ? 1 : 0) +
     f.sizes.length +
     f.colors.length +
     (f.sale ? 1 : 0) +
+    f.discounts.length +
     (f.lo != null || f.hi != null ? 1 : 0)
   );
 }
 
 /** El filtro que acaba de ponerse (el loader empieza por él); `null` si solo se quitó alguno. */
 export type FilterChange =
-  | { kind: "cat" | "brand" | "size" | "color"; value: string }
+  | { kind: "cat" | "brand" | "size" | "color" | "discount"; value: string }
   | { kind: "sort"; value: Sort }
   | { kind: "sale" | "price" }
   | { kind: "gender"; value: Gender };
@@ -101,6 +117,8 @@ export function changedFilter(prev: Filters, next: Filters): FilterChange | null
   if (size) return { kind: "size", value: size };
   const color = added(prev.colors, next.colors);
   if (color) return { kind: "color", value: color };
+  const discount = added(prev.discounts, next.discounts);
+  if (discount) return { kind: "discount", value: discount };
   if (next.gender && next.gender !== prev.gender) return { kind: "gender", value: next.gender };
   if (next.sale && !prev.sale) return { kind: "sale" };
   if (next.sort !== prev.sort) return { kind: "sort", value: next.sort };
@@ -160,6 +178,14 @@ export function activeFilters(
     });
   }
   if (f.sale) list.push({ key: "sale", label: "Solo ofertas", remove: { sale: false } });
+  for (const discount of f.discounts) {
+    const label = DISCOUNT_OPTIONS.find((o) => o.value === discount)?.label ?? discount;
+    list.push({
+      key: `discount:${discount}`,
+      label: `Descuento ${label}`,
+      remove: { discounts: f.discounts.filter((d) => d !== discount) },
+    });
+  }
   if (f.lo != null || f.hi != null) {
     const label =
       f.lo != null && f.hi != null
@@ -181,6 +207,7 @@ export function toProductsQuery(f: Filters, page = 1): ProductsQuery {
     sizes: f.sizes,
     colors: f.colors,
     onSale: f.sale || undefined,
+    discounts: f.discounts,
     gender: f.gender ?? undefined,
     minPrice: f.lo ?? undefined,
     maxPrice: f.hi ?? undefined,
@@ -196,6 +223,7 @@ export function toSearchParams(f: Filters, page = 1): URLSearchParams {
   for (const size of f.sizes) params.append("size", size);
   for (const color of f.colors) params.append("color", color);
   if (f.sale) params.set("on_sale", "true");
+  for (const discount of f.discounts) params.append("discount", discount);
   if (f.gender) params.set("gender", f.gender);
   if (f.lo != null) params.set("min_price", String(f.lo));
   if (f.hi != null) params.set("max_price", String(f.hi));
@@ -271,10 +299,13 @@ export function parseSearchParams(params: URLSearchParams): ParsedQuery {
     return { ok: false, error: "gender no válido" };
   }
   const sale = params.get("on_sale") === "true";
+  const discountParams = params.getAll("discount");
+  if (!discountParams.every(isDiscount)) return { ok: false, error: "discount no válido" };
+  const discounts = [...new Set(discountParams)];
   return {
     ok: true,
     page,
-    filters: { cat, brands, sizes, colors, sale, gender: genderParam, sort, lo, hi },
+    filters: { cat, brands, sizes, colors, sale, discounts, gender: genderParam, sort, lo, hi },
   };
 }
 

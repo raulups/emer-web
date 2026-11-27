@@ -9,6 +9,7 @@ import {
   activeFilters,
   BRAND_PARAM,
   changedFilter,
+  DISCOUNT_OPTIONS,
   EMPTY_FILTERS,
   type Filters,
   filterCount,
@@ -113,10 +114,19 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
     track("filter_apply", { type: added.kind, value });
   }, [filters]);
 
-  // Filtros pedidos desde otra sección (footer → Ofertas).
+  // Filtros pedidos desde otra sección (footer → Ofertas). En móvil, OFERTAS son todos los
+  // rangos de DESCUENTO (su hoja no tiene «solo ofertas»).
   useEffect(
-    () => bus.on("market:filters", (next) => setFilters({ ...EMPTY_FILTERS, ...next })),
-    [],
+    () =>
+      bus.on("market:filters", (next) => {
+        const asked = { ...EMPTY_FILTERS, ...next };
+        setFilters(
+          mobile && asked.sale
+            ? { ...asked, sale: false, discounts: DISCOUNT_OPTIONS.map((o) => o.value) }
+            : asked,
+        );
+      }),
+    [mobile],
   );
 
   // El rango del slider es el global (no depende del filtro de precio).
@@ -214,7 +224,7 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
         ref={toolbar}
         total={products.total}
         loading={loading}
-        chips={chips}
+        chips={mobile ? [] : chips}
         sort={filters.sort}
         onSort={(sort) => update({ sort })}
         onClear={clear}
@@ -256,10 +266,12 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
           category={filters.cat ? (categoryNames.get(filters.cat) ?? null) : null}
           brandCount={filters.brands.length}
           filterCount={filterCount(filters)}
+          canClear={hasFilters(filters)}
           columns={columns}
           open={sheet}
           onOpen={setSheet}
           onColumns={changeColumns}
+          onClear={clear}
         />
         <MobileSheets
           open={sheet}
@@ -270,11 +282,9 @@ export function Marketplace({ brands, initial, initialFilters, device, initialCo
           brands={menuBrands}
           colors={colors}
           priceRange={priceRange}
-          saleCount={products.saleCount}
           total={products.total}
           loading={loading}
           onChange={update}
-          onClear={clear}
         />
         {modal}
       </div>
