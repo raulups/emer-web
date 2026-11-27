@@ -12,12 +12,24 @@ type Props = {
   lo: number;
   hi: number;
   onChange: (lo: number, hi: number) => void;
+  /** `dot`: puntos de 9px (escritorio). `square`: cuadrados de 16px (hoja de móvil). */
+  variant?: "dot" | "square";
+  /** Rango en texto debajo; `false` si ya lo pinta quien lo usa. */
+  showValue?: boolean;
 };
 
 const BIG_STEP = 10;
 
 /** PRECIO: slider doble de 1px con puntos de 9px. El punto más cercano sigue al puntero. */
-export function PriceSlider({ min, max, lo, hi, onChange }: Props) {
+export function PriceSlider({
+  min,
+  max,
+  lo,
+  hi,
+  onChange,
+  variant = "dot",
+  showValue = true,
+}: Props) {
   const track = useRef<HTMLDivElement>(null);
   const span = max - min || 1;
   const pct = (v: number) => ((v - min) / span) * 100;
@@ -75,6 +87,7 @@ export function PriceSlider({ min, max, lo, hi, onChange }: Props) {
       role="slider"
       tabIndex={0}
       className={styles.thumb}
+      data-thumb={which}
       style={{ left: `${pct(value)}%` }}
       aria-label={label}
       aria-valuemin={min}
@@ -86,7 +99,7 @@ export function PriceSlider({ min, max, lo, hi, onChange }: Props) {
   );
 
   return (
-    <div className={styles.slider}>
+    <div className={styles.slider} data-variant={variant}>
       <div ref={track} className={styles.track} onPointerDown={onPointerDown}>
         <span className={styles.rail} aria-hidden="true" />
         <span
@@ -97,9 +110,11 @@ export function PriceSlider({ min, max, lo, hi, onChange }: Props) {
         {thumb("lo", lo, "Precio mínimo")}
         {thumb("hi", hi, "Precio máximo")}
       </div>
-      <span className={styles.value} aria-live="polite">
-        {price(lo)} - {price(hi)}
-      </span>
+      {showValue && (
+        <span className={styles.value} aria-live="polite">
+          {price(lo)} - {price(hi)}
+        </span>
+      )}
     </div>
   );
 }

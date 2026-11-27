@@ -3,7 +3,7 @@ export type Device = "desktop" | "mobile";
 
 export const GRID: Record<Device, { options: readonly number[]; fallback: number }> = {
   desktop: { options: [2, 3, 4, 5, 6], fallback: 4 },
-  mobile: { options: [1, 2, 3], fallback: 2 },
+  mobile: { options: [1, 2], fallback: 2 },
 };
 
 export const gridCookie = (device: Device): string => `emer-grid-${device}`;

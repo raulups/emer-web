@@ -6,6 +6,8 @@ import { APP_PROMPT_KEY } from "@/lib/app-links";
 const SATENIER = "0208bdca-c705-491b-82fa-76123232670b";
 const MAREA = "b13edf90-7c6d-4fe4-9b7f-8d9e0f1a2b3c";
 const bar = (page: Page) => page.getByRole("navigation", { name: "Catálogo" });
+/** Barra + LIMPIAR FILTROS: lo que se esconde con el scroll. */
+const dock = (page: Page) => bar(page).locator("..");
 const prompt = (page: Page) => page.getByRole("dialog", { name: "MEJOR EN LA APP" });
 const products = (page: Page) => page.getByRole("region", { name: "Productos" }).locator("article");
 /** ¿Hay alguna hoja abierta? (aviso de la app o las de la barra). */
@@ -45,23 +47,23 @@ test.describe("móvil", () => {
     await expect(page.getByRole("button", { name: "Menú" })).toHaveCount(0);
     await expect(page.getByRole("complementary", { name: "Menú del catálogo" })).toHaveCount(0);
 
-    // Barra de navegación pegada al borde de abajo, a todo el ancho.
+    // Barra flotante: 16px a los lados, 28px sobre el borde de abajo, 52px de alto.
     const viewport = page.viewportSize();
-    // Espera a que termine de entrar (deslizándose desde abajo).
-    await expect
-      .poll(() => bar(page).evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).f))
-      .toBe(0);
     const box = await bar(page).boundingBox();
     const fromBottom = (viewport?.height ?? 0) - ((box?.y ?? 0) + (box?.height ?? 0));
-    expect(fromBottom).toBe(0);
-    expect(box?.x).toBe(0);
-    expect(box?.width).toBe(viewport?.width);
-    await expect(bar(page).getByRole("button")).toHaveText([
-      "CATEGORÍA",
-      "MARCAS",
-      "FILTROS",
-      "VISTA 2",
-    ]);
+    expect(fromBottom).toBe(28);
+    expect(box?.x).toBe(16);
+    expect(box?.width).toBe((viewport?.width ?? 0) - 32);
+    expect(box?.height).toBe(52);
+    await expect(bar(page)).toHaveCSS("border-radius", "0px");
+    await expect(bar(page).getByRole("button")).toHaveText(["CATEGORÍA", "MARCAS", "FILTROS", ""]);
+    await expect(bar(page).getByRole("button", { name: "Cambiar vista" })).toBeVisible();
+    // Sin filtros: peso normal, sin badge ni LIMPIAR FILTROS.
+    await expect(bar(page).getByRole("button", { name: "FILTROS: NINGUNO" })).toHaveCSS(
+      "font-weight",
+      "400",
+    );
+    await expect(page.getByRole("button", { name: "LIMPIAR FILTROS" })).toHaveCount(0);
     await expect(bar(page).getByRole("button", { name: "CATEGORÍA: TODO" })).toBeVisible();
     await expect(bar(page).getByRole("button", { name: "MARCAS: TODAS" })).toBeVisible();
     await expect(bar(page).getByRole("button", { name: "FILTROS: NINGUNO" })).toBeVisible();
@@ -79,9 +81,9 @@ test.describe("móvil", () => {
     await expect(products(page).first()).toBeVisible();
     await page.evaluate(() => window.scrollTo(0, 300));
     await page.evaluate(() => window.scrollTo(0, 900));
-    await expect(bar(page)).toHaveAttribute("data-hidden", "");
+    await expect(dock(page)).toHaveAttribute("data-hidden", "");
     await page.evaluate(() => window.scrollTo(0, 700));
-    await expect(bar(page)).not.toHaveAttribute("data-hidden", "");
+    await expect(dock(page)).not.toHaveAttribute("data-hidden", "");
   });
 
   test("un toque en la foto abre el popup de la pieza (sin hover que se coma el toque)", async ({
@@ -131,7 +133,10 @@ test.describe("móvil", () => {
     await tile.click();
     await expect.poll(() => isOpen(page)).toBe(false);
     await expect(products(page).first()).toContainText("Camiseta");
-    await expect(bar(page).getByRole("button", { name: /CATEGORÍA/ })).toContainText(/camisetas/i);
+    const category = bar(page).getByRole("button", { name: /CATEGORÍA/ });
+    await expect(category).toHaveAccessibleName(/camisetas/i);
+    await expect(category).toHaveText("CATEGORÍA1");
+    await expect(category).toHaveCSS("font-weight", "700");
   });
 
   test("MARCAS: selección múltiple, VER n cierra y ?brand= se actualiza", async ({ page }) => {
@@ -166,7 +171,7 @@ test.describe("móvil", () => {
     await bar(page)
       .getByRole("button", { name: /FILTROS/ })
       .click();
-    const sheet = page.getByRole("dialog", { name: "FILTROS" });
+    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
     await expect(sheet).toBeVisible();
     await expect(sheet).toHaveCSS("transform", "matrix(1, 0, 0, 1, 0, 0)");
 
@@ -196,14 +201,18 @@ test.describe("móvil", () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(0);
 
     await sheet.getByRole("button", { name: "ÚNICA" }).click();
-    await expect(sheet.getByRole("button", { name: "VER 0" })).toBeVisible();
-    await sheet.getByRole("button", { name: "VER 0" }).click();
+    await expect(sheet.getByRole("button", { name: "VER 0 PIEZAS" })).toBeVisible();
+    await sheet.getByRole("button", { name: "VER 0 PIEZAS" }).click();
     await expect(page.getByRole("heading", { name: "NADA POR AQUÍ" })).toBeVisible();
-    await page.getByRole("button", { name: "Quitar Talla ÚNICA" }).click();
-    await expect(products(page).first()).toContainText("Marea");
+    // Sin chips de filtros activos: se quitan con LIMPIAR FILTROS.
+    await expect(page.getByRole("button", { name: /^Quitar/ })).toHaveCount(0);
+    // Quita todos, también la marca de `?brand=`.
+    await page.getByRole("button", { name: "LIMPIAR FILTROS" }).click();
+    await expect(products(page).first()).toBeVisible();
+    await expect(page).toHaveURL("/web");
   });
 
-  test("productos por fila: 2 → 3 → 1, recordado al volver", async ({ page }) => {
+  test("Cambiar vista: 2 ↔ 1 columnas, recordado al volver", async ({ page }) => {
     await skipPrompt(page);
     await page.goto("/web");
     await expect(products(page).first()).toBeVisible();
@@ -211,14 +220,51 @@ test.describe("móvil", () => {
     const columns = () =>
       grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
     expect(await columns()).toBe(2);
-    const button = bar(page).getByRole("button", { name: /Productos por fila/ });
-    await button.click();
-    await expect.poll(columns).toBe(3);
+    const button = bar(page).getByRole("button", { name: "Cambiar vista" });
+    await expect(button.locator("span")).toHaveCount(2);
     await button.click();
     await expect.poll(columns).toBe(1);
-    await expect(button).toHaveAccessibleName("Productos por fila: 1. Cambiar");
+    await expect(button.locator("span")).toHaveCount(1);
     await page.reload();
     expect(await columns()).toBe(1);
+    await button.click();
+    await expect.poll(columns).toBe(2);
+  });
+
+  test("DESCUENTO: rangos con selección múltiple, badge en FILTROS y LIMPIAR FILTROS", async ({
+    page,
+  }) => {
+    await skipPrompt(page);
+    await page.goto("/web");
+    await expect(products(page).first()).toBeVisible();
+    await bar(page)
+      .getByRole("button", { name: /FILTROS/ })
+      .click();
+    const sheet = page.getByRole("dialog", { name: "[ FILTROS ]" });
+    await expect(sheet.getByRole("heading", { name: "DESCUENTO" })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "SOLO OFERTAS" })).toHaveCount(0);
+    // Los ejemplos rebajan un 23 %: 25–50 % no trae nada, 0–25 % solo lo rebajado.
+    await sheet.getByRole("button", { name: "25–50%" }).click();
+    await expect(sheet.getByRole("button", { name: "VER 0 PIEZAS" })).toBeVisible();
+    await sheet.getByRole("button", { name: "0–25%" }).click();
+    await expect(sheet.getByRole("button", { name: "0–25%" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await expect(sheet.getByRole("button", { name: /^VER [1-9]\d* PIEZAS?$/ })).toBeVisible();
+    await sheet.getByRole("button", { name: /^VER \d+ PIEZAS?$/ }).click();
+    await expect.poll(() => isOpen(page)).toBe(false);
+    const filters = bar(page).getByRole("button", { name: /FILTROS/ });
+    await expect(filters).toHaveAccessibleName("FILTROS: 2 ACTIVOS");
+    await expect(filters).toHaveText("FILTROS2");
+    await expect(products(page).first()).toBeVisible();
+
+    const clear = page.getByRole("button", { name: "LIMPIAR FILTROS" });
+    const [clearBox, barBox] = await Promise.all([clear.boundingBox(), bar(page).boundingBox()]);
+    expect((barBox?.y ?? 0) - ((clearBox?.y ?? 0) + (clearBox?.height ?? 0))).toBe(8);
+    await clear.click();
+    await expect(filters).toHaveAccessibleName("FILTROS: NINGUNO");
+    await expect(clear).toHaveCount(0);
   });
 
   test("[ MARKETPLACE ] sube al principio", async ({ page }) => {

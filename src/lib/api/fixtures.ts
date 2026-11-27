@@ -314,6 +314,7 @@ function productFilters(params: URLSearchParams): { all: Filter; exceptCategory:
   const sizes = params.getAll("size");
   const colors = params.getAll("color");
   const onSale = params.get("on_sale") === "true";
+  const discounts = params.getAll("discount").flatMap((d) => d.split(","));
   const gender = params.get("gender");
   const min = params.has("min_price") ? Number(params.get("min_price")) : null;
   const max = params.has("max_price") ? Number(params.get("max_price")) : null;
@@ -323,6 +324,7 @@ function productFilters(params: URLSearchParams): { all: Filter; exceptCategory:
       (p.sizes ?? []).some((s) => s.available && sizes.includes(s.size_normalized ?? ""))) &&
     (colors.length === 0 || (p.color_name !== null && colors.includes(p.color_name))) &&
     (!onSale || p.is_on_sale) &&
+    (discounts.length === 0 || discounts.some((d) => inDiscount(p, d))) &&
     (!gender || p.gender === gender || p.gender === "unisex" || p.gender == null) &&
     (min === null || (p.current_price ?? 0) >= min) &&
     (max === null || (p.current_price ?? 0) <= max);
@@ -330,6 +332,18 @@ function productFilters(params: URLSearchParams): { all: Filter; exceptCategory:
     exceptCategory,
     all: (p) => exceptCategory(p) && (!categoryId || p.category_id === categoryId),
   };
+}
+
+/** Igual que el backend: (anterior − actual) / anterior · 100, solo con precio anterior mayor. */
+function inDiscount(p: RawProduct, range: string): boolean {
+  const now = p.current_price;
+  const before = p.original_price;
+  if (now == null || before == null || before <= now) return false;
+  const pct = ((before - now) / before) * 100;
+  if (range === "0-25") return pct > 0 && pct < 25;
+  if (range === "25-50") return pct >= 25 && pct < 50;
+  if (range === "50") return pct >= 50;
+  return false;
 }
 
 function count<T>(values: T[]): Map<T, number> {

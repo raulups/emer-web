@@ -22,6 +22,7 @@ function productsQuery(query: ProductsQuery, withBrandIds: boolean): string {
     size: query.sizes,
     color: query.colors,
     on_sale: query.onSale,
+    discount: query.discounts,
     gender: query.gender,
     min_price: query.minPrice,
     max_price: query.maxPrice,
